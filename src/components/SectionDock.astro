@@ -61,9 +61,34 @@ const { sections } = Astro.props;
 
 <script>
   // Highlights the section in view and shows the bar once the first section is reached (not over the hero,
-  // not over the closing part of the page). Re-runs after client-side navigation.
+  // not over the closing part of the page). Clicking a tab scrolls to its section with an eased animation.
+  // Re-runs after client-side navigation.
   let observer: IntersectionObserver | undefined;
   let onScroll: (() => void) | undefined;
+
+  // Eased scroll, with a duration that grows with the distance but stays between 0.45 s and 1.1 s. Any
+  // wheel, touch, key or pointer press by the reader stops it at once.
+  let anim = 0;
+  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  function scrollToY(y: number) {
+    cancelAnimationFrame(anim);
+    const from = window.scrollY;
+    const dist = y - from;
+    if (Math.abs(dist) < 2) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      window.scrollTo(0, y);
+      return;
+    }
+    const dur = Math.min(1100, Math.max(450, 350 + Math.abs(dist) * 0.06));
+    const t0 = performance.now();
+    const step = (now: number) => {
+      const p = Math.min(1, (now - t0) / dur);
+      window.scrollTo(0, from + dist * ease(p));
+      if (p < 1) anim = requestAnimationFrame(step);
+    };
+    anim = requestAnimationFrame(step);
+  }
+  for (const ev of ["wheel", "touchstart", "keydown", "pointerdown"]) window.addEventListener(ev, () => cancelAnimationFrame(anim), { passive: true });
 
   function init() {
     observer?.disconnect();
@@ -72,6 +97,10 @@ const { sections } = Astro.props;
     const dock = document.querySelector<HTMLElement>("[data-ns-nav]");
     const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-ns-nav] [data-section]")];
     if (!dock || !links.length) return;
+    // Inside a board the bar is always shown: the hidden state also switches off pointer events, which made
+    // the tabs impossible to click near the top and the end of a page.
+    const always = document.documentElement.classList.contains("embed");
+    if (always) dock.removeAttribute("data-hidden");
     const targets = links.map((l) => document.getElementById(l.dataset.section!)).filter((s): s is HTMLElement => !!s);
     // Room for the fixed site nav when jumping to a section.
     targets.forEach((s) => {
@@ -98,12 +127,29 @@ const { sections } = Astro.props;
 
     const first = targets[0];
     onScroll = () => {
+      if (always) return;
       const nearEnd = window.innerHeight + window.scrollY > document.documentElement.scrollHeight - 160;
       const show = !!first && first.getBoundingClientRect().top < window.innerHeight * 0.6 && !nearEnd;
       dock.toggleAttribute("data-hidden", !show);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+
+    // Tabs scroll to their section with the eased animation (once per dock, however often init runs).
+    if (!dock.dataset.scrollReady) {
+      dock.dataset.scrollReady = "1";
+      dock.addEventListener("click", (e) => {
+        const a = (e.target as HTMLElement).closest<HTMLAnchorElement>("a[data-section]");
+        const t = a && document.getElementById(a.dataset.section!);
+        if (!a || !t) return;
+        e.preventDefault();
+        const z = Number(document.documentElement.style.zoom || 1);
+        const margin = (parseFloat(getComputedStyle(t).scrollMarginTop) || 0) * z;
+        // Show the choice at once; the scroll observer keeps it in step from there.
+        a.closest("ul")?.querySelectorAll("[data-section]").forEach((l) => l.setAttribute("aria-current", String(l === a)));
+        scrollToY(t.getBoundingClientRect().top + window.scrollY - margin);
+      });
+    }
   }
   init();
   document.addEventListener("astro:page-load", init);
