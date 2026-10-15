@@ -86,7 +86,7 @@ function init() {
   };
 
   // ---- reading an element -------------------------------------------------------------------------
-  const skip = (t: Element | null) => !t || !!t.closest(".bi-layer, .bs-layer, .bn, .ns-dock") || t === root || t === document.body;
+  const skip = (t: Element | null) => !t || !!t.closest(".bi-layer, .bn, .ns-dock") || t === root || t === document.body;
   const px = (v: string) => (v.endsWith("px") ? `${Math.round(parseFloat(v) * 100) / 100}px` : v);
   const four = (t: string, r: string, b: string, l: string) => {
     const a = [t, r, b, l].map(px);
@@ -218,7 +218,7 @@ function init() {
     const max = Math.min(els.length, 5000);
     for (let i = 0; i < max; i++) {
       const el = els[i];
-      if (el.closest(".bi-layer, .bs-layer, .bn")) continue;
+      if (el.closest(".bi-layer, .bn")) continue;
       const cs = getComputedStyle(el);
       const bg = parse(cs.backgroundColor);
       if (bg && bg.a > 0.5) colors.set(bg.hex, (colors.get(bg.hex) ?? 0) + 1);
