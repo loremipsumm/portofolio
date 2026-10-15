@@ -288,7 +288,23 @@ function init() {
       .join("");
     homeBtn.classList.toggle("is-active", state.active === "home");
     tabsEl.querySelector(".is-active")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    // Remembered per browser tab, so a refresh keeps the open files (untitled tabs aren't kept).
+    try {
+      sessionStorage.setItem("fb-session", JSON.stringify({ tabs: state.tabs.filter((id) => byId.has(id)), boards: [...state.board] }));
+    } catch {}
   }
+  // The address bar follows the open file, so refresh, Back/Forward and copied links land in the same place:
+  // /?open=<id> for a board, /?file=<id> for a file's details, / for home.
+  let urlMode: "push" | "replace" | "none" = "replace"; // "replace" until startup is done
+  const urlFor = (id: string) =>
+    id !== "home" && state.board.has(id) ? `${location.pathname}?open=${id}` : id !== "home" && byId.has(id) ? `${location.pathname}?file=${id}` : location.pathname;
+  const syncUrl = () => {
+    if (urlMode === "none") return;
+    const next = urlFor(state.active);
+    if (next === location.pathname + location.search) return;
+    if (urlMode === "push") history.pushState(null, "", next);
+    else history.replaceState(null, "", next);
+  };
   // Project suggestions for an untitled tab: a search field over the projects in list view, newest first.
   function suggestHTML() {
     const rows = [...data.files]
@@ -994,6 +1010,7 @@ function init() {
     }
     renderTabs();
     syncCursors();
+    syncUrl();
   }
   // Open a case study straight as a board (used by notifications), optionally focusing a comment thread.
   let pendingThread: string | null = null;
@@ -1806,11 +1823,35 @@ function init() {
 
   // ---- go ---------------------------------------------------------------------------------------
   qa("[data-fb-edited]").forEach((el) => (el.textContent = editedLabel(el.dataset.fbEdited!)));
-  const want = new URLSearchParams(location.search).get("open");
-  if (want && byId.has(want)) {
-    history.replaceState(null, "", location.pathname);
-    openBoard(want);
+  try {
+    const saved = JSON.parse(sessionStorage.getItem("fb-session") || "null") as { tabs: string[]; boards: string[] } | null;
+    if (saved) {
+      state.tabs = saved.tabs.filter((id) => byId.has(id));
+      saved.boards.filter((id) => state.tabs.includes(id)).forEach((id) => state.board.add(id));
+    }
+  } catch {}
+  const goToUrl = () => {
+    const p = new URLSearchParams(location.search);
+    const board = p.get("open");
+    const file = p.get("file");
+    if (board && byId.has(board)) openBoard(board);
+    else if (file && byId.has(file)) {
+      state.board.delete(file); // a details link shows the details, not the board
+      openFile(file);
+    } else goHome();
+  };
+  {
+    const p = new URLSearchParams(location.search);
+    if (p.has("open") || p.has("file")) goToUrl();
+    else renderTabs();
   }
+  urlMode = "push";
+  // Back/Forward go through the app's own history entries.
+  on(window, "popstate", () => {
+    urlMode = "none";
+    goToUrl();
+    urlMode = "push";
+  });
   renderRecents();
   renderBell();
   syncFavs();
