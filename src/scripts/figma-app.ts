@@ -975,6 +975,40 @@ function init() {
               },
               true,
             );
+            // Remember how far down each project you are (per browser tab, in page px so it survives a zoom
+            // change), and go back there after a refresh or when returning to the tab.
+            const memKey = "fb-scroll";
+            const readMem = (): Record<string, number> => {
+              try {
+                return JSON.parse(sessionStorage.getItem(memKey) || "{}");
+              } catch {
+                return {};
+              }
+            };
+            let saveTimer = 0;
+            win.addEventListener(
+              "scroll",
+              () => {
+                clearTimeout(saveTimer);
+                saveTimer = window.setTimeout(() => {
+                  if (!ifr.offsetHeight) return; // hidden (back on the home page): the browser resets its scroll to 0
+                  try {
+                    const m = readMem();
+                    m[id] = Math.round(win.scrollY / state.zoom);
+                    sessionStorage.setItem(memKey, JSON.stringify(m));
+                  } catch {}
+                }, 120);
+              },
+              { passive: true },
+            );
+            const was = readMem()[id];
+            if (was && !pendingThread) {
+              let touched = false;
+              for (const ev of ["wheel", "touchstart", "keydown", "pointerdown"]) win.addEventListener(ev, () => (touched = true), { once: true, passive: true });
+              const back = () => win.scrollTo({ top: was * state.zoom, behavior: "auto" });
+              back();
+              setTimeout(() => !touched && back(), 900); // images and fonts change the page height after load
+            }
           } catch {}
           try {
             ifr.contentWindow?.addEventListener("keydown", (e: KeyboardEvent) => {
