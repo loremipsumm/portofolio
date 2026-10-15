@@ -304,13 +304,13 @@ function init() {
     const line = tr(a.scene.say ?? "");
     const tag = tr("Example comment");
     a.el.classList.add("is-chatting");
-    await sleep(450); // the bubble opens before the first letter
+    await sleep(300); // the bubble opens before the first letter
     guard(mine);
     for (let i = 1; i <= line.length; i++) {
       a.chat.innerHTML = `${line.slice(0, i).replace(/&/g, "&amp;").replace(/</g, "&lt;")}<small>${tag}</small>`;
       const c = line[i - 1];
-      const beat = /[.,:;!?]/.test(c) ? 260 : c === " " ? 30 : 0;
-      await sleep(52 + Math.random() * 38 + beat);
+      const beat = /[.,:;!?]/.test(c) ? 110 : 0;
+      await sleep(16 + Math.random() * 14 + beat);
       guard(mine);
     }
     await sleep(3000 + line.length * 40);
