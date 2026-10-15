@@ -29,7 +29,7 @@ export interface Scene {
 
 export const scenes: Record<string, Scene[]> = {
   equiteam: [
-    { who: "RC", at: "overview", find: "As a sole developer", mode: "comment", side: "right", y: 0.4, say: "Designer and sole developer, clearly split. Easy to see who owned what." },
+    { who: "RC", at: "overview", find: "As a sole developer", mode: "comment", side: "right", y: 0.4, say: "A sole developer on the build, so design and code are clearly split. Easy to see who owned what." },
     { who: "DL", at: "research", find: "Input needs to be simple, without lowering grouping quality", mode: "comment", side: "left", y: 0.5, say: "Simple input without losing quality is the hard constraint of this product." },
     { who: "HM", at: "edu2com", find: "Why not just solve it exactly?", mode: "select", from: "ne", say: "NP-complete, so a heuristic. Good that the trade-off is explained, not hidden.", react: "👍" },
     { who: "DL", at: "features", find: "These charts were added after round 1", mode: "react", side: "right", y: 0.5, react: "🔥" },

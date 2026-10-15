@@ -199,6 +199,8 @@ const enter = () => document.dispatchEvent(new Event("site:enter"));
 
 if (!reduce && veil) {
   document.addEventListener("astro:before-preparation", (e) => {
+    // The home page is an app with its own navigation (tabs, boards, Back/Forward); no veil over it.
+    if (document.querySelector("[data-fb]")) return;
     const ev = e as Event & { loader: () => Promise<void>; from?: URL; sourceElement?: Element };
     const original = ev.loader;
     const to = (ev as Event & { to?: URL }).to;

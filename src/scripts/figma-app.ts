@@ -304,8 +304,9 @@ function init() {
     if (urlMode === "none") return;
     const next = urlFor(state.active);
     if (next === location.pathname + location.search) return;
-    if (urlMode === "push") history.pushState(null, "", next);
-    else history.replaceState(null, "", next);
+    // intraPage tells Astro's router these entries belong to the page itself, not to a navigation it should perform.
+    if (urlMode === "push") history.pushState({ intraPage: true }, "", next);
+    else history.replaceState({ intraPage: true }, "", next);
   };
   // Project suggestions for an untitled tab: a search field over the projects in list view, newest first.
   function suggestHTML() {
@@ -1842,11 +1843,18 @@ function init() {
   }
   urlMode = "push";
   // Back/Forward go through the app's own history entries.
-  on(window, "popstate", () => {
-    urlMode = "none";
-    goToUrl();
-    urlMode = "push";
-  });
+  // In the capture phase, and stopped there: Astro's router also listens for popstate and would otherwise treat
+  // Back/Forward as a page navigation and play its veil transition ("Rafif Aditya") over the app.
+  window.addEventListener(
+    "popstate",
+    (e) => {
+      e.stopImmediatePropagation();
+      urlMode = "none";
+      goToUrl();
+      urlMode = "push";
+    },
+    { capture: true, signal },
+  );
   renderRecents();
   renderBell();
   syncFavs();

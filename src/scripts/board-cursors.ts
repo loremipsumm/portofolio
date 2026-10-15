@@ -302,12 +302,11 @@ function init() {
   // The line, typed out in cursor chat.
   async function say(a: Actor, mine: number) {
     const line = tr(a.scene.say ?? "");
-    const tag = tr("Example comment");
     a.el.classList.add("is-chatting");
     await sleep(300); // the bubble opens before the first letter
     guard(mine);
     for (let i = 1; i <= line.length; i++) {
-      a.chat.innerHTML = `${line.slice(0, i).replace(/&/g, "&amp;").replace(/</g, "&lt;")}<small>${tag}</small>`;
+      a.chat.innerHTML = `${line.slice(0, i).replace(/&/g, "&amp;").replace(/</g, "&lt;")}`;
       const c = line[i - 1];
       const beat = /[.,:;!?]/.test(c) ? 110 : 0;
       await sleep(16 + Math.random() * 14 + beat);

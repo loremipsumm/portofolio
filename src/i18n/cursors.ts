@@ -1,7 +1,7 @@
 // Indonesian for the reviewer-cursor comments (src/data/cursors.ts), typed out by board-cursors.ts.
 export const cursorsId: Record<string, string> = {
   // EquiTeam
-  "Designer and sole developer, clearly split. Easy to see who owned what.": "Desainer dan satu-satunya developer, pembagiannya jelas. Mudah terlihat siapa memegang apa.",
+  "A sole developer on the build, so design and code are clearly split. Easy to see who owned what.": "Satu-satunya developer di sisi build, jadi desain dan kode terpisah dengan jelas. Mudah terlihat siapa memegang apa.",
   "Simple input without losing quality is the hard constraint of this product.": "Input yang sederhana tanpa menurunkan kualitas adalah batasan tersulit produk ini.",
   "NP-complete, so a heuristic. Good that the trade-off is explained, not hidden.": "NP-complete, jadi dipakai heuristik. Bagus, trade-off-nya dijelaskan, bukan disembunyikan.",
   "Heuristics, SUS and UEQ: three lenses on usability, not one score.": "Heuristik, SUS, dan UEQ: tiga sudut pandang usability, bukan satu skor.",
