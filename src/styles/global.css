@@ -568,9 +568,9 @@ html.embed .ns-dock[data-hidden] ul {
   pointer-events: auto;
 }
 html.embed .ns-dock ul {
-  gap: 2px;
-  padding: 6px;
-  border-radius: 13px;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 999px; /* a full pill */
   background: #fff;
   box-shadow:
     0 0 0 0.5px rgb(0 0 0 / 0.15),
@@ -580,12 +580,19 @@ html.embed .ns-dock ul {
   --tw-ring-shadow: 0 0 #0000;
 }
 html.embed .ns-dock .ns-seg {
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
   font-family: Inter, system-ui, sans-serif;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 500;
+  line-height: 1.4;
   color: #1e1e1e;
+}
+@media (max-width: 719px) {
+  html.embed .ns-dock .ns-seg {
+    padding: 11px 18px;
+    font-size: 14px;
+  }
 }
 html.embed .ns-dock .ns-seg:hover {
   background: #f0f0f0;
