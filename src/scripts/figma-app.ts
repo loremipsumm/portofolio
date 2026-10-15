@@ -124,7 +124,6 @@ function init() {
     board: new Set<string>(), // tabs showing the case study itself as a FigJam board
     zoom: 1,
     notes: store.get("fj-notes") !== "off", // board annotations, collaborators and comments
-    map: store.get("fj-map") ? store.get("fj-map") === "on" : !document.documentElement.classList.contains("lite"), // minimap
   };
   const types = ["All types", ...new Set(data.files.map((f) => f.type))];
   const sorts: [string, string][] = [
@@ -384,7 +383,6 @@ function init() {
       </aside>
       <div class="fj-cursors" data-fj-cursors aria-hidden="true"></div>
       <div class="fj-emotes" data-fj-emotes aria-hidden="true"></div>
-      <div class="fj-map" data-fj-map role="group" aria-label="Minimap: click or drag to move around the page"${state.map ? "" : " hidden"}><div class="fj-map-body" data-fj-map-body></div></div>
       <div class="fj-follow-frame" data-fj-follow-frame hidden>
         <p class="fj-follow-tag"><span class="fj-follow-av">RA</span>Following Rafif Aditya<button data-fj-tour-stop>Stop</button></p>
       </div>
@@ -851,64 +849,6 @@ function init() {
     p.hidden = !open;
     if (open) p.querySelector<HTMLElement>("[data-fj-panel-close]")?.focus();
   };
-  // ---- minimap: the whole page at a glance, one block per section, the visible part outlined ---------
-  // Click or drag on it to move around, like Figma's minimap. Redrawn when the page changes size.
-  const MAP_H = 180;
-  const mapBody = () => fileView.querySelector<HTMLElement>("[data-fj-map-body]");
-  const mapSections = () => {
-    try {
-      return frame()?.contentWindow?.__boardSections;
-    } catch {
-      return undefined;
-    }
-  };
-  function renderMap() {
-    const body = mapBody();
-    const m = mapSections()?.map();
-    if (!body || !m || !m.height) return;
-    const s = MAP_H / m.height;
-    body.innerHTML =
-      m.items.map((it) => `<i style="top:${(it.y * s).toFixed(1)}px;height:${Math.max(4, it.h * s).toFixed(1)}px;--c:${it.color}" title="${esc(it.label)}"></i>`).join("") +
-      `<b class="fj-map-view"></b>`;
-    mapView();
-  }
-  function mapView() {
-    const body = mapBody();
-    const m = mapSections()?.map();
-    const v = body?.querySelector<HTMLElement>(".fj-map-view");
-    if (!m || !v) return;
-    const s = MAP_H / m.height;
-    v.style.top = `${(m.view.y * s).toFixed(1)}px`;
-    v.style.height = `${Math.max(6, m.view.h * s).toFixed(1)}px`;
-  }
-  const toggleMap = () => {
-    state.map = !state.map;
-    store.set("fj-map", state.map ? "on" : "off");
-    const box = fileView.querySelector<HTMLElement>("[data-fj-map]");
-    if (box) box.hidden = !state.map;
-    if (state.map) renderMap();
-  };
-  // Dragging on the minimap moves the page so that the clicked spot is centred.
-  {
-    let dragging = false;
-    const go = (e: PointerEvent) => {
-      const body = mapBody();
-      const m = mapSections()?.map();
-      const win = frame()?.contentWindow;
-      if (!body || !m || !win) return;
-      const y = Math.min(MAP_H, Math.max(0, e.clientY - body.getBoundingClientRect().top));
-      win.scrollTo({ top: (y / MAP_H) * m.height - m.view.h / 2, behavior: "auto" });
-    };
-    on(fileView, "pointerdown", (e: PointerEvent) => {
-      if (!(e.target as HTMLElement).closest("[data-fj-map-body]")) return;
-      dragging = true;
-      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-      go(e);
-    });
-    on(fileView, "pointermove", (e: PointerEvent) => dragging && go(e));
-    on(fileView, "pointerup", () => (dragging = false));
-    on(fileView, "pointercancel", () => (dragging = false));
-  }
   const ZOOMS = [0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5];
   const frame = () => fileView.querySelector<HTMLIFrameElement>(".fj-frame");
   function setZoom(z: number) {
@@ -1017,10 +957,6 @@ function init() {
               },
               true,
             );
-            // Minimap follows the scroll position.
-            win.addEventListener("scroll", () => mapView(), { passive: true });
-            renderMap();
-            setTimeout(renderMap, 1200); // images and fonts change section heights
           } catch {}
           try {
             ifr.contentWindow?.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -1147,7 +1083,6 @@ function init() {
           ...(data.tours[f.id] ? [{ label: "Follow Rafif (guided tour)", run: () => tour.start() }] : []),
           { label: "Dev Mode", run: () => dev.enter() },
           { label: "Show annotations", checked: state.notes, run: () => setNotes(!state.notes) },
-          { label: "Minimap", checked: state.map, run: () => toggleMap() },
           { label: "Comments", run: () => toggleComments(true) },
           ...(data.versions[f.id]?.length ? [{ label: "Version history", run: () => toggleHistory(true) }] : []),
           { sep: true },

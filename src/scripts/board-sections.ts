@@ -1,7 +1,6 @@
 // Section navigation for a case study shown as a home board (html.embed). The sections are the ones in the
 // page's section bar (SectionDock). Nothing is drawn over the page; the host (figma-app.ts) reads
-// window.__boardSections for Present mode and the guided tour (the slide list and jumping), and for the
-// minimap (where every section sits).
+// window.__boardSections for Present mode and the guided tour (the slide list and jumping).
 interface Slide {
   id: string;
   label: string;
@@ -12,16 +11,12 @@ interface SectionsApi {
   current(): number;
   setVisible(on: boolean): void;
   layout(): void;
-  map(): { height: number; items: { label: string; y: number; h: number; color: string }[]; view: { y: number; h: number } };
 }
 declare global {
   interface Window {
     __boardSections?: SectionsApi;
   }
 }
-
-// One colour per section, for the minimap blocks.
-const COLORS = ["#9747ff", "#0d99ff", "#14ae5c", "#ffa629", "#f24822", "#ff24bd"];
 
 function init() {
   const root = document.documentElement;
@@ -66,18 +61,6 @@ function init() {
     // Kept so the host can call them; there is nothing drawn to show, hide or reposition any more.
     setVisible: () => {},
     layout: () => {},
-    // Physical px (same units as scrollY), for the host's minimap.
-    map() {
-      const sy = window.scrollY;
-      return {
-        height: document.documentElement.scrollHeight,
-        items: items.map((it, i) => {
-          const r = it.el.getBoundingClientRect();
-          return { label: it.label, y: r.top + sy, h: r.height, color: COLORS[i % COLORS.length] };
-        }),
-        view: { y: sy, h: window.innerHeight },
-      };
-    },
   };
 }
 

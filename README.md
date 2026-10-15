@@ -20,6 +20,6 @@ pnpm preview    # serve the build
 | `src/data/annotations.ts` | Sticky notes, stickers, comment threads and cursor chat on each board |
 | `src/data/versions.ts`, `src/data/tours.ts` | Version history entries and the "Follow Rafif" tour steps |
 | `src/data/site.ts`, `cases.ts`, `profile.ts` | Site info, the text case studies and the CV data used in the account dialog |
-| `src/scripts/board-notes.ts`, `board-sections.ts`, `board-inspect.ts` | Run inside a case page when it is shown as a board: annotations and comment mode, section navigation (Present, tour, minimap), Dev Mode |
+| `src/scripts/board-notes.ts`, `board-sections.ts`, `board-inspect.ts` | Run inside a case page when it is shown as a board: annotations and comment mode, section navigation (Present, tour), Dev Mode |
 
 Content for each case study comes from the case study page itself; keep the data files in sync when a page changes.
