@@ -1,6 +1,8 @@
 // FigJam-style annotations shown on each case study, only inside the home board (?embed): sticky notes,
 // stickers and comment threads, plus what the fake collaborators say in cursor chat.
-// Every fact here is taken from the case study page itself; the reviewers' questions are prompts for it.
+// Every fact here is taken from the case study page itself. The reviewers (Recruiter, Hiring Manager, Design Lead),
+// their questions and the cursor chat are EXAMPLES written for this portfolio, not real comments, and the UI says so.
+// They carry no timestamps for the same reason.
 // Placement: `at` is a section id on that page (or "hero" for the first section); `side` picks the left or
 // right margin of the content column (see global.css); `y` is px down from the section's top (stickers use a
 // negative y so they straddle the section's top edge, over its padding).
@@ -53,15 +55,15 @@ export const boards: Record<string, Board> = {
       {
         id: "sbkd-1", at: "case", side: "left", y: 96,
         messages: [
-          { by: "HM", ago: "2d", text: "How did you keep 13 tabs consistent?" },
-          { by: "RA", ago: "2d", text: "One page template with the same five data distributions on every tab, and chart components with their states built in. Developers build it once and fill it 13 times." },
+          { by: "HM", ago: "", text: "How did you keep 13 tabs consistent?" },
+          { by: "RA", ago: "", text: "One page template with the same five data distributions on every tab, and chart components with their states built in. Developers build it once and fill it 13 times." },
         ],
       },
       {
         id: "sbkd-2", at: "sprints", side: "left", y: 96,
         messages: [
-          { by: "DL", ago: "1d", text: "How could QA test the design without going back to the developers?" },
-          { by: "RA", ago: "1d", text: "Every user story carried acceptance criteria and a definition of done, so QA could check a story on its own." },
+          { by: "DL", ago: "", text: "How could QA test the design without going back to the developers?" },
+          { by: "RA", ago: "", text: "Every user story carried acceptance criteria and a definition of done, so QA could check a story on its own." },
         ],
       },
     ],
@@ -83,25 +85,25 @@ export const boards: Record<string, Board> = {
       {
         id: "eq-1", at: "evaluation", side: "left", y: 80,
         messages: [
-          { by: "RC", ago: "3d", text: "How did you evaluate it?" },
-          { by: "RA", ago: "3d", text: "Two rounds. Each had a heuristic review by three product designers, plus SUS and UEQ with ten real users running task scenarios." },
+          { by: "RC", ago: "", text: "How did you evaluate it?" },
+          { by: "RA", ago: "", text: "Two rounds. Each had a heuristic review by three product designers, plus SUS and UEQ with ten real users running task scenarios." },
         ],
       },
       {
         id: "eq-3", at: "edu2com", side: "left", y: 96,
         messages: [
-          { by: "HM", ago: "2d", text: "How does the algorithm actually decide the teams?" },
-          { by: "RA", ago: "2d", text: "Edu2Com treats every student as an agent with skills, a personality, a gender and preferences. It scores any candidate team with one number, collegiality: a weighted sum of skill coverage, personality and gender diversity, motivation for the task, and cohesion." },
-          { by: "RA", ago: "2d", text: "Then it searches: it fills the hardest tasks first (the ones fewest students can cover), and keeps swapping members between teams while the score improves. It's an anytime search, so it can stop at any point and still return the best teams found so far." },
-          { by: "DL", ago: "1d", text: "Why not just solve it exactly?" },
-          { by: "RA", ago: "1d", text: "Giving every student one team is NP-complete, so an exact solver stalls as classes grow. In the thesis, Edu2Com matched the exact solver's best result on synthetic tests, far faster." },
+          { by: "HM", ago: "", text: "How does the algorithm actually decide the teams?" },
+          { by: "RA", ago: "", text: "Edu2Com treats every student as an agent with skills, a personality, a gender and preferences. It scores any candidate team with one number, collegiality: a weighted sum of skill coverage, personality and gender diversity, motivation for the task, and cohesion." },
+          { by: "RA", ago: "", text: "Then it searches: it fills the hardest tasks first (the ones fewest students can cover), and keeps swapping members between teams while the score improves. It's an anytime search, so it can stop at any point and still return the best teams found so far." },
+          { by: "DL", ago: "", text: "Why not just solve it exactly?" },
+          { by: "RA", ago: "", text: "Giving every student one team is NP-complete, so an exact solver stalls as classes grow. In the thesis, Edu2Com matched the exact solver's best result on synthetic tests, far faster." },
         ],
       },
       {
         id: "eq-2", at: "features", side: "left", y: 96,
         messages: [
-          { by: "DL", ago: "1d", text: "Where did the analysis charts come from?" },
-          { by: "RA", ago: "1d", text: "Teams were technically balanced in round 1, but testers couldn't say why. The analysis charts and MBTI icons came from that gap." },
+          { by: "DL", ago: "", text: "Where did the analysis charts come from?" },
+          { by: "RA", ago: "", text: "Teams were technically balanced in round 1, but testers couldn't say why. The analysis charts and MBTI icons came from that gap." },
         ],
       },
     ],
@@ -122,15 +124,15 @@ export const boards: Record<string, Board> = {
       {
         id: "sia-1", at: "flow", side: "left", y: 90,
         messages: [
-          { by: "HM", ago: "2d", text: "Why number every requirement?" },
-          { by: "RA", ago: "2d", text: "It made reviews with TDG fast. “Is 09.05 in?” beats “is the green thing done?”" },
+          { by: "HM", ago: "", text: "Why number every requirement?" },
+          { by: "RA", ago: "", text: "It made reviews with TDG fast. “Is 09.05 in?” beats “is the green thing done?”" },
         ],
       },
       {
         id: "sia-2", at: "takeaways", side: "left", y: 90,
         messages: [
-          { by: "DL", ago: "1d", text: "Why keep the interface so grey?" },
-          { by: "RA", ago: "1d", text: "Keeping the chrome grey let orange (audit), green (control) and red (unbalanced) do real work." },
+          { by: "DL", ago: "", text: "Why keep the interface so grey?" },
+          { by: "RA", ago: "", text: "Keeping the chrome grey let orange (audit), green (control) and red (unbalanced) do real work." },
         ],
       },
     ],
@@ -151,15 +153,15 @@ export const boards: Record<string, Board> = {
       {
         id: "satya-1", at: "test", side: "left", y: 90,
         messages: [
-          { by: "RC", ago: "2d", text: "How did you test it?" },
-          { by: "RA", ago: "2d", text: "Five testers per round ran five scenarios and answered the 10-question System Usability Scale. Two rounds took it from marginal to acceptable." },
+          { by: "RC", ago: "", text: "How did you test it?" },
+          { by: "RA", ago: "", text: "Five testers per round ran five scenarios and answered the 10-question System Usability Scale. Two rounds took it from marginal to acceptable." },
         ],
       },
       {
         id: "satya-2", at: "iterate", side: "left", y: 90,
         messages: [
-          { by: "DL", ago: "1d", text: "Did the feedback actually change the screens?" },
-          { by: "RA", ago: "1d", text: "Six suggestions, six fixes. Each card shows the screen before and after." },
+          { by: "DL", ago: "", text: "Did the feedback actually change the screens?" },
+          { by: "RA", ago: "", text: "Six suggestions, six fixes. Each card shows the screen before and after." },
         ],
       },
     ],
@@ -180,15 +182,15 @@ export const boards: Record<string, Board> = {
       {
         id: "tt-1", at: "delivery", side: "left", y: 90,
         messages: [
-          { by: "HM", ago: "2d", text: "Did you only design the app?" },
-          { by: "RA", ago: "2d", text: "I designed the flows and UI, then built the Android client myself, so nothing was lost in handoff." },
+          { by: "HM", ago: "", text: "Did you only design the app?" },
+          { by: "RA", ago: "", text: "I designed the flows and UI, then built the Android client myself, so nothing was lost in handoff." },
         ],
       },
       {
         id: "tt-2", at: "reflection", side: "left", y: 90,
         messages: [
-          { by: "DL", ago: "1d", text: "What would you do next?" },
-          { by: "RA", ago: "1d", text: "This project leaned on secondary research. Next I would interview teachers directly and usability-test the prompt cards before shipping more topics." },
+          { by: "DL", ago: "", text: "What would you do next?" },
+          { by: "RA", ago: "", text: "This project leaned on secondary research. Next I would interview teachers directly and usability-test the prompt cards before shipping more topics." },
         ],
       },
     ],
@@ -208,8 +210,8 @@ export const boards: Record<string, Board> = {
       {
         id: "bw-1", at: "work", side: "left", y: 90,
         messages: [
-          { by: "RC", ago: "1d", text: "What does your role cover?" },
-          { by: "RA", ago: "1d", text: "User research, requirement analysis, user flows, wireframing, prototyping and interface design across all three products." },
+          { by: "RC", ago: "", text: "What does your role cover?" },
+          { by: "RA", ago: "", text: "User research, requirement analysis, user flows, wireframing, prototyping and interface design across all three products." },
         ],
       },
     ],
@@ -229,8 +231,8 @@ export const boards: Record<string, Board> = {
       {
         id: "ggf-1", at: "work", side: "left", y: 90,
         messages: [
-          { by: "DL", ago: "1d", text: "How did you hand off to the engineers?" },
-          { by: "RA", ago: "1d", text: "Product documentation and handoff materials for a China-based engineering team that had limited access to business users." },
+          { by: "DL", ago: "", text: "How did you hand off to the engineers?" },
+          { by: "RA", ago: "", text: "Product documentation and handoff materials for a China-based engineering team that had limited access to business users." },
         ],
       },
     ],

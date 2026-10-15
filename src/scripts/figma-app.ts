@@ -379,6 +379,7 @@ function init() {
       </aside>
       <aside class="fj-comments" data-fj-comments-panel aria-label="Comments" hidden>
         <header class="fj-panel-head"><b>Comments</b><button class="fj-btn" data-fj-comments-close aria-label="Close comments">${icon("close", 14)}</button></header>
+        <p class="fj-cmt-note">Example questions and reactions, written for this portfolio. Your own comments stay in this browser.</p>
         <div class="fj-comments-body" data-fj-comments-list></div>
       </aside>
       <div class="fj-cursors" data-fj-cursors aria-hidden="true"></div>
@@ -432,7 +433,7 @@ function init() {
             const [first, ...rest] = t.messages;
             return `<button class="fj-cmt${t.resolved ? " is-resolved" : ""}" data-fj-thread="${esc(t.id)}">
               <span class="fj-cmt-av" style="background:${first.color}">${esc(first.initials)}</span>
-              <span class="fj-cmt-body"><span class="fj-cmt-meta"><b>${esc(first.name)}</b><span>${esc(first.ago)}${t.resolved ? " · Resolved" : ""}</span></span>
+              <span class="fj-cmt-body"><span class="fj-cmt-meta"><b>${esc(first.name)}</b><span>${esc([first.ago || (first.initials === "Y" ? "" : "Example"), t.resolved ? "Resolved" : ""].filter(Boolean).join(" · "))}</span></span>
               <span class="fj-cmt-text">${esc(first.text)}</span>
               ${rest.map((m) => `<span class="fj-cmt-reply"><b>${esc(m.name)}</b> ${esc(m.text)}</span>`).join("")}</span></button>`;
           })
@@ -1375,11 +1376,11 @@ function init() {
   };
   on(q("[data-fb-bell]"), "click", (e: MouseEvent) => {
     const btn = e.currentTarget as HTMLElement;
-    const items: MenuItem[] = [{ html: `<p class="fb-inbox-head">Notifications</p>` }];
+    const items: MenuItem[] = [{ html: `<p class="fb-inbox-head">Notifications<small>Example questions, written for this portfolio</small></p>` }];
     if (!data.inbox.length) items.push({ html: `<p class="fb-inbox-empty">Nothing new.</p>` });
     for (const n of data.inbox) {
       items.push({
-        html: `<span class="fb-nt${seen.has(n.thread) ? "" : " is-new"}"><span class="fb-nt-av" style="background:${esc(n.color)}">${esc(n.initials)}</span><span class="fb-nt-text"><span><b>${esc(n.name)}</b> commented on <b>${esc(n.title)}</b></span><small>${esc(n.text)}</small><em>${esc(n.ago)} ago</em></span></span>`,
+        html: `<span class="fb-nt${seen.has(n.thread) ? "" : " is-new"}"><span class="fb-nt-av" style="background:${esc(n.color)}">${esc(n.initials)}</span><span class="fb-nt-text"><span><b>${esc(n.name)}</b> (example) on <b>${esc(n.title)}</b></span><small>${esc(n.text)}</small></span></span>`,
         run: () => openBoard(n.file, n.thread),
       });
     }

@@ -175,10 +175,10 @@ function init() {
     const pin = document.createElement("button");
     pin.className = `bn bn-pin${read.includes(t.id) ? "" : " is-unread"}`;
     pin.style.setProperty("--bn-c", data.people[first.by].color);
-    pin.setAttribute("aria-label", `Comment from ${who(first.by).name}: ${first.text} ${replyText}. Open thread.`);
+    pin.setAttribute("aria-label", `Example question from ${who(first.by).name}: ${first.text} ${replyText}. Open thread.`);
     pin.setAttribute("aria-expanded", "false");
     pin.innerHTML = `<span>${esc(who(first.by).initials)}</span>${n ? `<b>${n}</b>` : ""}<i class="bn-dot" aria-hidden="true"></i>
-      <span class="bn-peek" aria-hidden="true"><span class="bn-peek-meta"><b>${esc(who(first.by).name)}</b><span>${esc(first.ago)}</span></span>
+      <span class="bn-peek" aria-hidden="true"><span class="bn-peek-meta"><b>${esc(who(first.by).name)}</b><span>${esc(first.ago || "Example question")}</span></span>
       <span class="bn-peek-text">${esc(first.text)}</span><span class="bn-peek-cta">${esc(replyText)} · Click to open</span></span>`;
     if (!place(pin, t.at, t.side, t.y)) return;
     pins.set(t.id, pin);
@@ -220,13 +220,14 @@ function init() {
   }
 
   function renderThread(id: string) {
-    return `<header><b>Comment</b><span class="bn-spacer"></span>
+    const example = !id.startsWith("mine-");
+    return `<header><b>${example ? "Example question" : "Comment"}</b><span class="bn-spacer"></span>
         <button data-bn-resolve title="Resolve" aria-label="Resolve comment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg></button>
         <button data-bn-close title="Close" aria-label="Close comment"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
       <ol>${threadMsgs(id)
         .map((m) => {
           const p = who(m.by);
-          return `<li>${avatar(m.by)}<div><p class="bn-meta"><b>${esc(p.name)}</b><span>${esc(m.ago)}</span></p><p>${esc(m.text)}</p></div></li>`;
+          return `<li>${avatar(m.by)}<div><p class="bn-meta"><b>${esc(p.name)}</b>${m.ago ? `<span>${esc(m.ago)}</span>` : ""}</p><p>${esc(m.text)}</p></div></li>`;
         })
         .join("")}</ol>
       <form data-bn-reply>${avatar("YOU")}<input type="text" placeholder="Reply" aria-label="Reply" autocomplete="off" /><button type="submit" aria-label="Send reply" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></form>`;

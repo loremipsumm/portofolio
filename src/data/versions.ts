@@ -12,8 +12,8 @@ export const versions: Record<string, Version[]> = {
   equiteam: [
     {
       title: "Final design",
-      meta: "After testing round 2",
-      summary: "The tested design, finished for hand-off with the flows a real semester needs.",
+      meta: "Hand-off",
+      summary: "The finished design for hand-off, with the flows a real semester needs.",
       changes: [
         "Hover tooltips with exact numbers on every analysis chart",
         "Lecturers confirm their role with a token",
