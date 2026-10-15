@@ -150,6 +150,11 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
             <input type="search" placeholder="Search" aria-label="Search files" data-fb-search autocomplete="off" />
             <kbd>⌘K</kbd>
           </div>
+          <!-- Recents: the files opened last, remembered in this browser (filled by figma-app.ts) -->
+          <div class="fb-recents" data-fb-recents hidden>
+            <p class="fb-recents-head">Recents</p>
+            <div class="fb-recents-list" data-fb-recents-list></div>
+          </div>
           <div class="fb-teams">
           <button class="fb-team-head fb-all" data-fb-area="">
             <span class="fb-team-ico" set:html={icon("folder", 16)} />
@@ -676,6 +681,29 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
     margin: 18px 0;
     background: var(--fb-border);
     flex: none;
+  }
+  .fb-recents {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--fb-border);
+  }
+  .fb-recents[hidden] {
+    display: none;
+  }
+  .fb-recents-head {
+    padding: 0 8px 4px;
+    color: var(--fb-text2);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .fb-recents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .fb-recents .fb-item {
+    height: 30px;
+    font-weight: 400;
   }
   .fb-team-head {
     display: flex;
@@ -1952,6 +1980,160 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
   }
   .fj--dark .fj-vlist > li:not(:last-child)::before {
     background: #444;
+  }
+
+  /* Dev Mode inspector: reuses the comments panel's frame; rows are click-to-copy like Figma's inspect panel. */
+  .fj-dev-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 4px 12px 16px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .fj-dev[hidden] {
+    display: none;
+  }
+  .fj-dv-hint {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0 4px !important;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f5f5f5;
+    color: #444;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+  }
+  .fj-dv-hint svg {
+    flex: none;
+    margin-top: 2px;
+  }
+  .fj-dv-layer {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 12px 0 2px;
+    min-width: 0;
+  }
+  .fj-dv-layer b {
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #e5f4ff;
+    color: #0d99ff;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .fj-dv-layer span {
+    overflow: hidden;
+    color: #757575;
+    font-size: 12px;
+    font-weight: 400;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fj-dv-group {
+    padding: 12px 0 4px;
+    border-bottom: 1px solid #ececec;
+  }
+  .fj-dv-group:last-child {
+    border-bottom: 0;
+  }
+  .fj-dv-group h4 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #757575;
+  }
+  .fj-dv-group dl {
+    margin: 0;
+  }
+  .fj-dv-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    padding: 5px 6px;
+    margin: 0 -6px;
+    border-radius: 5px;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: left;
+  }
+  .fj-dv-row:hover,
+  .fj-dv-color:hover {
+    background: #f0f0f0;
+  }
+  .fj-dv-row dt {
+    flex: none;
+    width: 92px;
+    color: #757575;
+    font-weight: 400;
+  }
+  .fj-dv-row dd {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-weight: 500;
+  }
+  .fj-dv-sw {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+  }
+  .fj-dv-colors {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px 8px;
+  }
+  .fj-dv-color {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .fj-dv-copy {
+    padding: 2px 8px;
+    border-radius: 5px;
+    background: #0d99ff !important;
+    color: #fff !important;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .fj-dv-code {
+    margin: 0;
+    padding: 10px;
+    overflow-x: auto;
+    border-radius: 8px;
+    background: #1e1e1e;
+    color: #e6e6e6;
+    font: 11px/1.55 ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    tab-size: 2;
+  }
+  .fj--dark .fj-dv-hint,
+  .fj--dark .fj-dv-row:hover,
+  .fj--dark .fj-dv-color:hover {
+    background: rgba(255, 255, 255, 0.07);
+  }
+  .fj--dark .fj-dv-hint {
+    color: #d9d9d9;
+  }
+  .fj--dark .fj-dv-group {
+    border-color: #444;
+  }
+  .fj--dark :is(.fj-dv-layer span, .fj-dv-group h4, .fj-dv-row dt) {
+    color: #b3b3b3;
   }
 
   /* Collaborators: cursors over the board, and cursor chat (the name pill becomes the message). */

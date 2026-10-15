@@ -4,6 +4,7 @@
 import { navigate } from "astro:transitions/client";
 import { icon } from "./figma-icons";
 import { editedLabel } from "./edited";
+import type { InspectInfo, Tokens } from "./board-inspect";
 
 interface FileItem {
   id: string;
@@ -345,6 +346,7 @@ function init() {
         <button class="fj-btn fj-icon" data-fj-emote aria-label="Send an emote" aria-haspopup="menu" title="Emote"><span aria-hidden="true">😊</span></button>
         <button class="fj-btn fj-icon" data-fj-comment-mode aria-label="Add comment" aria-pressed="false" title="Add comment (C)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V11a8 8 0 1 1 8 8H6z"/><path d="M12 7.5v7M8.5 11h7"/></svg></button>
         <button class="fj-btn fj-icon" data-fj-comments aria-label="Comments" aria-pressed="false" title="Comments">${icon("chat", 16)}<b class="fj-count" data-fj-count hidden></b></button>
+        <button class="fj-btn fj-icon" data-fj-dev aria-label="Dev Mode" aria-pressed="false" title="Dev Mode (Shift+D)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></button>
         <button class="fj-btn fj-present" data-fj-present title="Present (Ctrl+Alt+Enter)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg><span>Present</span></button>
         <button class="fj-share" data-fj-share>Share</button>
         <button class="fj-btn fj-zoom" data-fj-zoom aria-haspopup="menu" aria-label="Zoom"><span data-fj-zoom-label>${Math.round(state.zoom * 100)}%</span>${icon("chevron", 12)}</button>
@@ -366,6 +368,10 @@ function init() {
             </button></li>`,
           )
           .join("")}</ol>
+      </aside>
+      <aside class="fj-comments fj-dev" data-fj-dev-panel aria-label="Dev Mode inspector" hidden>
+        <header class="fj-panel-head"><b>Dev Mode</b><button class="fj-btn" data-fj-dev-close aria-label="Exit Dev Mode">${icon("close", 14)}</button></header>
+        <div class="fj-dev-body" data-fj-dev-body></div>
       </aside>
       <aside class="fj-comments" data-fj-comments-panel aria-label="Comments" hidden>
         <header class="fj-panel-head"><b>Comments</b><button class="fj-btn" data-fj-comments-close aria-label="Close comments">${icon("close", 14)}</button></header>
@@ -434,6 +440,7 @@ function init() {
     const p = historyPanel();
     if (!p) return;
     if (open && commentsPanel() && !commentsPanel()!.hidden) toggleComments(false);
+    if (open && dev.on) dev.exit();
     p.hidden = !open;
     fileView.querySelector("[data-fj-history]")?.setAttribute("aria-pressed", String(open));
     if (open) p.querySelector<HTMLElement>("[data-fj-history-close]")?.focus();
@@ -456,6 +463,7 @@ function init() {
     const p = commentsPanel();
     if (!p) return;
     if (open && historyPanel() && !historyPanel()!.hidden) toggleHistory(false);
+    if (open && dev.on) dev.exit();
     p.hidden = !open;
     fileView.querySelector("[data-fj-comments]")?.setAttribute("aria-pressed", String(open));
     if (open) {
@@ -473,6 +481,7 @@ function init() {
   on(window, "message", (e: MessageEvent) => {
     if (e.origin !== location.origin) return;
     if (e.data?.type === "board-notes") renderComments();
+    if (e.data?.type === "board-dev-exit") dev.exit();
     if (e.data?.type === "board-comment-mode") {
       fileView.querySelector("[data-fj-comment-mode]")?.setAttribute("aria-pressed", String(!!e.data.on));
       if (e.data.on) {
@@ -670,6 +679,7 @@ function init() {
       const win = ifr?.contentWindow;
       if (active || !win || !steps().length) return;
       if (present.on) present.exit();
+      if (dev.on) dev.exit();
       active = true;
       closeMenu();
       el("[data-fj]")!.classList.add("is-following");
@@ -771,6 +781,7 @@ function init() {
       e.stopPropagation();
     };
     function enter() {
+      if (dev.on) dev.exit();
       const el = fj();
       const win = frame()?.contentWindow;
       if (!el || !win || active || !sections()) return;
@@ -857,6 +868,7 @@ function init() {
     homeView.hidden = !home;
     fileView.hidden = home;
     root.classList.toggle("is-board", board);
+    dev.exit();
     present.exit();
     tour.stop();
     boardFx.stop();
@@ -871,6 +883,13 @@ function init() {
           boardApi()?.setVisible(state.notes);
           try {
             ifr.contentWindow?.addEventListener("keydown", (e: KeyboardEvent) => {
+              const inField = /^(input|textarea|select)$/i.test((e.target as HTMLElement)?.tagName ?? "");
+              if (e.shiftKey && !inField && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "d") {
+                e.preventDefault();
+                if (dev.on) dev.exit();
+                else dev.enter();
+                return;
+              }
               if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === "k" || e.key === "/")) {
                 e.preventDefault();
                 quick.open();
@@ -885,7 +904,23 @@ function init() {
     renderTabs();
     syncCursors();
   }
+  // Recents: the last few files opened, newest first, remembered in this browser.
+  let recent: string[] = [];
+  try {
+    recent = (JSON.parse(store.get("fb-recent") || "[]") as string[]).filter((id) => byId.has(id));
+  } catch {}
+  const renderRecents = () => {
+    const box = q("[data-fb-recents]");
+    box.hidden = recent.length === 0;
+    q("[data-fb-recents-list]").innerHTML = recent
+      .slice(0, 3)
+      .map((id) => `<a class="fb-item" href="${esc(byId.get(id)!.href)}" data-fb-open="${esc(id)}">${icon("file")}<span>${esc(byId.get(id)!.title)}</span></a>`)
+      .join("");
+  };
   const openFile = (id: string) => {
+    recent = [id, ...recent.filter((x) => x !== id)].slice(0, 5);
+    store.set("fb-recent", JSON.stringify(recent));
+    renderRecents();
     if (!state.tabs.includes(id)) state.tabs.push(id);
     activate(id);
     closeDrawer();
@@ -950,6 +985,7 @@ function init() {
           { label: "Open as full page", icon: "external", href: f.href },
           { sep: true },
           ...(data.tours[f.id] ? [{ label: "Follow Rafif (guided tour)", run: () => tour.start() }] : []),
+          { label: "Dev Mode", run: () => dev.enter() },
           { label: "Show annotations", checked: state.notes, run: () => setNotes(!state.notes) },
           { label: "Comments", run: () => toggleComments(true) },
           ...(data.versions[f.id]?.length ? [{ label: "Version history", run: () => toggleHistory(true) }] : []),
@@ -1097,7 +1133,11 @@ function init() {
       else zoomStep(e.key === "-" ? -1 : 1);
       return;
     }
-    if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === "k" || e.key === "/")) {
+    if (state.board.has(state.active) && e.shiftKey && !typing && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "d") {
+      e.preventDefault();
+      if (dev.on) dev.exit();
+      else dev.enter();
+    } else if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === "k" || e.key === "/")) {
       e.preventDefault();
       quick.open();
     } else if ((e.key === "c" || e.key === "C") && !typing && !e.metaKey && !e.ctrlKey && !e.altKey && state.board.has(state.active)) {
@@ -1108,6 +1148,7 @@ function init() {
       focusSearch();
     } else if (e.key === "Escape") {
       if (!menuEl.hidden) closeMenu();
+      else if (dev.on) dev.exit();
       else if (panel() && !panel()!.hidden) togglePanel(false);
       else if (commentsPanel() && !commentsPanel()!.hidden) toggleComments(false);
       else if (historyPanel() && !historyPanel()!.hidden) toggleHistory(false);
@@ -1357,6 +1398,132 @@ function init() {
   ).observe(root);
   on(document, "visibilitychange", syncCursors);
 
+  // ---- Dev Mode: inspect the case study like Figma's Dev Mode (see board-inspect.ts) ----------------
+  // Annotations and section frames step aside, the board goes to 100%, and clicking any element shows its
+  // size, layout, type, colours and CSS in a panel; with nothing selected the panel lists the page's tokens.
+  const dev = (() => {
+    let active = false;
+    let prevZoom = 1;
+    let css = "";
+    let tokens: Tokens | null = null;
+    const inspect = () => {
+      try {
+        return frame()?.contentWindow?.__boardInspect;
+      } catch {
+        return undefined;
+      }
+    };
+    const sectionsApi = () => {
+      try {
+        return frame()?.contentWindow?.__boardSections;
+      } catch {
+        return undefined;
+      }
+    };
+    const panelEl = () => fileView.querySelector<HTMLElement>("[data-fj-dev-panel]");
+    const bodyEl = () => fileView.querySelector<HTMLElement>("[data-fj-dev-body]");
+    const sw = (hex?: string) => (hex ? `<i class="fj-dv-sw" style="background:${esc(hex)}"></i>` : "");
+
+    const renderTokens = () => {
+      const b = bodyEl();
+      if (!b) return;
+      css = "";
+      const t = tokens;
+      b.innerHTML = `<p class="fj-dv-hint">${icon("search", 14)}<span>Click any element on the page to inspect it. Values are read from what is drawn.</span></p>
+        ${
+          t
+            ? `<section class="fj-dv-group"><h4>Colours in this case study</h4><div class="fj-dv-colors">${t.colors
+                .map((c) => `<button class="fj-dv-color" data-copy="${esc(c.hex)}" title="Copy ${esc(c.hex)}">${sw(c.hex)}<span>${esc(c.hex)}</span></button>`)
+                .join("")}</div></section>
+              <section class="fj-dv-group"><h4>Typography</h4><dl>${t.fonts
+                .map((f) => `<button class="fj-dv-row" data-copy="${esc(f.family)}"><dt>Family</dt><dd>${esc(f.family)}</dd></button>`)
+                .join("")}<button class="fj-dv-row" data-copy="${t.sizes.map((s) => s.size + "px").join(", ")}"><dt>Sizes</dt><dd>${t.sizes.map((s) => s.size).join(" · ")}</dd></button></dl></section>`
+            : `<p class="fj-dv-hint"><span>Reading the page…</span></p>`
+        }`;
+    };
+    const renderInfo = (i: InspectInfo) => {
+      const b = bodyEl();
+      if (!b) return;
+      css = i.css;
+      b.innerHTML = `<div class="fj-dv-layer"><b>${esc(i.tag)}</b>${i.text ? `<span>${esc(i.text)}</span>` : ""}</div>
+        ${i.groups
+          .map(
+            (g) => `<section class="fj-dv-group"><h4>${esc(g.title)}</h4><dl>${g.rows
+              .map((r) => `<button class="fj-dv-row" data-copy="${esc(r.v)}" title="Copy"><dt>${esc(r.k)}</dt><dd>${sw(r.swatch)}${esc(r.v)}</dd></button>`)
+              .join("")}</dl></section>`,
+          )
+          .join("")}
+        <section class="fj-dv-group"><h4>Code <button class="fj-dv-copy" data-fj-dv-copycss>Copy CSS</button></h4><pre class="fj-dv-code"><code>${esc(i.css)}</code></pre></section>`;
+      b.scrollTop = 0;
+    };
+
+    function enter() {
+      const insp = inspect();
+      if (!insp || active) return;
+      present.exit();
+      tour.stop();
+      boardApi()?.commentMode(false);
+      toggleHistory(false);
+      toggleComments(false);
+      closeMenu();
+      active = true;
+      prevZoom = state.zoom;
+      setZoom(1); // measurements are read at 100%
+      boardApi()?.setVisible(false);
+      sectionsApi()?.setVisible(false);
+      boardFx.cursors(false);
+      insp.enable(true);
+      insp.onSelect = (info) => (info ? renderInfo(info) : renderTokens());
+      const p = panelEl();
+      if (p) p.hidden = false;
+      renderTokens();
+      fileView.querySelector("[data-fj-dev]")?.setAttribute("aria-pressed", "true");
+      if (!tokens) {
+        const run = () => {
+          tokens = insp.tokens();
+          if (active && !css) renderTokens();
+        };
+        if ("requestIdleCallback" in window) requestIdleCallback(run, { timeout: 800 });
+        else setTimeout(run, 50);
+      }
+      frame()?.contentWindow?.focus();
+    }
+    function exit() {
+      if (!active) return;
+      active = false;
+      css = "";
+      const insp = inspect();
+      insp?.enable(false);
+      if (insp) insp.onSelect = null;
+      const p = panelEl();
+      if (p) p.hidden = true;
+      fileView.querySelector("[data-fj-dev]")?.setAttribute("aria-pressed", "false");
+      setZoom(prevZoom);
+      boardApi()?.setVisible(state.notes);
+      sectionsApi()?.setVisible(true);
+      sectionsApi()?.layout();
+      boardFx.cursors(state.notes);
+    }
+    on(fileView, "click", (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (t.closest("[data-fj-dev]")) active ? exit() : enter();
+      if (t.closest("[data-fj-dev-close]")) {
+        exit();
+        fileView.querySelector<HTMLElement>("[data-fj-dev]")?.focus();
+      }
+      if (t.closest("[data-fj-dv-copycss]")) copy(css, "CSS copied");
+      const c = t.closest<HTMLElement>("[data-copy]");
+      if (c && panelEl()?.contains(c)) copy(c.dataset.copy!, `Copied ${c.dataset.copy!.slice(0, 40)}`);
+    });
+    return {
+      enter,
+      exit,
+      get on() {
+        return active;
+      },
+    };
+  })();
+
   // ---- quick actions: one palette for files and actions (Cmd/Ctrl+K, Ctrl+/) ----------------------
   const quickDlg = q<HTMLDialogElement>("[data-fb-qa]");
   const quick = (() => {
@@ -1374,6 +1541,7 @@ function init() {
       if (f && state.board.has(f.id)) {
         a.push({ group: "This file", icon: "chevronRight", label: "Present", keys: "Ctrl Alt Enter", run: () => present.enter() });
         if (data.tours[f.id]) a.push({ group: "This file", icon: "user", label: "Follow Rafif (guided tour)", run: () => tour.start() });
+        a.push({ group: "This file", icon: "settings", label: "Dev Mode", keys: "Shift D", run: () => dev.enter() });
         if (data.versions[f.id]?.length) a.push({ group: "This file", icon: "list", label: "Version history", run: () => toggleHistory(true) });
         a.push(
           { group: "This file", icon: "chat", label: "Add a comment", keys: "C", run: () => boardApi()?.commentMode(true) },
@@ -1511,6 +1679,7 @@ function init() {
 
   // ---- go ---------------------------------------------------------------------------------------
   qa("[data-fb-edited]").forEach((el) => (el.textContent = editedLabel(el.dataset.fbEdited!)));
+  renderRecents();
   syncFavs();
   applyFilters();
   renderTabs();

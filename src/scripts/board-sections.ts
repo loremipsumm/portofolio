@@ -50,7 +50,7 @@ function init() {
     f.style.setProperty("--bs-line", line);
     f.style.setProperty("--bs-tab", tab);
     f.style.setProperty("--bs-ink", ink);
-    f.innerHTML = `<span class="bs-title">${it.label.replace(/[<>&]/g, "")}</span>`;
+    f.innerHTML = `<span class="bs-title">${it.label.replace(/[<>&]/g, "")}</span><span class="bs-size"></span>`;
     layer.append(f);
     return f;
   });
@@ -77,6 +77,49 @@ function init() {
     });
   };
   layout();
+
+  // Hovering a section outlines it in blue and shows its size, like hovering a frame in Figma. The pointer
+  // is compared with each section's real box (so it works at any board zoom), once per animation frame.
+  let hovered = -1;
+  let ticking = false;
+  let px = -1;
+  let py = -1;
+  const setHover = (i: number) => {
+    if (i === hovered) return;
+    if (hovered >= 0) frames[hovered].classList.remove("is-hover");
+    hovered = i;
+    if (i < 0) return;
+    const b = box(items[i].el);
+    frames[i].classList.add("is-hover");
+    frames[i].querySelector(".bs-size")!.textContent = `${Math.round(b.w)} × ${Math.round(b.h)}`;
+  };
+  const pick = () => {
+    ticking = false;
+    let hit = -1;
+    for (let i = 0; i < items.length; i++) {
+      const r = items[i].el.getBoundingClientRect();
+      if (px >= r.left && px <= r.right && py >= r.top && py <= r.bottom) {
+        hit = i;
+        break;
+      }
+    }
+    setHover(hit);
+  };
+  window.addEventListener(
+    "pointermove",
+    (e) => {
+      if (e.pointerType === "touch") return;
+      px = e.clientX;
+      py = e.clientY;
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(pick);
+      }
+    },
+    { passive: true },
+  );
+  document.documentElement.addEventListener("pointerleave", () => setHover(-1));
+  window.addEventListener("scroll", () => !ticking && px >= 0 && ((ticking = true), requestAnimationFrame(pick)), { passive: true });
   window.addEventListener("resize", layout);
   window.addEventListener("load", layout);
   document.fonts?.ready.then(layout);

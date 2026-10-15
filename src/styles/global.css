@@ -1070,6 +1070,37 @@ html.bs-off .bs-layer {
 /* Present mode (figma-app.ts): just the case study, no section bar or annotations. */
 html.embed.present .ns-dock,
 html.embed.present .bn,
+/* Hover: FigJam/Figma's blue frame outline, a blue title tab and the size badge at the bottom. */
+.bs-frame {
+  transition: border-color 0.12s;
+}
+.bs-frame.is-hover {
+  border-color: #0d99ff;
+}
+.bs-frame.is-hover .bs-title {
+  border-color: #0d99ff;
+  background: #0d99ff;
+  color: #fff;
+}
+.bs-size {
+  position: absolute;
+  bottom: -13px;
+  left: 50%;
+  display: none;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #0d99ff;
+  color: #fff;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.bs-frame.is-hover .bs-size {
+  display: block;
+}
 html.embed.present .bs-layer {
   display: none !important;
 }
@@ -1124,4 +1155,62 @@ html.bn-commenting :is(.bn-pin, .bn-thread, .bn-thread *) {
   padding: 0 14px 12px;
   color: #757575;
   font-size: 11px;
+}
+
+/* Dev Mode on a board (board-inspect.ts): hover and selection outlines with sizes, in document coordinates. */
+.bi-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 45;
+  pointer-events: none;
+}
+.bi-hover,
+.bi-sel {
+  position: absolute;
+  display: none;
+  box-sizing: border-box;
+}
+.bi-hover {
+  border: 1.5px solid #0d99ff;
+  background: rgba(13, 153, 255, 0.08);
+}
+.bi-sel {
+  border: 2px solid #0d99ff;
+}
+.bi-sel i {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid #0d99ff;
+  background: #fff;
+}
+.bi-sel i:nth-of-type(1) { top: -5px; left: -5px; }
+.bi-sel i:nth-of-type(2) { top: -5px; right: -5px; }
+.bi-sel i:nth-of-type(3) { bottom: -5px; left: -5px; }
+.bi-sel i:nth-of-type(4) { bottom: -5px; right: -5px; }
+.bi-size {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-top: 6px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #0d99ff;
+  color: #fff;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+html.embed.bi-on .bs-layer,
+html.embed.bi-on .bn,
+html.embed.present .bi-layer {
+  display: none !important;
+}
+html.bi-on,
+html.bi-on * {
+  cursor: default !important;
 }
