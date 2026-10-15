@@ -1,0 +1,127 @@
+---
+// "Page not found": the designed 404 (public/error.svg). The picture is the whole page; the "Kembali ke
+// Halaman Utama" button in it is only drawn, so an invisible link sits exactly over it. It is built to
+// 404.html, which Vercel serves for any unknown address.
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#ff0000" />
+    <link rel="icon" type="image/svg+xml" href="/webicon.svg" />
+    <title>404 · Halaman tidak ditemukan</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #ff0000; /* the same red as the picture, so any letterboxing is invisible */
+      }
+      body {
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      /* The picture is 1440 x 1024: as large as fits the window, never cropped. */
+      .stage {
+        position: relative;
+        width: min(100vw, calc(100svh * 1440 / 1024));
+        aspect-ratio: 1440 / 1024;
+      }
+      .stage img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      /* The button in the picture: x 539.5, y 768, 361 x 60, radius 30 (in its 1440 x 1024 canvas). */
+      .home {
+        position: absolute;
+        left: 37.465%;
+        top: 75%;
+        width: 25.07%;
+        height: 5.86%;
+        border-radius: 999px;
+      }
+      .home:hover {
+        background: rgb(0 0 0 / 0.06);
+      }
+      .home:focus-visible {
+        outline: 3px solid #0a0d12;
+        outline-offset: 3px;
+      }
+
+      /* Phones: the picture's own text would be about 5px, so show only its artwork (the 404 and the mascot,
+         x 180-1260, y 120-600 of the 1440 x 1024 canvas, a little wider than the artwork itself) and set the
+         message and button as real text. */
+      .small {
+        display: none;
+      }
+      @media (max-width: 700px) {
+        .stage {
+          display: none;
+        }
+        .small {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 28px;
+          width: 100%;
+          color: #fff;
+          font-family: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
+          text-align: center;
+        }
+        .art {
+          width: 100vw;
+          height: 44.4vw;
+          overflow: hidden;
+        }
+        .art img {
+          display: block;
+          width: 133.3vw; /* 1080 canvas units fill the screen width */
+          max-width: none;
+          margin: -11.1vw 0 0 -16.7vw;
+        }
+        .small p {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0 24px;
+          max-width: 24rem;
+          font-size: 1.0625rem;
+          font-weight: 600;
+          line-height: 1.45;
+        }
+        .small a {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          min-height: 48px;
+          padding: 0 26px;
+          border-radius: 999px;
+          background: #fafdf6;
+          color: #0a0d12;
+          font-size: 0.9375rem;
+          font-weight: 700;
+          text-decoration: none;
+        }
+        .small a:focus-visible {
+          outline: 3px solid #0a0d12;
+          outline-offset: 3px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <img src="/error.svg" alt="404. Halaman ini tidak lagi tersedia atau telah dihapus. Kamu bisa kembali ke halaman utama untuk melanjutkan." />
+      <a class="home" href="/" aria-label="Kembali ke Halaman Utama"></a>
+    </main>
+    <div class="small">
+      <div class="art"><img src="/error.svg" alt="" /></div>
+      <p>Halaman ini tidak lagi tersedia atau telah dihapus. Jangan khawatir, kamu bisa kembali ke halaman utama untuk melanjutkan.</p>
+      <a href="/">← Kembali ke Halaman Utama</a>
+    </div>
+  </body>
+</html>
