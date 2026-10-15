@@ -1167,8 +1167,8 @@ html.fj-panning * {
   cursor: grabbing !important;
 }
 
-/* Reviewer cursors on a board (src/scripts/board-cursors.ts). Each sits by the block it discusses, selects it
-   with a marquee and a frame, chats and reacts. They live in the page, so they scroll and zoom with it. */
+/* Reviewer cursors on a board (src/scripts/board-cursors.ts). Each waits by the block it discusses, then selects it
+   with a Figma-style marquee, or comments, or reacts. They live in the page, so they scroll and zoom with it. */
 .bc-layer {
   position: absolute;
   left: 0;
@@ -1186,7 +1186,7 @@ html.embed.present .bc-layer,
 html.embed.bi-on .bc-layer {
   display: none !important;
 }
-@media (max-width: 899px) {
+@media (max-width: 759px) {
   .bc-layer {
     display: none;
   }
@@ -1195,20 +1195,28 @@ html.embed.bi-on .bc-layer {
   position: absolute;
   left: 0;
   top: 0;
-  transition: transform var(--bc-t, 0ms) cubic-bezier(0.45, 0, 0.2, 1);
   will-change: transform;
 }
+/* Waiting: just the pointer, small and faint, so it never hides text. */
 .bc-ptr {
   display: block;
   filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.25));
-  animation: bc-idle 3.6s ease-in-out infinite;
+  opacity: 0.55;
+  scale: 0.85;
+  transform-origin: 2px 2px;
+  transition:
+    opacity 0.2s,
+    scale 0.2s;
 }
-@keyframes bc-idle {
-  50% {
-    translate: 3px 4px;
-  }
+.bc-cur.is-active .bc-ptr {
+  opacity: 1;
+  scale: 1;
+}
+.bc-cur.is-down .bc-ptr {
+  scale: 0.8;
 }
 .bc-name {
+  display: none;
   position: absolute;
   left: 14px;
   top: 14px;
@@ -1221,17 +1229,20 @@ html.embed.bi-on .bc-layer {
   line-height: 16px;
   white-space: nowrap;
 }
+.bc-cur.is-active .bc-name {
+  display: block;
+}
 .bc-chat {
   position: absolute;
   left: 14px;
   top: 14px;
   width: max-content;
-  max-width: 250px;
-  padding: 7px 10px 6px;
+  max-width: 230px;
+  padding: 6px 10px 5px;
   border-radius: 4px 12px 12px 12px;
   background: var(--bc);
   color: #fff;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.35;
   box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
@@ -1257,7 +1268,7 @@ html.embed.bi-on .bc-layer {
 .bc-cur.is-chatting .bc-name {
   display: none;
 }
-/* Near the right edge the label and bubble open to the left of the pointer. */
+/* The chip and the bubble open away from the block: to the left near the right edge, upwards below a block. */
 .bc-cur.is-left .bc-name,
 .bc-cur.is-left .bc-chat {
   left: auto;
@@ -1265,80 +1276,105 @@ html.embed.bi-on .bc-layer {
   transform-origin: 100% 0;
   border-radius: 12px 4px 12px 12px;
 }
-/* The drag: a dashed rectangle in the person's colour. */
+.bc-cur.is-up .bc-name,
+.bc-cur.is-up .bc-chat {
+  top: auto;
+  bottom: 14px;
+  transform-origin: 0 100%;
+}
+.bc-cur.is-up.is-left .bc-chat {
+  transform-origin: 100% 100%;
+}
+/* The drag: a thin solid rectangle with a light fill, and its size, like Figma's marquee. */
 .bc-marq {
   position: absolute;
   box-sizing: border-box;
-  border: 1.5px dashed var(--bc);
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--bc) 8%, transparent);
+  border: 1px solid var(--bc);
+  background: color-mix(in srgb, var(--bc) 7%, transparent);
   opacity: 0;
-  clip-path: inset(0 0 0 0);
-  transition:
-    clip-path 0.65s cubic-bezier(0.45, 0, 0.2, 1),
-    opacity 0.12s;
+  transition: opacity 0.1s;
 }
 .bc-marq.is-on {
   opacity: 1;
 }
-/* The result: a selection frame with four corner handles and the person's name. */
+/* The result: a selection frame with four corner handles, the person's name and the size. */
 .bc-sel {
   position: absolute;
   box-sizing: border-box;
-  border: 2px solid var(--bc);
-  border-radius: 3px;
+  border: 1.5px solid var(--bc);
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.25s;
 }
 .bc-sel.is-on {
   opacity: 1;
-  animation: bc-select 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+  animation: bc-select 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 @keyframes bc-select {
   from {
-    outline: 6px solid color-mix(in srgb, var(--bc) 30%, transparent);
+    outline: 5px solid color-mix(in srgb, var(--bc) 28%, transparent);
+    scale: 1.006;
   }
   to {
     outline: 0 solid transparent;
+    scale: 1;
   }
 }
 .bc-sel i {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   box-sizing: border-box;
   border: 1.5px solid var(--bc);
-  border-radius: 2px;
   background: #fff;
+  scale: 0;
 }
-.bc-sel i:nth-child(1) {
-  left: -5px;
-  top: -5px;
+.bc-sel.is-on i {
+  scale: 1;
+  transition: scale 0.25s cubic-bezier(0.2, 1.6, 0.4, 1) 0.1s;
 }
-.bc-sel i:nth-child(2) {
-  right: -5px;
-  top: -5px;
+.bc-sel i:nth-of-type(1) {
+  left: -4.5px;
+  top: -4.5px;
 }
-.bc-sel i:nth-child(3) {
-  left: -5px;
-  bottom: -5px;
+.bc-sel i:nth-of-type(2) {
+  right: -4.5px;
+  top: -4.5px;
 }
-.bc-sel i:nth-child(4) {
-  right: -5px;
-  bottom: -5px;
+.bc-sel i:nth-of-type(3) {
+  left: -4.5px;
+  bottom: -4.5px;
 }
-.bc-sel span {
+.bc-sel i:nth-of-type(4) {
+  right: -4.5px;
+  bottom: -4.5px;
+}
+.bc-tag {
   position: absolute;
-  left: -2px;
-  bottom: calc(100% + 4px);
-  padding: 1px 7px;
+  left: -1.5px;
+  bottom: calc(100% - 1px);
+  padding: 1px 6px;
+  border-radius: 4px 4px 0 0;
+  background: var(--bc);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 15px;
+  white-space: nowrap;
+}
+.bc-dim {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 7px);
+  translate: -50% 0;
+  padding: 1px 6px;
   border-radius: 4px;
   background: var(--bc);
   color: #fff;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  line-height: 16px;
+  line-height: 15px;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 /* Emote: floats up from the cursor and fades. */
 .bc-emo {
@@ -1364,12 +1400,6 @@ html.embed.bi-on .bc-layer {
     scale: 1;
   }
 }
-
-/* Holds the page back while an Indonesian visitor's page is being translated (scripts/i18n.ts removes the class). */
-html.i18n-pending body {
-  opacity: 0;
-}
-
 /* A ring that spreads from a cursor that "clicks" (react mode). */
 .bc-ping {
   position: absolute;
@@ -1391,4 +1421,9 @@ html.i18n-pending body {
     opacity: 0;
     scale: 2.2;
   }
+}
+
+/* Holds the page back while an Indonesian visitor's page is being translated (scripts/i18n.ts removes the class). */
+html.i18n-pending body {
+  opacity: 0;
 }

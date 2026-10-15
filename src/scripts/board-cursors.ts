@@ -1,10 +1,13 @@
 // Reviewer cursors on a case study shown as a home board (html.embed). Each cursor belongs to one part of the page
 // (src/data/cursors.ts) and acts when that part scrolls into view, in one of three ways so they do not all look alike:
-//   select   a marquee drag from a chosen corner, a selection frame with handles, then its line in cursor chat
-//   comment  goes to a spot beside the block and only says its line
-//   react    goes to a spot on the block and only drops an emote
-// Nothing follows the reader. Cursors live in the page, so they scroll and zoom with it. Positions are document px
-// taken from the offset chain (same as board-sections.ts), which the board's html zoom does not affect.
+//   select   a marquee drag from a chosen corner (the rectangle follows the cursor, with a live size label as in Figma),
+//            then a selection frame with handles, then its line in cursor chat
+//   comment  goes to a spot outside the block and only says its line
+//   react    goes to a spot outside the block and only drops an emote
+// A cursor heads for its block before the reader gets there, so it is already waiting when the block comes into
+// view. Bubbles open away from the block they talk about, never over it. Cursors live in the page, so they scroll
+// and zoom with it. Positions are document px taken from the offset chain (same as board-sections.ts), which the
+// board's html zoom does not affect.
 import type { Scene } from "../data/cursors";
 
 type Data = { people: Record<string, { name: string; color: string }>; scenes?: Scene[] };
@@ -15,8 +18,10 @@ interface Box {
   h: number;
 }
 type Corner = "nw" | "ne" | "sw" | "se";
+type Face = { h: "r" | "l"; v: "d" | "u" }; // which way the name chip and the bubble open
 interface Actor {
   scene: Scene;
+  idx: number;
   el: HTMLElement; // cursor with name chip and chat bubble
   chat: HTMLElement;
   marq: HTMLElement;
@@ -25,25 +30,23 @@ interface Actor {
   box: Box | null;
   x: number; // where the cursor is, document px
   y: number;
+  mv: number; // id of the latest move; an older one stops when a newer one starts
+  primed: boolean; // already heading for (or waiting at) its starting spot
   end: Corner | null; // the corner a select scene is holding the cursor on
   playedAt: number;
   seenOut: boolean;
 }
 
-const PLAY_AGAIN_MS = 45000;
+const PLAY_AGAIN_MS = 15000;
+const START_AT = 0.3; // how much of a block must be on screen before its scene starts
+const DROP_AT = 0.08; // below this the scene is dropped
 const MIN_W = 240;
 const MIN_H = 70;
 const MAX_W = 1300; // the content column is 1200 wide, so full-width rows are fine; MAX_H keeps whole sections out
 const MAX_H = 640;
+const ROOM = 260; // width a bubble needs
 const CANCEL = Symbol("cancel");
 const OPPOSITE: Record<Corner, Corner> = { nw: "se", ne: "sw", sw: "ne", se: "nw" };
-// A rectangle collapsed onto the corner the drag starts from.
-const COLLAPSED: Record<Corner, string> = {
-  nw: "inset(0 100% 100% 0)",
-  ne: "inset(0 0 100% 100%)",
-  sw: "inset(100% 100% 0 0)",
-  se: "inset(100% 0 0 100%)",
-};
 
 function init() {
   const root = document.documentElement;
@@ -108,7 +111,7 @@ function init() {
   const pointer = (c: string) =>
     `<svg class="bc-ptr" width="18" height="18" viewBox="0 0 16 16"><path d="M2 1.5 13.5 7l-4.8 1.6L6.8 13.5z" fill="${c}" stroke="#fff" stroke-width="1"/></svg>`;
 
-  const actors: Actor[] = data.scenes.map((scene) => {
+  const actors: Actor[] = data.scenes.map((scene, idx) => {
     const p = data.people[scene.who];
     const mk = (cls: string, html = "") => {
       const d = document.createElement("div");
@@ -118,39 +121,91 @@ function init() {
       layer.append(d);
       return d;
     };
-    const marq = mk("bc-marq");
-    const sel = mk("bc-sel", `<i></i><i></i><i></i><i></i><span>${p.name}</span>`);
+    const marq = mk("bc-marq", `<span class="bc-dim"></span>`);
+    const sel = mk("bc-sel", `<i></i><i></i><i></i><i></i><span class="bc-tag">${p.name}</span><span class="bc-dim"></span>`);
     const el = mk("bc-cur", `${pointer(p.color)}<span class="bc-name">${p.name}</span><div class="bc-chat"></div>`);
-    return { scene, el, chat: el.querySelector<HTMLElement>(".bc-chat")!, marq, sel, target: null, box: null, x: 0, y: 0, end: null, playedAt: 0, seenOut: true };
+    return { scene, idx, el, chat: el.querySelector<HTMLElement>(".bc-chat")!, marq, sel, target: null, box: null, x: 0, y: 0, mv: 0, primed: false, end: null, playedAt: 0, seenOut: true };
   });
 
   const modeOf = (a: Actor) => a.scene.mode ?? "select";
   const clampX = (x: number) => Math.max(8, Math.min(x, viewW() - 130));
-  const place = (a: Actor, x: number, y: number, ms = 0) => {
+  const face = (a: Actor, f: Face) => {
+    a.el.classList.toggle("is-left", f.h === "l");
+    a.el.classList.toggle("is-up", f.v === "u");
+  };
+  const setPos = (a: Actor, x: number, y: number) => {
     a.x = x;
     a.y = y;
-    a.el.style.setProperty("--bc-t", `${ms}ms`);
     a.el.style.transform = `translate(${x}px, ${y}px)`;
-    a.el.classList.toggle("is-left", x > viewW() - 300);
   };
-  // Move and return how long it takes (longer for a longer way, within limits).
-  const glide = (a: Actor, x: number, y: number) => {
-    const ms = Math.round(Math.min(900, Math.max(350, Math.hypot(x - a.x, y - a.y) * 0.8)));
-    place(a, x, y, ms);
-    return ms + 40;
-  };
+
+  // Moves the cursor like a hand would: along a slight curve, easing in and out. A newer move replaces an older one.
+  // With `mine` it throws CANCEL if the scene is dropped meanwhile; `line` is a straight drag; `frame` sees every step.
+  function move(a: Actor, x: number, y: number, ms: number, o: { mine?: number; line?: boolean; frame?: (x: number, y: number) => void } = {}) {
+    const id = ++a.mv;
+    const x0 = a.x,
+      y0 = a.y;
+    const dx = x - x0,
+      dy = y - y0;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 1 || ms <= 0) {
+      setPos(a, x, y);
+      o.frame?.(x, y);
+      return Promise.resolve();
+    }
+    const bow = o.line ? 0 : Math.min(60, dist * 0.12) * (a.idx % 2 ? 1 : -1);
+    const cx = (x0 + x) / 2 - (dy / dist) * bow;
+    const cy = (y0 + y) / 2 + (dx / dist) * bow;
+    return new Promise<void>((res, rej) => {
+      const t0 = performance.now();
+      const step = (now: number) => {
+        if (o.mine !== undefined && o.mine !== epoch) return rej(CANCEL);
+        if (a.mv !== id) return res();
+        const t = Math.min(1, (now - t0) / ms);
+        const k = o.line ? (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2) : t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const u = 1 - k;
+        const px = u * u * x0 + 2 * u * k * cx + k * k * x;
+        const py = u * u * y0 + 2 * u * k * cy + k * k * y;
+        setPos(a, px, py);
+        o.frame?.(px, py);
+        if (t < 1) requestAnimationFrame(step);
+        else res();
+      };
+      requestAnimationFrame(step);
+    });
+  }
+  const travel = (a: Actor, x: number, y: number) => Math.round(Math.min(900, Math.max(320, Math.hypot(x - a.x, y - a.y) * 0.7)));
+
   const corner = (b: Box, c: Corner) => ({ x: b.x + (c === "ne" || c === "se" ? b.w : 0), y: b.y + (c === "sw" || c === "se" ? b.h : 0) });
-  // Where a cursor waits: below its block, on the side away from where it will act.
+  // Where a cursor waits when it has nothing to do: just outside its block, in the gap below it.
   const parkOf = (a: Actor, b: Box) => {
-    const mode = modeOf(a);
-    const toRight = mode === "select" ? a.scene.from !== "ne" && a.scene.from !== "se" : a.scene.side !== "right";
-    return { x: clampX(toRight ? b.x + b.w - 36 : b.x + 36), y: b.y + b.h + 8 };
+    const toRight = modeOf(a) === "select" ? a.scene.from !== "ne" && a.scene.from !== "se" : a.scene.side !== "right";
+    return { x: clampX(toRight ? b.x + b.w - 20 : b.x + 24), y: b.y + b.h + 12 };
   };
-  // Where a comment or a reaction happens: on one side of the block, part-way down.
-  const anchorOf = (a: Actor, b: Box) => ({
-    x: clampX(a.scene.side === "left" ? b.x + 30 : b.x + b.w - 30),
-    y: b.y + b.h * (a.scene.y ?? 0.4),
-  });
+  // Where a comment or a reaction happens, always outside the block: in the margin beside it when there is room for
+  // the bubble, otherwise in the gap below (right-hand scenes) or above (left-hand scenes).
+  const anchorOf = (a: Actor, b: Box): Face & { x: number; y: number } => {
+    const spaceR = viewW() - (b.x + b.w);
+    const spaceL = b.x;
+    const y = b.y + b.h * (a.scene.y ?? 0.4);
+    const order = a.scene.side === "left" ? (["left", "right"] as const) : (["right", "left"] as const);
+    for (const side of order) {
+      if (side === "right" && spaceR >= ROOM) return { x: b.x + b.w + 10, y, h: "r", v: "d" };
+      if (side === "left" && spaceL >= ROOM) return { x: b.x - 10, y, h: "l", v: "d" };
+    }
+    if (a.scene.side === "left") return { x: clampX(b.x + 40), y: b.y - 8, h: "r", v: "u" };
+    const x = clampX(b.x + b.w - 120);
+    return { x, y: b.y + b.h + 10, h: viewW() - x < ROOM ? "l" : "r", v: "d" };
+  };
+  // Where a cursor stands while it waits for the reader: a little short of where it will act.
+  const primeOf = (a: Actor, b: Box) => {
+    if (modeOf(a) === "select") {
+      const c = corner(b, a.scene.from ?? "nw");
+      return { x: c.x + (c.x > b.x ? 30 : -30), y: c.y + (c.y > b.y ? 24 : -24) };
+    }
+    const p = anchorOf(a, b);
+    return { x: clampX(p.x + (p.h === "r" ? 90 : -90)), y: p.y + 36 };
+  };
 
   const playing = new Set<Actor>();
   const measure = (a: Actor) => {
@@ -158,6 +213,7 @@ function init() {
     a.box = a.target ? boxOf(a.target) : null;
     return a.box;
   };
+  const home = (a: Actor, b: Box) => (a.primed ? primeOf(a, b) : parkOf(a, b));
 
   // Where each block is. Run again whenever the page reflows (images load, window resizes, zoom, language).
   function layout() {
@@ -165,20 +221,32 @@ function init() {
       measure(a);
       a.el.hidden = a.sel.hidden = a.marq.hidden = !a.box;
       if (a.box && !playing.has(a)) {
-        const k = parkOf(a, a.box);
-        place(a, k.x, k.y);
+        const k = home(a, a.box);
+        a.mv++;
+        setPos(a, k.x, k.y);
       }
     }
+  }
+
+  // Draws the rectangle between two points, with its size label (Figma shows the size while you drag and once selected).
+  function setRect(el: HTMLElement, p: { x: number; y: number }, q: { x: number; y: number }) {
+    const w = Math.abs(q.x - p.x);
+    const h = Math.abs(q.y - p.y);
+    Object.assign(el.style, { left: `${Math.min(p.x, q.x)}px`, top: `${Math.min(p.y, q.y)}px`, width: `${w}px`, height: `${h}px` });
+    const dim = el.querySelector<HTMLElement>(".bc-dim");
+    if (dim) dim.textContent = `${Math.round(w)} × ${Math.round(h)}`;
   }
 
   // Keeps a selection that is on screen glued to its block when the block changes size (a language switch, an image).
   function track(a: Actor) {
     const b = measure(a);
     if (!b) return;
-    for (const r of [a.sel, a.marq]) Object.assign(r.style, { left: `${b.x}px`, top: `${b.y}px`, width: `${b.w}px`, height: `${b.h}px` });
+    const p = { x: b.x, y: b.y };
+    const q = { x: b.x + b.w, y: b.y + b.h };
+    setRect(a.sel, p, q);
     if (a.end) {
       const k = corner(b, a.end);
-      place(a, k.x, k.y, 200);
+      void move(a, k.x, k.y, 200);
     }
   }
 
@@ -192,13 +260,15 @@ function init() {
 
   function reset(a: Actor) {
     a.end = null;
-    a.el.classList.remove("is-chatting");
+    a.primed = false;
+    a.el.classList.remove("is-chatting", "is-active", "is-down");
     a.chat.textContent = "";
     a.marq.classList.remove("is-on");
     a.sel.classList.remove("is-on");
+    face(a, { h: "r", v: "d" });
     if (a.box) {
       const k = parkOf(a, a.box);
-      place(a, k.x, k.y, 600);
+      void move(a, k.x, k.y, 600);
     }
   }
 
@@ -236,10 +306,10 @@ function init() {
     a.el.classList.add("is-chatting");
     for (let i = 1; i <= line.length; i++) {
       a.chat.innerHTML = `${line.slice(0, i).replace(/&/g, "&amp;").replace(/</g, "&lt;")}<small>${tag}</small>`;
-      await sleep(26);
+      await sleep(22);
       guard(mine);
     }
-    await sleep(2400 + line.length * 28);
+    await sleep(2200 + line.length * 26);
     guard(mine);
   }
 
@@ -252,55 +322,55 @@ function init() {
     a.seenOut = false;
     try {
       const mode = modeOf(a);
+      a.el.classList.add("is-active");
       if (mode === "select") {
         const from = a.scene.from ?? "nw";
         const to = OPPOSITE[from];
-        // 1. glide to the corner the drag starts from
         const s = corner(b, from);
-        await sleep(glide(a, s.x - 2, s.y - 2));
-        guard(mine);
-        // 2. drag a marquee to the opposite corner: the rectangle opens from that corner as the cursor travels
-        track(a);
-        a.marq.style.clipPath = COLLAPSED[from];
-        a.marq.classList.add("is-on");
-        await sleep(40);
-        guard(mine);
-        a.marq.style.clipPath = "inset(0 0 0 0)";
         const e = corner(b, to);
-        place(a, e.x, e.y, 650);
-        a.end = to;
-        await sleep(700);
+        // 1. up to the corner the drag starts from, press the mouse
+        await move(a, s.x, s.y, a.primed ? 280 : travel(a, s.x, s.y), { mine });
+        a.el.classList.add("is-down");
+        await sleep(110);
         guard(mine);
-        // 3. release: the marquee becomes a selection frame with handles
+        // 2. drag to the opposite corner: the rectangle is drawn between the start and the cursor, as in Figma
+        face(a, { h: viewW() - e.x < ROOM ? "l" : "r", v: e.y > b.y + b.h / 2 ? "d" : "u" });
+        setRect(a.marq, s, s);
+        a.marq.classList.add("is-on");
+        a.end = to;
+        await move(a, e.x, e.y, 560, { mine, line: true, frame: (x, y) => setRect(a.marq, s, { x, y }) });
+        // 3. release: the marquee gives way to a selection frame with handles and its size
+        a.el.classList.remove("is-down");
+        setRect(a.sel, { x: b.x, y: b.y }, { x: b.x + b.w, y: b.y + b.h });
         a.marq.classList.remove("is-on");
         a.sel.classList.add("is-on");
-        await sleep(350);
+        await sleep(240);
         guard(mine);
         // 4. say it, then react
         if (a.scene.say) await say(a, mine);
         if (a.scene.react) {
           emote(a, a.scene.react);
-          await sleep(1400);
+          await sleep(1300);
           guard(mine);
         }
       } else {
-        // comment / react: go to a spot beside or on the block
+        // comment / react: walk to a spot outside the block
         const p = anchorOf(a, b);
-        await sleep(glide(a, p.x, p.y));
-        guard(mine);
+        face(a, p);
+        await move(a, p.x, p.y, a.primed ? 420 : travel(a, p.x, p.y), { mine });
         if (mode === "comment") {
           if (a.scene.say) await say(a, mine);
           if (a.scene.react) emote(a, a.scene.react);
         } else {
           ping(a);
           emote(a, a.scene.react ?? "👍", 5);
-          await sleep(2000);
+          await sleep(1800);
           guard(mine);
         }
       }
       // let go and go back to waiting beside the block
       reset(a);
-      await sleep(700);
+      await sleep(500);
     } catch (e) {
       if (e !== CANCEL) throw e;
     } finally {
@@ -316,7 +386,7 @@ function init() {
     root.classList.contains("present") ||
     root.classList.contains("bi-on") ||
     document.hidden ||
-    innerWidth < 900;
+    innerWidth < 760;
 
   // How much of the block is on screen (0..1), against whichever is smaller: the block or the screen.
   const visibility = (b: Box) => {
@@ -326,11 +396,18 @@ function init() {
     const overlap = Math.min(b.y + b.h, top + vh) - Math.max(b.y, top);
     return Math.max(0, overlap) / Math.max(1, Math.min(b.h, vh));
   };
+  // Within about a screen of the viewport: close enough for the cursor to start heading for its block.
+  const near = (b: Box) => {
+    const z = zoom();
+    const top = window.scrollY / z;
+    const vh = window.innerHeight / z;
+    return b.y < top + vh * 2 && b.y + b.h > top - vh * 0.5;
+  };
 
-  // Plays the most visible scene that is due. Blocks are measured again here, so a page that was still loading when
-  // the cursors were laid out does not hold them back.
+  // Sends cursors on their way to blocks that are coming up, and plays the most visible scene that is due. Blocks are
+  // measured again here, so a page that was still loading when the cursors were laid out does not hold them back.
   function kick() {
-    if (hidden() || playing.size) return;
+    if (hidden()) return;
     const now = Date.now();
     let best: Actor | null = null;
     let bestV = 0;
@@ -339,13 +416,20 @@ function init() {
       if (!b) continue;
       const v = visibility(b);
       if (v < 0.3) a.seenOut = true;
+      if (playing.has(a)) continue;
       const due = !a.playedAt || (a.seenOut && now - a.playedAt > PLAY_AGAIN_MS);
-      if (due && v >= 0.4 && v > bestV) {
+      if (!due) continue;
+      if (!a.primed && near(b)) {
+        a.primed = true;
+        const k = primeOf(a, b);
+        void move(a, k.x, k.y, travel(a, k.x, k.y) + 300);
+      }
+      if (v >= START_AT && v > bestV) {
         best = a;
         bestV = v;
       }
     }
-    if (best) void play(best);
+    if (best && !playing.size) void play(best);
   }
 
   function stopAll() {
@@ -369,7 +453,7 @@ function init() {
         const cur = [...playing][0];
         if (cur) {
           const b = measure(cur);
-          if (b && visibility(b) < 0.12) stopAll();
+          if (b && visibility(b) < DROP_AT) stopAll();
         }
         kick();
       });
@@ -412,8 +496,8 @@ function init() {
   layout();
   window.addEventListener("load", () => setTimeout(relayout, 300));
   void document.fonts?.ready.then(relayout);
-  setTimeout(kick, 500);
-  window.setInterval(kick, 800); // in case a scroll event was missed (smooth scrolls, anchors)
+  setTimeout(kick, 300);
+  window.setInterval(kick, 600); // in case a scroll event was missed (smooth scrolls, anchors)
 }
 
 init();
