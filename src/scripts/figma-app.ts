@@ -37,8 +37,10 @@ interface MenuItem {
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const reduce = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-// Low-power devices (Base.astro sets html.lite): no fake collaborator cursors or cursor chat.
-const lite = () => document.documentElement.classList.contains("lite");
+// No fake collaborator cursors or cursor chat on low-power devices (Base.astro sets html.lite) or on touch
+// and narrow screens: there is no pointer to imitate, and the labels would sit on top of the content.
+const lite = () =>
+  document.documentElement.classList.contains("lite") || window.matchMedia("(hover: none)").matches || window.innerWidth < 720;
 const store = {
   get(k: string): string | null {
     try {
