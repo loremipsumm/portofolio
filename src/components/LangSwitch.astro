@@ -1,0 +1,69 @@
+---
+// EN / ID switch. Used by the app's tab bar and the 404 page; any `.lang-switch` on a page works the same way:
+// a click sets the language (scripts/i18n.ts), which every open document follows. Colours come from --ls-* so each
+// page can fit it in.
+interface Props {
+  class?: string;
+}
+const { class: cls } = Astro.props;
+---
+
+<div class:list={["lang-switch", cls]} role="group" aria-label="Language" translate="no">
+  <button type="button" data-lang="en" aria-pressed="true" title="English" aria-label="English">EN</button>
+  <button type="button" data-lang="id" aria-pressed="false" title="Bahasa Indonesia" aria-label="Bahasa Indonesia">ID</button>
+</div>
+
+<style is:global>
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 999px;
+    background: var(--ls-bg, rgb(255 255 255 / 0.1));
+    font: 600 11px/1 Inter, system-ui, sans-serif;
+    letter-spacing: 0.04em;
+  }
+  .lang-switch button {
+    min-width: 28px;
+    padding: 5px 8px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ls-fg, rgb(255 255 255 / 0.7));
+    font: inherit;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+  .lang-switch button:hover {
+    color: var(--ls-on, #fff);
+  }
+  .lang-switch button[aria-pressed="true"] {
+    background: var(--ls-active, #fff);
+    color: var(--ls-active-fg, #1e1e1e);
+  }
+  .lang-switch button:focus-visible {
+    outline: 2px solid var(--ls-ring, #0d99ff);
+    outline-offset: 1px;
+  }
+</style>
+
+<script>
+  // Marks the pressed language and sends clicks to the i18n module. Works for every switch on the page.
+  const sync = () => {
+    const cur = window.__i18n?.lang() ?? "en";
+    document.querySelectorAll<HTMLButtonElement>(".lang-switch [data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === cur)));
+  };
+  document.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>(".lang-switch [data-lang]");
+    if (!b) return;
+    window.__i18n?.set(b.dataset.lang as "en" | "id");
+    sync();
+  });
+  document.addEventListener("langchange", sync);
+  document.addEventListener("langready", sync); // this script can run before scripts/i18n.ts
+  void window.__i18n?.ready.then(sync);
+  sync();
+</script>

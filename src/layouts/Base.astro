@@ -5,6 +5,7 @@ import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import { site } from "../data/site";
 import { boards, people } from "../data/annotations";
+import { scenes } from "../data/cursors";
 
 // A case study can re-skin the site's accent tokens with its project's brand colours.
 interface Brand {
@@ -48,7 +49,7 @@ const person = {
 
 // FigJam annotations for this case study, drawn only when it is shown as a home board (see board-notes.ts).
 const boardSlug = Astro.url.pathname.match(/^\/work\/([^/]+)/)?.[1];
-const boardNotes = boardSlug && boards[boardSlug] ? JSON.stringify({ ...boards[boardSlug], people }) : undefined;
+const boardNotes = boardSlug && boards[boardSlug] ? JSON.stringify({ ...boards[boardSlug], people, scenes: scenes[boardSlug] ?? [] }) : undefined;
 
 const brandStyle = brand
   ? `--color-violet:${brand.accent};--color-violet-soft:${brand.accentSoft};--color-lime:${brand.pop};`
@@ -87,6 +88,14 @@ const brandStyle = brand
     <ClientRouter fallback="none" />
     <script is:inline>
       document.documentElement.classList.add("js");
+      // Saved language: set <html lang> now and hold the page back until scripts/i18n.ts has translated it (it removes
+      // i18n-pending; a timeout there is the safety net).
+      try {
+        if (localStorage.getItem("lang") === "id") {
+          document.documentElement.lang = "id";
+          document.documentElement.classList.add("i18n-pending");
+        }
+      } catch (e) {}
       // Lite mode for low-power devices (little memory, few cores, or Data Saver): WebGL accents and the
       // fake collaborator cursors on the home page are skipped. deviceMemory is Chromium-only; elsewhere this is off.
       (function () {
@@ -148,12 +157,14 @@ const brandStyle = brand
     {footer && <Footer />}
     {boardNotes && <script type="application/json" id="board-notes" set:html={boardNotes} />}
     <script>
+      import "../scripts/i18n.ts";
       import "../scripts/motion.ts";
       import "../scripts/gl.ts";
       import "../scripts/transition.ts";
       import "../scripts/cursor.ts";
       import "../scripts/ui.ts";
       import "../scripts/board-notes.ts";
+      import "../scripts/board-cursors.ts";
       import "../scripts/board-sections.ts";
       import "../scripts/board-inspect.ts";
     </script>

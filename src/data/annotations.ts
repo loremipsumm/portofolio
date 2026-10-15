@@ -1,7 +1,7 @@
 // FigJam-style annotations shown on each case study, only inside the home board (?embed): sticky notes,
-// stickers and comment threads, plus what the fake collaborators say in cursor chat.
+// stickers and comment threads. (The reviewer cursors that comment while you scroll are in cursors.ts.)
 // Every fact here is taken from the case study page itself. The reviewers (Recruiter, Hiring Manager, Design Lead),
-// their questions and the cursor chat are EXAMPLES written for this portfolio, not real comments, and the UI says so.
+// their questions are EXAMPLES written for this portfolio, not real comments, and the UI says so.
 // They carry no timestamps for the same reason.
 // Placement: `at` is a section id on that page (or "hero" for the first section); `side` picks the left or
 // right margin of the content column (see global.css); `y` is px down from the section's top (stickers use a
@@ -40,7 +40,6 @@ export interface Board {
   stickies: Sticky[];
   stickers: Sticker[];
   threads: Thread[];
-  chat: { by: Who; text: string }[];
 }
 
 export const boards: Record<string, Board> = {
@@ -66,11 +65,6 @@ export const boards: Record<string, Board> = {
           { by: "RA", ago: "", text: "Every user story carried acceptance criteria and a definition of done, so QA could check a story on its own." },
         ],
       },
-    ],
-    chat: [
-      { by: "RC", text: "One template for 13 tabs? Smart 👀" },
-      { by: "HM", text: "Love the sprint breakdown" },
-      { by: "DL", text: "States built into components 🙌" },
     ],
   },
 
@@ -107,11 +101,6 @@ export const boards: Record<string, Board> = {
         ],
       },
     ],
-    chat: [
-      { by: "HM", text: "78 → 87.5 SUS, nice" },
-      { by: "DL", text: "Explainability as a feature 👌" },
-      { by: "RC", text: "Love the mascots" },
-    ],
   },
 
   sia: {
@@ -135,11 +124,6 @@ export const boards: Record<string, Board> = {
           { by: "RA", ago: "", text: "Keeping the chrome grey let orange (audit), green (control) and red (unbalanced) do real work." },
         ],
       },
-    ],
-    chat: [
-      { by: "DL", text: "Colour only for meaning 👌" },
-      { by: "RC", text: "Accounting UX, brave 😄" },
-      { by: "HM", text: "The access matrix is great" },
     ],
   },
 
@@ -165,11 +149,6 @@ export const boards: Record<string, Board> = {
         ],
       },
     ],
-    chat: [
-      { by: "HM", text: "Civic tech 🙌" },
-      { by: "DL", text: "Before/after slider is neat" },
-      { by: "RC", text: "GEMASTIK entry, nice" },
-    ],
   },
 
   teachtechai: {
@@ -194,11 +173,6 @@ export const boards: Record<string, Board> = {
         ],
       },
     ],
-    chat: [
-      { by: "RC", text: "Designer who ships Kotlin 👀" },
-      { by: "DL", text: "Prompt cards = great idea" },
-      { by: "HM", text: "Watching the demo now" },
-    ],
   },
 
   "bsi-bewize": {
@@ -214,10 +188,6 @@ export const boards: Record<string, Board> = {
           { by: "RA", ago: "", text: "User research, requirement analysis, user flows, wireframing, prototyping and interface design across all three products." },
         ],
       },
-    ],
-    chat: [
-      { by: "HM", text: "Corporate banking, tough domain" },
-      { by: "RC", text: "Three products at once 👀" },
     ],
   },
 
@@ -235,10 +205,6 @@ export const boards: Record<string, Board> = {
           { by: "RA", ago: "", text: "Product documentation and handoff materials for a China-based engineering team that had limited access to business users." },
         ],
       },
-    ],
-    chat: [
-      { by: "RC", text: "33,000 hectares 🤯" },
-      { by: "DL", text: "Data-heavy UI done right" },
     ],
   },
 };

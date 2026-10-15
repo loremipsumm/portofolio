@@ -63,6 +63,8 @@ const linkOf = (id: string) => `/?open=${id}`;
 const DARK_BOARDS = new Set(["sia"]);
 
 let ctl: AbortController | null = null;
+// Text that is typed out by script goes through the language switch (scripts/i18n.ts) before it is typed.
+const tx = (s: string) => window.__i18n?.t(s) ?? s;
 let stopBoardFx = () => {};
 let raf = 0;
 
@@ -362,7 +364,11 @@ function init() {
         ${data.versions[id]?.length ? `<button class="fj-btn fj-icon" data-fj-history aria-label="Version history" aria-pressed="false" title="Version history"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></button>` : ""}
       </div>
       <div class="fj-bar fj-tr">
-        <span class="fj-people" aria-label="People on this board">${data.tours[id] ? `<button class="fj-follow-btn" data-fj-follow style="background:#0d99ff" title="Follow Rafif: a guided tour" aria-label="Follow Rafif Aditya: guided tour">RA</button>` : `<span style="background:#0d99ff">RA</span>`}<span style="background:#f24822">RC</span><span style="background:#14ae5c">HM</span><span style="background:#9747ff">DL</span></span>
+        <span class="fj-people">${
+          data.tours[id]
+            ? `<button class="fj-follow-btn" data-fj-follow style="background:#0d99ff" aria-label="Guided tour: follow Rafif Aditya through this case study" aria-describedby="fj-tour-tip">RA<span class="fj-tip" id="fj-tour-tip" role="tooltip" data-fj-tip><b>Guided tour</b>Click to follow Rafif through this case study.</span></button>`
+            : `<span style="background:#0d99ff">RA</span>`
+        }</span>
         <button class="fj-btn fj-icon" data-fj-emote aria-label="Send an emote" aria-haspopup="menu" title="Emote"><span aria-hidden="true">😊</span></button>
         <button class="fj-btn fj-icon" data-fj-comment-mode aria-label="Add comment" aria-pressed="false" title="Add comment (C)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V11a8 8 0 1 1 8 8H6z"/><path d="M12 7.5v7M8.5 11h7"/></svg></button>
         <button class="fj-btn fj-icon" data-fj-comments aria-label="Comments" aria-pressed="false" title="Comments">${icon("chat", 16)}<b class="fj-count" data-fj-count hidden></b></button>
@@ -514,79 +520,14 @@ function init() {
     }
   });
 
-  // Collaborators wander over the board and chat (FigJam cursor chat), with lines from annotations.ts.
-  // Emotes float up from the bottom. Both stop when the tab changes.
+  // Reviewer cursors on a board live in the page itself (board-cursors.ts): each sits by the block it discusses.
+  // Here only the emote reactions from the toolbar float up over the board.
   const boardFx = (() => {
-    let timers: number[] = [];
-    let frameId = 0;
-    const stop = () => {
-      timers.forEach(clearTimeout);
-      timers = [];
-      cancelAnimationFrame(frameId);
-      frameId = 0;
-    };
-    function cursors(on: boolean) {
-      stop();
+    const stop = () => {};
+    // Kept so callers can still clear the host layer; nothing wanders over a board any more.
+    function cursors(_on: boolean) {
       const layer = fileView.querySelector<HTMLElement>("[data-fj-cursors]");
-      if (!layer) return;
-      layer.innerHTML = "";
-      if (!on || reduce() || lite()) return;
-      let notes: { chat: { by: string; text: string }[]; people: Record<string, { name: string; color: string }> } | null = null;
-      try {
-        notes = JSON.parse(frame()?.contentDocument?.getElementById("board-notes")?.textContent || "null");
-      } catch {}
-      if (!notes?.chat.length) return;
-      const by = [...new Set(notes.chat.map((c) => c.by))];
-      const cs = by.map((w) => {
-        const p = notes!.people[w];
-        const el = document.createElement("div");
-        el.className = "fb-cur fj-cur";
-        el.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 1.5 13.5 7l-4.8 1.6L6.8 13.5z" fill="${p.color}" stroke="#fff" stroke-width="1"/></svg><span style="background:${p.color}">${esc(p.name)}</span>`;
-        layer.append(el);
-        return { w, el, label: el.querySelector("span")!, name: p.name, x: rand(200, 700), y: rand(120, 400), tx: 0, ty: 0, wait: rand(0.3, 2) };
-      });
-      let last = performance.now();
-      const tick = (now: number) => {
-        const dt = Math.min(0.05, (now - last) / 1000);
-        last = now;
-        const box = layer.getBoundingClientRect();
-        for (const c of cs) {
-          c.wait -= dt;
-          if (c.wait <= 0) {
-            c.tx = rand(80, Math.max(81, box.width - 260));
-            c.ty = rand(90, Math.max(91, box.height - 120));
-            c.wait = rand(2.5, 5);
-          }
-          const k = 1 - Math.exp(-dt * 1.8);
-          c.x += (c.tx - c.x) * k;
-          c.y += (c.ty - c.y) * k;
-          c.el.style.transform = `translate(${c.x}px, ${c.y}px)`;
-        }
-        frameId = requestAnimationFrame(tick);
-      };
-      frameId = requestAnimationFrame(tick);
-      // Cursor chat: one line at a time, typed out, then back to the name label.
-      let i = 0;
-      const say = () => {
-        const line = notes!.chat[i++ % notes!.chat.length];
-        const c = cs.find((x) => x.w === line.by)!;
-        c.el.classList.add("is-chatting");
-        let n = 0;
-        const type = () => {
-          c.label.textContent = line.text.slice(0, ++n);
-          if (n < line.text.length) timers.push(window.setTimeout(type, 45));
-          else
-            timers.push(
-              window.setTimeout(() => {
-                c.el.classList.remove("is-chatting");
-                c.label.textContent = c.name;
-                timers.push(window.setTimeout(say, rand(2500, 5000)));
-              }, 3200),
-            );
-        };
-        type();
-      };
-      timers.push(window.setTimeout(say, 1800));
+      if (layer) layer.innerHTML = "";
     }
     function emote(e: string) {
       const layer = fileView.querySelector<HTMLElement>("[data-fj-emotes]");
@@ -666,7 +607,7 @@ function init() {
       clear();
       const step = list[i];
       el("[data-fj-tour-count]")!.textContent = `${i + 1} / ${list.length}`;
-      el("[data-fj-tour-say]")!.textContent = step.say;
+      el("[data-fj-tour-say]")!.textContent = tx(step.say);
       el<HTMLButtonElement>("[data-fj-tour-prev]")!.disabled = i === 0;
       el<HTMLButtonElement>("[data-fj-tour-next]")!.disabled = i === list.length - 1;
       const cur = el("[data-fj-tour-cur]")!;
@@ -689,7 +630,7 @@ function init() {
         ignoreScroll = false;
         const p = pointAt(step.at);
         if (p) cur.style.transform = `translate(${p.x}px, ${p.y}px)`;
-        later(() => say(step.say), reduce() ? 0 : 700);
+        later(() => say(tx(step.say)), reduce() ? 0 : 700);
         // Reading time, then on to the next step; the last step ends the tour.
         later(() => (i < list.length - 1 ? show(i + 1) : stop()), 2600 + step.say.length * 55);
       };
@@ -1033,6 +974,19 @@ function init() {
           } catch {}
           renderComments();
           boardFx.cursors(state.notes);
+          // Tell people what the RA avatar does: once per browser session the tooltip shows by itself.
+          const tip = fileView.querySelector<HTMLElement>("[data-fj-tip]");
+          let tipSeen = false;
+          try {
+            tipSeen = sessionStorage.getItem("fj-tip") === "1";
+          } catch {}
+          if (tip && !tipSeen) {
+            try {
+              sessionStorage.setItem("fj-tip", "1");
+            } catch {}
+            tip.classList.add("is-auto");
+            setTimeout(() => tip.classList.remove("is-auto"), 6000);
+          }
           if (state.notes && boardApi()?.tight()) toast("Zoom out (Ctrl −) to see the sticky notes");
           if (pendingThread) {
             const t = pendingThread;
@@ -1749,6 +1703,13 @@ function init() {
           icon: "settings",
           label: state.collab ? "Hide collaborators" : "Show collaborators",
           run: () => ((state.collab = !state.collab), store.set("fb-collab", state.collab ? "on" : "off"), syncCursors()),
+        },
+        {
+          group: "View",
+          icon: "settings",
+          label: window.__i18n?.lang() === "id" ? "Switch to English" : "Switch to Bahasa Indonesia",
+          hint: "Language",
+          run: () => window.__i18n?.set(window.__i18n.lang() === "id" ? "en" : "id"),
         },
       );
       return a;

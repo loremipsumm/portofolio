@@ -1,19 +1,43 @@
 ---
-// "Page not found": the designed 404 (public/error.svg). The picture is the whole page; the "Kembali ke
-// Halaman Utama" button in it is only drawn, so an invisible link sits exactly over it. It is built to
-// 404.html, which Vercel serves for any unknown address.
+// "Page not found": the designed 404 (public/error.svg). The picture is the whole page; the "Back to Home"
+// button in it is only drawn, so an invisible link sits exactly over it. It is built to
+// 404.html, which Vercel serves for any unknown address. The picture itself is Indonesian (its text is drawn into
+// the artwork); the text around it follows the language switch.
+import LangSwitch from "../components/LangSwitch.astro";
 ---
 
 <!doctype html>
-<html lang="id">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#ff0000" />
     <link rel="icon" type="image/svg+xml" href="/webicon.svg" />
-    <title>404 · Halaman tidak ditemukan</title>
+    <title>404 · Page not found</title>
+    <script is:inline>
+      try {
+        if (localStorage.getItem("lang") === "id") {
+          document.documentElement.lang = "id";
+          document.documentElement.classList.add("i18n-pending");
+        }
+      } catch (e) {}
+    </script>
     <style>
+      html.i18n-pending body {
+        opacity: 0;
+      }
+      .lang-switch {
+        position: fixed;
+        top: 14px;
+        right: 14px;
+        z-index: 5;
+        --ls-bg: rgb(0 0 0 / 0.22);
+        --ls-fg: rgb(255 255 255 / 0.85);
+        --ls-active: #fafdf6;
+        --ls-active-fg: #0a0d12;
+        --ls-ring: #fafdf6;
+      }
       html,
       body {
         height: 100%;
@@ -114,14 +138,18 @@
     </style>
   </head>
   <body>
+    <LangSwitch />
     <main class="stage">
-      <img src="/error.svg" alt="404. Halaman ini tidak lagi tersedia atau telah dihapus. Kamu bisa kembali ke halaman utama untuk melanjutkan." />
-      <a class="home" href="/" aria-label="Kembali ke Halaman Utama"></a>
+      <img src="/error.svg" alt="404. This page is no longer available or has been removed. You can go back to the home page to continue." />
+      <a class="home" href="/" aria-label="Back to Home"></a>
     </main>
     <div class="small">
       <div class="art"><img src="/error.svg" alt="" /></div>
-      <p>Halaman ini tidak lagi tersedia atau telah dihapus. Jangan khawatir, kamu bisa kembali ke halaman utama untuk melanjutkan.</p>
-      <a href="/">← Kembali ke Halaman Utama</a>
+      <p>This page is no longer available or has been removed. Don't worry, you can go back to the home page to continue.</p>
+      <a href="/">← Back to Home</a>
     </div>
+    <script>
+      import "../scripts/i18n.ts";
+    </script>
   </body>
 </html>

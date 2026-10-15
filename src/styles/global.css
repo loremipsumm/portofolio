@@ -1166,3 +1166,229 @@ html.fj-panning,
 html.fj-panning * {
   cursor: grabbing !important;
 }
+
+/* Reviewer cursors on a board (src/scripts/board-cursors.ts). Each sits by the block it discusses, selects it
+   with a marquee and a frame, chats and reacts. They live in the page, so they scroll and zoom with it. */
+.bc-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 29;
+  pointer-events: none;
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.bc-layer [hidden],
+html.bn-off .bc-layer,
+html.embed.present .bc-layer,
+html.embed.bi-on .bc-layer {
+  display: none !important;
+}
+@media (max-width: 899px) {
+  .bc-layer {
+    display: none;
+  }
+}
+.bc-cur {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: transform var(--bc-t, 0ms) cubic-bezier(0.45, 0, 0.2, 1);
+  will-change: transform;
+}
+.bc-ptr {
+  display: block;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.25));
+  animation: bc-idle 3.6s ease-in-out infinite;
+}
+@keyframes bc-idle {
+  50% {
+    translate: 3px 4px;
+  }
+}
+.bc-name {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  padding: 2px 7px;
+  border-radius: 4px 8px 8px 8px;
+  background: var(--bc);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+.bc-chat {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: max-content;
+  max-width: 250px;
+  padding: 7px 10px 6px;
+  border-radius: 4px 12px 12px 12px;
+  background: var(--bc);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+  opacity: 0;
+  scale: 0.9;
+  transform-origin: 0 0;
+  transition:
+    opacity 0.15s,
+    scale 0.15s;
+}
+.bc-chat small {
+  display: block;
+  margin-top: 3px;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  opacity: 0.75;
+}
+.bc-cur.is-chatting .bc-chat {
+  opacity: 1;
+  scale: 1;
+}
+.bc-cur.is-chatting .bc-name {
+  display: none;
+}
+/* Near the right edge the label and bubble open to the left of the pointer. */
+.bc-cur.is-left .bc-name,
+.bc-cur.is-left .bc-chat {
+  left: auto;
+  right: 4px;
+  transform-origin: 100% 0;
+  border-radius: 12px 4px 12px 12px;
+}
+/* The drag: a dashed rectangle in the person's colour. */
+.bc-marq {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1.5px dashed var(--bc);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--bc) 8%, transparent);
+  opacity: 0;
+  clip-path: inset(0 0 0 0);
+  transition:
+    clip-path 0.65s cubic-bezier(0.45, 0, 0.2, 1),
+    opacity 0.12s;
+}
+.bc-marq.is-on {
+  opacity: 1;
+}
+/* The result: a selection frame with four corner handles and the person's name. */
+.bc-sel {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid var(--bc);
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.bc-sel.is-on {
+  opacity: 1;
+  animation: bc-select 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+@keyframes bc-select {
+  from {
+    outline: 6px solid color-mix(in srgb, var(--bc) 30%, transparent);
+  }
+  to {
+    outline: 0 solid transparent;
+  }
+}
+.bc-sel i {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--bc);
+  border-radius: 2px;
+  background: #fff;
+}
+.bc-sel i:nth-child(1) {
+  left: -5px;
+  top: -5px;
+}
+.bc-sel i:nth-child(2) {
+  right: -5px;
+  top: -5px;
+}
+.bc-sel i:nth-child(3) {
+  left: -5px;
+  bottom: -5px;
+}
+.bc-sel i:nth-child(4) {
+  right: -5px;
+  bottom: -5px;
+}
+.bc-sel span {
+  position: absolute;
+  left: -2px;
+  bottom: calc(100% + 4px);
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--bc);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+/* Emote: floats up from the cursor and fades. */
+.bc-emo {
+  position: absolute;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0;
+  animation: bc-float 1.9s ease-out both;
+}
+@keyframes bc-float {
+  0% {
+    opacity: 0;
+    translate: 0 6px;
+    scale: 0.6;
+  }
+  15% {
+    opacity: 1;
+    scale: 1.15;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--dx, 0) -90px;
+    scale: 1;
+  }
+}
+
+/* Holds the page back while an Indonesian visitor's page is being translated (scripts/i18n.ts removes the class). */
+html.i18n-pending body {
+  opacity: 0;
+}
+
+/* A ring that spreads from a cursor that "clicks" (react mode). */
+.bc-ping {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  box-sizing: border-box;
+  border: 2px solid var(--bc);
+  border-radius: 50%;
+  opacity: 0;
+  animation: bc-ping 0.9s ease-out both;
+}
+@keyframes bc-ping {
+  0% {
+    opacity: 0.9;
+    scale: 0.3;
+  }
+  100% {
+    opacity: 0;
+    scale: 2.2;
+  }
+}
