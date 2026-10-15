@@ -83,6 +83,7 @@ function init() {
     role: string;
     versions: Record<string, { title: string; meta: string; summary: string; changes?: string[]; at: string }[]>;
     tours: Record<string, { at: string; say: string }[]>;
+    inbox: { file: string; title: string; thread: string; name: string; color: string; initials: string; text: string; ago: string }[];
   };
   const byId = new Map(data.files.map((f) => [f.id, f]));
   const q = <T extends HTMLElement = HTMLElement>(s: string) => root.querySelector<T>(s)!;
@@ -121,6 +122,7 @@ function init() {
     board: new Set<string>(), // tabs showing the case study itself as a FigJam board
     zoom: 1,
     notes: store.get("fj-notes") !== "off", // board annotations, collaborators and comments
+    map: store.get("fj-map") ? store.get("fj-map") === "on" : !document.documentElement.classList.contains("lite"), // minimap
   };
   const types = ["All types", ...new Set(data.files.map((f) => f.type))];
   const sorts: [string, string][] = [
@@ -379,6 +381,7 @@ function init() {
       </aside>
       <div class="fj-cursors" data-fj-cursors aria-hidden="true"></div>
       <div class="fj-emotes" data-fj-emotes aria-hidden="true"></div>
+      <div class="fj-map" data-fj-map role="group" aria-label="Minimap: click or drag to move around the page"${state.map ? "" : " hidden"}><div class="fj-map-body" data-fj-map-body></div></div>
       <div class="fj-follow-frame" data-fj-follow-frame hidden>
         <p class="fj-follow-tag"><span class="fj-follow-av">RA</span>Following Rafif Aditya<button data-fj-tour-stop>Stop</button></p>
       </div>
@@ -845,6 +848,64 @@ function init() {
     p.hidden = !open;
     if (open) p.querySelector<HTMLElement>("[data-fj-panel-close]")?.focus();
   };
+  // ---- minimap: the whole page at a glance, one block per section, the visible part outlined ---------
+  // Click or drag on it to move around, like Figma's minimap. Redrawn when the page changes size.
+  const MAP_H = 180;
+  const mapBody = () => fileView.querySelector<HTMLElement>("[data-fj-map-body]");
+  const mapSections = () => {
+    try {
+      return frame()?.contentWindow?.__boardSections;
+    } catch {
+      return undefined;
+    }
+  };
+  function renderMap() {
+    const body = mapBody();
+    const m = mapSections()?.map();
+    if (!body || !m || !m.height) return;
+    const s = MAP_H / m.height;
+    body.innerHTML =
+      m.items.map((it) => `<i style="top:${(it.y * s).toFixed(1)}px;height:${Math.max(4, it.h * s).toFixed(1)}px;--c:${it.color}" title="${esc(it.label)}"></i>`).join("") +
+      `<b class="fj-map-view"></b>`;
+    mapView();
+  }
+  function mapView() {
+    const body = mapBody();
+    const m = mapSections()?.map();
+    const v = body?.querySelector<HTMLElement>(".fj-map-view");
+    if (!m || !v) return;
+    const s = MAP_H / m.height;
+    v.style.top = `${(m.view.y * s).toFixed(1)}px`;
+    v.style.height = `${Math.max(6, m.view.h * s).toFixed(1)}px`;
+  }
+  const toggleMap = () => {
+    state.map = !state.map;
+    store.set("fj-map", state.map ? "on" : "off");
+    const box = fileView.querySelector<HTMLElement>("[data-fj-map]");
+    if (box) box.hidden = !state.map;
+    if (state.map) renderMap();
+  };
+  // Dragging on the minimap moves the page so that the clicked spot is centred.
+  {
+    let dragging = false;
+    const go = (e: PointerEvent) => {
+      const body = mapBody();
+      const m = mapSections()?.map();
+      const win = frame()?.contentWindow;
+      if (!body || !m || !win) return;
+      const y = Math.min(MAP_H, Math.max(0, e.clientY - body.getBoundingClientRect().top));
+      win.scrollTo({ top: (y / MAP_H) * m.height - m.view.h / 2, behavior: "auto" });
+    };
+    on(fileView, "pointerdown", (e: PointerEvent) => {
+      if (!(e.target as HTMLElement).closest("[data-fj-map-body]")) return;
+      dragging = true;
+      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+      go(e);
+    });
+    on(fileView, "pointermove", (e: PointerEvent) => dragging && go(e));
+    on(fileView, "pointerup", () => (dragging = false));
+    on(fileView, "pointercancel", () => (dragging = false));
+  }
   const ZOOMS = [0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5];
   const frame = () => fileView.querySelector<HTMLIFrameElement>(".fj-frame");
   function setZoom(z: number) {
@@ -857,6 +918,8 @@ function init() {
     const label = fileView.querySelector("[data-fj-zoom-label]");
     if (label) label.textContent = `${Math.round(state.zoom * 100)}%`;
   }
+  // Zoom to fit: the page's 1280px content column plus its gutters fills the board's width.
+  const zoomFit = () => setZoom((frame()?.clientWidth ?? 1360) / 1360);
   const zoomStep = (dir: 1 | -1) => {
     const i = ZOOMS.findIndex((z) => z >= state.zoom - 0.001);
     setZoom(ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, (i < 0 ? ZOOMS.length - 1 : i) + dir))]);
@@ -882,8 +945,89 @@ function init() {
           fileView.querySelector("[data-fj-loading]")?.remove();
           boardApi()?.setVisible(state.notes);
           try {
+            const win = ifr.contentWindow!;
+            const doc = win.document;
+            // Ctrl/Cmd + scroll zooms the board (not the browser), as on Figma's canvas.
+            win.addEventListener(
+              "wheel",
+              (e: WheelEvent) => {
+                if (!(e.ctrlKey || e.metaKey)) return;
+                e.preventDefault();
+                setZoom(state.zoom * Math.exp(-e.deltaY * 0.0015));
+              },
+              { passive: false },
+            );
+            // Space + drag pans (hand tool). The click that ends a drag is swallowed.
+            let space = false;
+            let panning = false;
+            let moved = false;
+            let px = 0;
+            let py = 0;
+            const html = doc.documentElement;
+            const field = (t: EventTarget | null) => /^(input|textarea|select)$/i.test((t as HTMLElement)?.tagName ?? "");
+            win.addEventListener("keydown", (e: KeyboardEvent) => {
+              if (e.code !== "Space" || field(e.target) || present.on || e.ctrlKey || e.metaKey || e.altKey) return;
+              e.preventDefault();
+              space = true;
+              html.classList.add("fj-pan");
+            });
+            const endSpace = () => {
+              space = false;
+              panning = false;
+              html.classList.remove("fj-pan", "fj-panning");
+            };
+            win.addEventListener("keyup", (e: KeyboardEvent) => e.code === "Space" && endSpace());
+            win.addEventListener("blur", endSpace);
+            doc.addEventListener(
+              "pointerdown",
+              (e: PointerEvent) => {
+                if (!space || e.button !== 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+                panning = true;
+                moved = false;
+                px = e.clientX;
+                py = e.clientY;
+                html.classList.add("fj-panning");
+              },
+              true,
+            );
+            doc.addEventListener("pointermove", (e: PointerEvent) => {
+              if (!panning) return;
+              if (e.buttons === 0) return endSpace();
+              win.scrollBy(px - e.clientX, py - e.clientY);
+              px = e.clientX;
+              py = e.clientY;
+              moved = true;
+            });
+            doc.addEventListener("pointerup", () => {
+              panning = false;
+              html.classList.remove("fj-panning");
+            });
+            doc.addEventListener(
+              "click",
+              (e) => {
+                if (!moved) return;
+                moved = false;
+                e.preventDefault();
+                e.stopPropagation();
+              },
+              true,
+            );
+            // Minimap follows the scroll position.
+            win.addEventListener("scroll", () => mapView(), { passive: true });
+            renderMap();
+            setTimeout(renderMap, 1200); // images and fonts change section heights
+          } catch {}
+          try {
             ifr.contentWindow?.addEventListener("keydown", (e: KeyboardEvent) => {
               const inField = /^(input|textarea|select)$/i.test((e.target as HTMLElement)?.tagName ?? "");
+              if (e.shiftKey && !inField && !e.metaKey && !e.ctrlKey && !e.altKey && (e.code === "Digit1" || e.code === "Digit0")) {
+                e.preventDefault();
+                if (e.code === "Digit1") zoomFit();
+                else setZoom(1);
+                return;
+              }
               if (e.shiftKey && !inField && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "d") {
                 e.preventDefault();
                 if (dev.on) dev.exit();
@@ -899,11 +1043,24 @@ function init() {
           renderComments();
           boardFx.cursors(state.notes);
           if (state.notes && boardApi()?.tight()) toast("Zoom out (Ctrl −) to see the sticky notes");
+          if (pendingThread) {
+            const t = pendingThread;
+            pendingThread = null;
+            if (!state.notes) setNotes(true);
+            setTimeout(() => boardApi()?.focus(t), 500); // after pins are placed
+          }
         });
     }
     renderTabs();
     syncCursors();
   }
+  // Open a case study straight as a board (used by notifications), optionally focusing a comment thread.
+  let pendingThread: string | null = null;
+  const openBoard = (id: string, thread?: string) => {
+    pendingThread = thread ?? null;
+    state.board.add(id);
+    openFile(id);
+  };
   // Recents: the last few files opened, newest first, remembered in this browser.
   let recent: string[] = [];
   try {
@@ -987,6 +1144,7 @@ function init() {
           ...(data.tours[f.id] ? [{ label: "Follow Rafif (guided tour)", run: () => tour.start() }] : []),
           { label: "Dev Mode", run: () => dev.enter() },
           { label: "Show annotations", checked: state.notes, run: () => setNotes(!state.notes) },
+          { label: "Minimap", checked: state.map, run: () => toggleMap() },
           { label: "Comments", run: () => toggleComments(true) },
           ...(data.versions[f.id]?.length ? [{ label: "Version history", run: () => toggleHistory(true) }] : []),
           { sep: true },
@@ -1040,7 +1198,8 @@ function init() {
         [
           { label: "Zoom in", kbd: "Ctrl +", run: () => zoomStep(1) },
           { label: "Zoom out", kbd: "Ctrl −", run: () => zoomStep(-1) },
-          { label: "Zoom to 100%", kbd: "Ctrl 0", run: () => setZoom(1) },
+          { label: "Zoom to 100%", kbd: "Shift 0", run: () => setZoom(1) },
+          { label: "Zoom to fit", kbd: "Shift 1", run: zoomFit },
           { sep: true },
           ...[0.5, 0.75, 1, 1.25, 1.5].map((z) => ({ label: `${z * 100}%`, checked: Math.abs(state.zoom - z) < 0.001, run: () => setZoom(z) })),
         ],
@@ -1133,7 +1292,11 @@ function init() {
       else zoomStep(e.key === "-" ? -1 : 1);
       return;
     }
-    if (state.board.has(state.active) && e.shiftKey && !typing && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "d") {
+    if (state.board.has(state.active) && e.shiftKey && !typing && !e.metaKey && !e.ctrlKey && !e.altKey && (e.code === "Digit1" || e.code === "Digit0")) {
+      e.preventDefault();
+      if (e.code === "Digit1") zoomFit();
+      else setZoom(1);
+    } else if (state.board.has(state.active) && e.shiftKey && !typing && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "d") {
       e.preventDefault();
       if (dev.on) dev.exit();
       else dev.enter();
@@ -1197,6 +1360,32 @@ function init() {
       { right: true },
     ),
   );
+  // ---- notifications: the bell lists comment threads; opening one goes to it on its board --------------
+  const seen = new Set<string>();
+  try {
+    (JSON.parse(store.get("fb-seen") || "[]") as string[]).forEach((x) => seen.add(x));
+  } catch {}
+  const renderBell = () => {
+    const n = data.inbox.filter((x) => !seen.has(x.thread)).length;
+    const b = q("[data-fb-bell-n]");
+    b.hidden = n === 0;
+    b.textContent = n > 9 ? "9+" : String(n);
+  };
+  on(q("[data-fb-bell]"), "click", (e: MouseEvent) => {
+    const btn = e.currentTarget as HTMLElement;
+    const items: MenuItem[] = [{ html: `<p class="fb-inbox-head">Notifications</p>` }];
+    if (!data.inbox.length) items.push({ html: `<p class="fb-inbox-empty">Nothing new.</p>` });
+    for (const n of data.inbox) {
+      items.push({
+        html: `<span class="fb-nt${seen.has(n.thread) ? "" : " is-new"}"><span class="fb-nt-av" style="background:${esc(n.color)}">${esc(n.initials)}</span><span class="fb-nt-text"><span><b>${esc(n.name)}</b> commented on <b>${esc(n.title)}</b></span><small>${esc(n.text)}</small><em>${esc(n.ago)} ago</em></span></span>`,
+        run: () => openBoard(n.file, n.thread),
+      });
+    }
+    openMenu(items, btn, { right: true, variant: "inbox" });
+    data.inbox.forEach((n) => seen.add(n.thread)); // shown now, so they count as seen
+    store.set("fb-seen", JSON.stringify([...seen]));
+    renderBell();
+  });
   on(q("[data-fb-share]"), "click", (e: MouseEvent) => share.open(location.href, "Rafif Aditya's portfolio", e.currentTarget as HTMLElement));
   const settingsMenu = (): MenuItem[] => [
     { label: "Show collaborators", checked: state.collab, run: () => ((state.collab = !state.collab), store.set("fb-collab", state.collab ? "on" : "off"), syncCursors()) },
@@ -1680,6 +1869,7 @@ function init() {
   // ---- go ---------------------------------------------------------------------------------------
   qa("[data-fb-edited]").forEach((el) => (el.textContent = editedLabel(el.dataset.fbEdited!)));
   renderRecents();
+  renderBell();
   syncFavs();
   applyFilters();
   renderTabs();

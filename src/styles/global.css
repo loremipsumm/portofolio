@@ -1214,3 +1214,14 @@ html.bi-on,
 html.bi-on * {
   cursor: default !important;
 }
+
+/* Canvas navigation on a board (figma-app.ts): the hand tool while Space is held. */
+html.fj-pan,
+html.fj-pan * {
+  cursor: grab !important;
+  user-select: none !important;
+}
+html.fj-panning,
+html.fj-panning * {
+  cursor: grabbing !important;
+}

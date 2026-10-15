@@ -202,7 +202,7 @@ function init() {
     const io = new IntersectionObserver(
       (entries) => {
         const hit = entries.find((e) => e.isIntersecting && !root.classList.contains("bn-off"));
-        if (!hit || store.get("bn-coach") === "done") return;
+        if (!hit || store.get("bn-coach") === "done" || open) return; // not while a thread is open
         io.disconnect();
         const pin = hit.target as HTMLElement;
         coach = document.createElement("div");
@@ -245,6 +245,7 @@ function init() {
     pin.setAttribute("aria-expanded", "true");
     markRead(id);
     if (coach) dismissCoach();
+    else store.set("bn-coach", "done"); // opening a thread shows they know pins are clickable
     open = { id, el };
     wireThread(id, el);
     el.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });

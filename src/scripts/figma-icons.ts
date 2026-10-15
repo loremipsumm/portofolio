@@ -24,6 +24,7 @@ export const ICONS: Record<string, string> = {
   check: `<path d="m3.5 8.5 3 3 6-7"/>`,
   user: `<circle cx="8" cy="5.5" r="2.5"/><path d="M3 13.5c.5-2.5 2.5-4 5-4s4.5 1.5 5 4"/>`,
   download: `<path d="M8 2.5v7M5 7l3 3 3-3M3 12.5h10"/>`,
+  bell: `<path d="M4 10.5V8a4 4 0 0 1 8 0v2.5l1 2H3z"/><path d="M6.6 14a1.5 1.5 0 0 0 2.8 0"/>`,
   chat: `<path d="M2.5 4.5a1.5 1.5 0 0 1 1.5-1.5h8a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H6.5l-3 2.5V11H4a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M5.5 6.2h5M5.5 8.2h3"/>`,
 };
 

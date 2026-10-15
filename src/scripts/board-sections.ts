@@ -12,6 +12,7 @@ interface SectionsApi {
   current(): number;
   setVisible(on: boolean): void;
   layout(): void;
+  map(): { height: number; items: { label: string; y: number; h: number; color: string }[]; view: { y: number; h: number } };
 }
 declare global {
   interface Window {
@@ -148,6 +149,18 @@ function init() {
     },
     setVisible: (on) => root.classList.toggle("bs-off", !on),
     layout,
+    // Physical px (same units as scrollY), for the host's minimap.
+    map() {
+      const sy = window.scrollY;
+      return {
+        height: document.documentElement.scrollHeight,
+        items: items.map((it, i) => {
+          const r = it.el.getBoundingClientRect();
+          return { label: it.label, y: r.top + sy, h: r.height, color: COLORS[i % COLORS.length][0] };
+        }),
+        view: { y: sy, h: window.innerHeight },
+      };
+    },
   };
 }
 
