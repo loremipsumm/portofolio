@@ -1,0 +1,830 @@
+---
+// The iPad in the EquiTeam hero: a scrollable, interactive replica of the live landing page
+// (https://equiteams.deymos.dev/en). Copy and structure follow the site; sizes use cqw so the
+// "screen" scales with the device.
+import { Image } from "astro:assets";
+
+import heroImg from "../assets/equiteam/landing-hero.png";
+// Assets copied from the live site (public/ of equiteams.deymos.dev) so the replica matches it.
+import logo from "../assets/equiteam/site/mascot-yellow-head.svg";
+import flag from "../assets/equiteam/site/english.svg";
+import infj from "../assets/equiteam/site/INFJ.svg";
+import estp from "../assets/equiteam/site/ESTP.svg";
+import intj from "../assets/equiteam/site/INTJ.svg";
+import personalityIcon from "../assets/equiteam/site/personality.svg";
+import skillIcon from "../assets/equiteam/site/skill.svg";
+import genderIcon from "../assets/equiteam/site/gender.svg";
+import preferenceIcon from "../assets/equiteam/site/preference-task.svg";
+import student from "../assets/equiteam/site/mahasiswa.svg";
+import lecturer from "../assets/equiteam/site/dosen.svg";
+import footerBlob from "../assets/equiteam/site/footer.svg";
+
+const LIVE = "https://equiteams.deymos.dev/en";
+
+const nav = [
+  { id: "tentang", label: "Tentang" },
+  { id: "masalah", label: "Masalah" },
+  { id: "solusi", label: "Solusi" },
+  { id: "manfaat", label: "Manfaat" },
+];
+
+const problems = [
+  { t: "Uneven team participation", mbti: "INFJ", m: infj, tone: "green" },
+  { t: "There are wasted groups", mbti: "ESTP", m: estp, tone: "yellow" },
+  { t: "Skills in team are unbalanced", mbti: "INTJ", m: intj, tone: "purple" },
+];
+
+const steps = [
+  { t: "Input Student Data", d: "System collects personality, skills, preferences, and gender data" },
+  { t: "AI Analysis", d: "AI analyzes compatibility and balance for optimal team formation" },
+  { t: "Team Formation", d: "System forms balanced groups based on analysis results" },
+];
+
+const aspects = [
+  { id: "personality", t: "Personality", s: "Based on MBTI", c: "teal", icon: personalityIcon, card: "Personality Matching", d: "Pairs introverts with extroverts and thinkers with feelers." },
+  { id: "skills", t: "Skills", s: "Technical & soft skills", c: "amber", icon: skillIcon, card: "Skill Balancing", d: "Technical and soft skills are spread evenly across every team." },
+  { id: "gender", t: "Gender", s: "Balanced Representation", c: "sky", icon: genderIcon, card: "Gender Balance", d: "Every team gets balanced representation." },
+  { id: "preferences", t: "Preferences", s: "Preferences for task topics", c: "violet", icon: preferenceIcon, card: "Task Preference", d: "Students are matched with task topics they are interested in." },
+];
+
+const students = ["More enjoyable learning experience", "Opportunity to develop soft skills", "Networking with more complementary friends", "Higher quality project results"];
+const lecturers = ["Save time dividing groups", "Reduce student complaints", "More optimal learning outcomes", "Analysis data for evaluation"];
+---
+
+<div class="dv" data-device>
+  <div class="dv-screen">
+    <div class="dv-scroll" data-scroll tabindex="0" role="region" aria-label="EquiTeam landing page preview. Scroll to explore.">
+      <!-- header -->
+      <header class="dv-head">
+        <span class="dv-logo">
+          <Image src={logo} alt="" class="dv-logo-img" />
+          <span><b>Equi</b>Team</span>
+        </span>
+        <nav class="dv-nav" aria-label="Page sections">
+          {nav.map((n) => <span data-nav={n.id}>{n.label}</span>)}
+          <span class="dv-lang" aria-hidden="true">EN <Image src={flag} alt="" class="dv-flag" /></span>
+        </nav>
+        <span class="dv-progress" data-progress aria-hidden="true"></span>
+      </header>
+
+      <!-- hero -->
+      <div class="dv-hero" id="dv-top">
+        <Image src={heroImg} alt="EquiTeam hero: Where Justice Creates Excellence, with the four team mascots" widths={[900, 1400]} sizes="(min-width:1024px) 900px, 95vw" class="dv-hero-img" loading="eager" />
+        <a class="dv-cta" href={LIVE} target="_blank" rel="noreferrer">Go to EquiTeams <span aria-hidden="true">↗</span></a>
+      </div>
+
+      <!-- tentang -->
+      <section class="dv-sec dv-about" id="dv-tentang">
+        <h2>What is<br />EquiTeam?</h2>
+        <p>
+          EquiTeam is not just another ordinary group division tool. We are a smart platform designed to end the drama of
+          "wrong team". With the help of artificial intelligence, we ensure every group has the perfect combination of
+          members, both in terms of skills and working styles, so everyone can comfortably contribute and achieve the best
+          results together.
+        </p>
+      </section>
+
+      <!-- masalah -->
+      <section class="dv-sec dv-problems" id="dv-masalah">
+        <h2>Relate to this problem?</h2>
+        <p class="dv-sub">These problems definitely happen a lot in your lectures</p>
+        <div class="dv-cards">
+          {
+            problems.map((p) => (
+              <article class={`dv-problem ${p.tone}`}>
+                <h3>{p.t}</h3>
+                <Image src={p.m} alt="" class="dv-mascot" />
+              </article>
+            ))
+          }
+        </div>
+        <p class="dv-note">With EquiTeam, these things will be resolved more easily</p>
+      </section>
+
+      <!-- solusi -->
+      <section class="dv-sec dv-solution" id="dv-solusi">
+        <h2>EquiTeam Solution</h2>
+        <p class="dv-sub">Smart system that divides groups based on 4 fundamental aspects to create balanced and productive teams</p>
+
+        <div class="dv-panels">
+          <div class="dv-how">
+            <h3>How does EquiTeam work?</h3>
+            <ol>
+              {
+                steps.map((s, i) => (
+                  <li>
+                    <div class="dv-step">
+                      <span class="dv-n">{i + 1}</span>
+                      <span>
+                        <b>{s.t}</b>
+                        <small>{s.d}</small>
+                      </span>
+                    </div>
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
+          <div class="dv-aspects">
+            <h3>4 Main Aspects</h3>
+            <p>Analyzed for optimal group division</p>
+            <div class="dv-chips">
+              {
+                aspects.map((a) => (
+                  <div class={a.c}>
+                    <b>{a.t}</b>
+                    <small>{a.s}</small>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="dv-icons">
+          {
+            aspects.map((a) => (
+              <div class={`dv-icon ${a.c}`} data-card={a.id}>
+                <span class="dv-glyph"><Image src={a.icon} alt="" widths={[200]} /></span>
+                <b>{a.card}</b>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <!-- manfaat -->
+      <section class="dv-sec dv-benefits" id="dv-manfaat">
+        <h2>Benefits for Everyone</h2>
+        <p class="dv-sub">EquiTeam provides significant value for various stakeholders</p>
+        <div class="dv-bcards">
+          <article class="students">
+            <span class="dv-tile"><Image src={student} alt="" /></span>
+            <h3>For Students</h3>
+            <ul>{students.map((s) => <li>{s}</li>)}</ul>
+          </article>
+          <article class="lecturers">
+            <span class="dv-tile"><Image src={lecturer} alt="" /></span>
+            <h3>For Lecturers</h3>
+            <ul>{lecturers.map((s) => <li>{s}</li>)}</ul>
+          </article>
+        </div>
+      </section>
+
+      <!-- closing -->
+      <section class="dv-sec dv-close">
+        <p class="dv-kicker">Focus on Justice and Balance</p>
+        <p class="dv-big">
+          <i>EquiTeam</i> opens the gate of <i>fair</i> opportunities <span aria-hidden="true">👍</span>, we unleash the full
+          potential of every student to achieve <i>success</i> <span aria-hidden="true">⭐</span>
+        </p>
+        <p class="dv-dream">Justice is no longer a dream</p>
+      </section>
+
+      <!-- footer -->
+      <footer class="dv-foot">
+        <Image src={footerBlob} alt="" class="dv-blob" />
+        <p class="dv-touch">Let's keep in touch</p>
+        <div class="dv-foot-row">
+          <span class="dv-logo static">
+            <Image src={logo} alt="" class="dv-logo-img" />
+            <span><b>Equi</b>Team</span>
+          </span>
+        </div>
+        <div class="dv-foot-grid">
+          <p class="dv-tagline">Smart platform that ends the "wrong team" drama on campus. Divide groups fairly, quickly, and without hassle.</p>
+          <div>
+            <b>Address</b>
+            <p>Room D215, Building D, Itera Campus</p>
+          </div>
+          <div>
+            <b>Contact</b>
+            <p>informatika@itera.ac.id</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+  </div>
+</div>
+
+
+
+<style>
+  .dv-screen {
+    position: relative;
+    aspect-ratio: 880 / 625;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    background: #180092;
+  }
+  .dv-scroll {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: auto; /* at the end, scrolling continues on the page */
+    container-type: inline-size;
+    font-family: "Plus Jakarta Sans", var(--font-sans), system-ui, sans-serif;
+    color: #111;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* the yellow progress bar under the header replaces it */
+    outline: none;
+  }
+  .dv-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .dv-scroll:focus-visible {
+    box-shadow: inset 0 0 0 3px #fec84b;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dv-scroll {
+      scroll-behavior: auto;
+    }
+  }
+  /* header */
+  .dv-head {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: 7.2cqw;
+    margin-bottom: -7.2cqw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4cqw;
+    background: linear-gradient(#180092 35%, rgb(24 0 146 / 0));
+  }
+  .dv-logo {
+    display: flex;
+    align-items: center;
+    gap: 1cqw;
+    color: #fff;
+    font-size: 2.2cqw;
+    font-weight: 300;
+  }
+  .dv-logo b {
+    font-weight: 700;
+  }
+  .dv-logo-img {
+    width: 4.2cqw;
+    height: auto;
+    object-fit: contain;
+  }
+  .dv-nav {
+    display: flex;
+    align-items: center;
+    gap: 2.4cqw;
+  }
+  .dv-nav [data-nav] {
+    position: relative;
+    color: #fff;
+    font-size: 1.3cqw;
+    font-weight: 600;
+    padding: 0.5cqw 0;
+  }
+  .dv-nav [data-nav]::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0.25cqw;
+    border-radius: 99px;
+    background: #fec84b;
+    transform: scaleX(0);
+    transition: transform 0.3s;
+  }
+  .dv-nav [data-nav][aria-current="true"]::after {
+    transform: scaleX(1);
+  }
+  .dv-flag {
+    width: 3.2cqw;
+    height: 3.2cqw;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .dv-lang {
+    display: flex;
+    align-items: center;
+    gap: 0.9cqw;
+    height: 4.4cqw;
+    padding: 0 2.2cqw;
+    border-radius: 99px;
+    background: #fff;
+    color: #111;
+    font-size: 1.7cqw;
+    font-weight: 600;
+  }
+  .dv-progress {
+    position: absolute;
+    left: 0;
+    bottom: 1.2cqw;
+    height: 0.3cqw;
+    width: 100%;
+    background: #fec84b;
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+
+  /* hero */
+  .dv-hero {
+    position: relative;
+  }
+  .dv-hero-img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .dv-cta {
+    position: absolute;
+    left: 39.2%;
+    top: 39.3%;
+    width: 24.8%;
+    height: 9.6%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6cqw;
+    border-radius: 99px;
+    background: #fff;
+    color: #111;
+    font-size: 1.6cqw;
+    font-weight: 600;
+    transition:
+      box-shadow 0.25s,
+      transform 0.25s;
+  }
+  .dv-cta:hover,
+  .dv-cta:focus-visible {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 0.6cqw rgb(254 200 75 / 0.7);
+  }
+
+  /* sections */
+  .dv-sec {
+    padding: 6cqw 7cqw;
+    background: #fff;
+  }
+  .dv-sec h2 {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .dv-sub {
+    margin-top: 0.8cqw;
+    font-size: 1.25cqw;
+    color: #444;
+    text-align: center;
+  }
+  .dv-about {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 6cqw;
+    align-items: start;
+  }
+  .dv-about h2 {
+    font-size: 4.6cqw;
+    color: #180092;
+  }
+  .dv-about p {
+    font-size: 1.3cqw;
+    line-height: 1.65;
+    color: #333;
+  }
+
+  .dv-problems {
+    background: #f5f5f5;
+    text-align: center;
+  }
+  .dv-problems h2,
+  .dv-solution h2,
+  .dv-benefits h2 {
+    font-size: 3cqw;
+  }
+  .dv-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.6cqw;
+    margin: 3cqw auto 0;
+    max-width: 62cqw;
+  }
+  .dv-problem {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 0.88;
+    padding: 1.6cqw;
+    border-radius: 1.2cqw;
+    text-align: left;
+    box-shadow: 0 0.2cqw 1cqw rgb(0 0 0 / 0.06);
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s;
+    outline: none;
+  }
+  .dv-problem h3 {
+    font-size: 2cqw;
+    font-weight: 800;
+    line-height: 1.12;
+    max-width: 90%;
+  }
+  .dv-problem.green {
+    background: linear-gradient(#fff, #e3fbd5);
+    color: #0b5d3a;
+  }
+  .dv-problem.yellow {
+    background: linear-gradient(#fffdf0, #ffefa8);
+    color: #7a2e0e;
+  }
+  .dv-problem.purple {
+    background: linear-gradient(#f7f6ff, #c4c1ff);
+    color: #4c1d95;
+  }
+  .dv-mascot {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 62%;
+    height: auto;
+    transform-origin: 50% 100%;
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .dv-note {
+    margin-top: 3cqw;
+    font-size: 1.5cqw;
+    font-style: italic;
+    color: #222;
+  }
+
+  /* solution */
+  .dv-solution {
+    text-align: center;
+    color: #180092;
+  }
+  .dv-solution .dv-sub {
+    max-width: 62cqw;
+    margin-inline: auto;
+    color: #222;
+  }
+  .dv-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2cqw;
+    max-width: 66cqw;
+    margin: 3.4cqw auto 0;
+    text-align: left;
+  }
+  .dv-how {
+    padding: 2.2cqw;
+    border-radius: 1.4cqw;
+    background: #fff;
+    box-shadow: 0 0.3cqw 1.6cqw rgb(0 0 0 / 0.1);
+    color: #111;
+  }
+  .dv-how h3,
+  .dv-aspects h3 {
+    font-size: 1.5cqw;
+    font-weight: 800;
+  }
+  .dv-how ol {
+    display: grid;
+    gap: 0.6cqw;
+    margin-top: 1.4cqw;
+  }
+  .dv-step {
+    display: flex;
+    gap: 1cqw;
+    width: 100%;
+    padding: 0.7cqw;
+    border-radius: 0.9cqw;
+    text-align: left;
+    transition: background 0.25s;
+    cursor: pointer;
+  }
+  .dv-n {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2cqw;
+    height: 2cqw;
+    border-radius: 50%;
+    border: 0.15cqw solid #180092;
+    color: #180092;
+    font-size: 1cqw;
+    font-weight: 800;
+    transition:
+      background 0.25s,
+      color 0.25s;
+  }
+  .dv-how b {
+    display: block;
+    font-size: 1.1cqw;
+  }
+  .dv-how small {
+    display: block;
+    margin-top: 0.2cqw;
+    font-size: 0.95cqw;
+    line-height: 1.4;
+    color: #555;
+  }
+  .dv-aspects {
+    padding: 2.2cqw;
+    border-radius: 1.4cqw;
+    background: #3b2bc2;
+    color: #fff;
+    text-align: center;
+  }
+  .dv-aspects > p {
+    margin-top: 0.4cqw;
+    font-size: 1cqw;
+    color: rgb(255 255 255 / 0.75);
+  }
+  .dv-chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9cqw;
+    margin-top: 1.4cqw;
+  }
+  .dv-chips > div {
+    padding: 1cqw 0.6cqw;
+    border-radius: 0.9cqw;
+    background: rgb(255 255 255 / 0.1);
+    transition:
+      background 0.25s,
+      transform 0.25s,
+      box-shadow 0.25s;
+    cursor: pointer;
+  }
+  .dv-chips b {
+    display: block;
+    font-size: 1.3cqw;
+  }
+  .dv-chips small {
+    display: block;
+    margin-top: 0.2cqw;
+    font-size: 0.85cqw;
+    color: rgb(255 255 255 / 0.75);
+  }
+  .dv-chips .teal {
+    color: #34d9a0;
+  }
+  .dv-chips .amber {
+    color: #fbb02d;
+  }
+  .dv-chips .sky {
+    color: #4cc3ff;
+  }
+  .dv-chips .violet {
+    color: #a8a4ff;
+  }
+  .dv-icons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.6cqw;
+    max-width: 66cqw;
+    margin: 2.6cqw auto 0;
+  }
+  .dv-icon {
+    display: grid;
+    gap: 0.9cqw;
+    justify-items: center;
+    padding-bottom: 0.4cqw;
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.3s;
+  }
+  .dv-icon b {
+    font-size: 1.15cqw;
+    color: #111;
+  }
+  .dv-glyph {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 1.2cqw;
+    transition: box-shadow 0.3s;
+  }
+  .dv-glyph img {
+    width: 66%;
+    height: auto;
+  }
+  .dv-icon.teal .dv-glyph {
+    background: #c8f7dc;
+  }
+  .dv-icon.amber .dv-glyph {
+    background: #fff0c2;
+  }
+  .dv-icon.sky .dv-glyph {
+    background: #bfe6ff;
+  }
+  .dv-icon.violet .dv-glyph {
+    background: #e0e0ff;
+  }
+
+  /* benefits */
+  .dv-benefits {
+    background: #180092;
+    color: #fff;
+    text-align: center;
+  }
+  .dv-benefits .dv-sub {
+    color: rgb(255 255 255 / 0.8);
+  }
+  .dv-bcards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.8cqw;
+    max-width: 56cqw;
+    margin: 3cqw auto 0;
+    text-align: left;
+  }
+  .dv-bcards article {
+    padding: 2cqw;
+    border-radius: 1.4cqw;
+    background: #2c1bab;
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      background 0.3s;
+    outline: none;
+  }
+  .dv-tile {
+    display: grid;
+    place-items: center;
+    width: 7.2cqw;
+    height: 7.2cqw;
+    border-radius: 1cqw;
+  }
+  .students .dv-tile {
+    background: #d6f9e6;
+  }
+  .lecturers .dv-tile {
+    background: #fff1cf;
+  }
+  .dv-tile img {
+    width: 74%;
+    height: auto;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .dv-bcards h3 {
+    margin-top: 1.4cqw;
+    font-size: 1.6cqw;
+    font-weight: 800;
+  }
+  .students h3 {
+    color: #34d9a0;
+  }
+  .lecturers h3 {
+    color: #fbb02d;
+  }
+  .dv-bcards ul {
+    display: grid;
+    gap: 0.6cqw;
+    margin-top: 1.2cqw;
+    font-size: 1cqw;
+    color: rgb(255 255 255 / 0.85);
+  }
+  .dv-bcards li {
+    position: relative;
+    padding-left: 1.4cqw;
+  }
+  .dv-bcards li::before {
+    content: "";
+    position: absolute;
+    left: 0.2cqw;
+    top: 0.55cqw;
+    width: 0.4cqw;
+    height: 0.4cqw;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .students li::before {
+    color: #34d9a0;
+  }
+  .lecturers li::before {
+    color: #fbb02d;
+  }
+
+  /* closing */
+  .dv-close {
+    padding-block: 8cqw;
+    text-align: center;
+  }
+  .dv-kicker {
+    font-size: 1.7cqw;
+    font-weight: 500;
+  }
+  .dv-big {
+    max-width: 62cqw;
+    margin: 2.6cqw auto 0;
+    font-size: 3.6cqw;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: -0.03em;
+    line-height: 1.22;
+  }
+  .dv-big i {
+    color: #180092;
+  }
+  .dv-dream {
+    margin-top: 3cqw;
+    font-size: 1.4cqw;
+    font-weight: 300;
+    color: #333;
+  }
+
+  /* footer */
+  .dv-foot {
+    position: relative;
+    overflow: hidden;
+    padding: 6cqw 7cqw 7cqw;
+    background: #180092;
+    color: #fff;
+  }
+  .dv-blob {
+    position: absolute;
+    right: -2cqw;
+    bottom: -1cqw;
+    width: 46cqw;
+    height: auto;
+  }
+  .dv-foot > :not(.dv-blob) {
+    position: relative;
+    z-index: 1;
+  }
+  .dv-touch {
+    font-size: 6.4cqw;
+    font-weight: 300;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .dv-foot-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 3cqw;
+  }
+  .dv-logo.static {
+    cursor: default;
+    font-size: 2.6cqw;
+  }
+  .dv-foot-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr;
+    gap: 3cqw;
+    margin-top: 3cqw;
+    font-size: 1.1cqw;
+    line-height: 1.5;
+  }
+  .dv-tagline {
+    max-width: 24cqw;
+    font-size: 1.6cqw;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .dv-foot-grid b {
+    font-size: 1.1cqw;
+  }
+  .dv-foot-grid div p {
+    margin-top: 1cqw;
+    font-size: 1cqw;
+    color: rgb(255 255 255 / 0.85);
+  }
+
+  /* chrome outside the scroller */
+</style>
+
+<script>
+  // Scroll progress and a passive section highlight in the header. Nothing in the preview is clickable
+  // except the "Go to EquiTeams" button. Safe to run again after navigation.
+  function init() {
+    document.querySelectorAll<HTMLElement>("[data-device]").forEach((dev) => {
+      if (dev.dataset.ready) return;
+      dev.dataset.ready = "1";
+
+      const sc = dev.querySelector<HTMLElement>("[data-scroll]")!;
+      const bar = dev.querySelector<HTMLElement>("[data-progress]")!;
+      const navItems = [...dev.querySelectorAll<HTMLElement>("[data-nav]")];
+      const sections = navItems.map((b) => dev.querySelector<HTMLElement>(`#dv-${b.dataset.nav}`)!);
+
+      let ticking = false;
+      const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          const max = sc.scrollHeight - sc.clientHeight;
+          bar.style.transform = `scaleX(${max > 0 ? sc.scrollTop / max : 0})`;
+          let current = -1;
+          sections.forEach((sec, i) => {
+            if (sec.offsetTop - sc.clientHeight * 0.45 <= sc.scrollTop) current = i;
+          });
+          navItems.forEach((n, i) => (i === current ? n.setAttribute("aria-current", "true") : n.removeAttribute("aria-current")));
+        });
+      };
+      sc.addEventListener("scroll", onScroll, { passive: true });
+    });
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

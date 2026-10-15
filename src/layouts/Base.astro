@@ -1,0 +1,149 @@
+---
+import { ClientRouter } from "astro:transitions";
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import { site } from "../data/site";
+import { boards, people } from "../data/annotations";
+
+// A case study can re-skin the site's accent tokens with its project's brand colours.
+interface Brand {
+  accent: string; // replaces violet: links, codes, pills on light
+  accentSoft: string; // replaces violet-soft: tinted callouts
+  pop: string; // replaces lime: highlights on dark, CTAs
+}
+
+interface Props {
+  title?: string;
+  description?: string;
+  brand?: Brand;
+  nav?: boolean; // false on pages that bring their own chrome (the home page)
+  footer?: boolean;
+}
+
+const {
+  title = `${site.name} | ${site.headline}`,
+  description = `${site.name} is a product designer and business analyst in ${site.location}, designing calm interfaces for complex systems.`,
+  brand,
+  nav = true,
+  footer = true,
+} = Astro.props;
+
+// Absolute URLs (canonical, social preview image) need `site` in astro.config.mjs.
+const origin = Astro.site;
+const abs = (path: string) => (origin ? new URL(path, origin).href : undefined);
+const canonical = abs(Astro.url.pathname);
+const ogImage = abs("/og.png");
+
+const person = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: site.name,
+  jobTitle: site.role,
+  email: site.email,
+  address: { "@type": "PostalAddress", addressLocality: site.location, addressCountry: "ID" },
+  alumniOf: "Institut Teknologi Sumatera",
+  sameAs: site.socials.filter((s) => ["LinkedIn", "Behance"].includes(s.label)).map((s) => s.href),
+};
+
+// FigJam annotations for this case study, drawn only when it is shown as a home board (see board-notes.ts).
+const boardSlug = Astro.url.pathname.match(/^\/work\/([^/]+)/)?.[1];
+const boardNotes = boardSlug && boards[boardSlug] ? JSON.stringify({ ...boards[boardSlug], people }) : undefined;
+
+const brandStyle = brand
+  ? `--color-violet:${brand.accent};--color-violet-soft:${brand.accentSoft};--color-lime:${brand.pop};`
+  : undefined;
+---
+
+<!doctype html>
+<html lang="en" data-lock={brand ? "light" : undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f6f5f1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Urbanist:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogImage && <meta property="og:image:width" content="1200" />}
+    {ogImage && <meta property="og:image:height" content="630" />}
+    <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+    <script type="application/ld+json" set:html={JSON.stringify(person)} />
+    <ClientRouter fallback="none" />
+    <script is:inline>
+      document.documentElement.classList.add("js");
+      // Lite mode for low-power devices (little memory, few cores, or Data Saver): WebGL accents and the
+      // fake collaborator cursors on the home page are skipped. deviceMemory is Chromium-only; elsewhere this is off.
+      (function () {
+        var n = navigator;
+        if ((n.deviceMemory && n.deviceMemory <= 4) || (n.hardwareConcurrency && n.hardwareConcurrency <= 2) || (n.connection && n.connection.saveData)) {
+          document.documentElement.classList.add("lite");
+        }
+      })();
+      // ?embed: shown inside the home app as a FigJam board (see global.css). Links that leave the page
+      // navigate the whole window rather than the board; in-page anchors keep working.
+      if (/[?&]embed\b/.test(location.search) && window.top !== window) {
+        document.documentElement.classList.add("embed");
+        window.addEventListener(
+          "click",
+          function (e) {
+            var a = e.target.closest && e.target.closest("a[href]");
+            if (!a || e.defaultPrevented || a.target === "_blank" || a.hasAttribute("download")) return;
+            var url = new URL(a.href, location.href);
+            if (url.origin === location.origin && url.pathname === location.pathname && url.hash) return;
+            e.preventDefault();
+            e.stopPropagation();
+            window.top.location.href = url.href;
+          },
+          true,
+        );
+      }
+      try {
+        var t = localStorage.getItem("theme");
+        var dark = t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        // Boards stay light: their FigJam canvas is light.
+        var lock = document.documentElement.hasAttribute("data-lock") || document.documentElement.classList.contains("embed");
+        if (dark && !lock) document.documentElement.classList.add("dark");
+      } catch (e) {}
+    </script>
+  </head>
+  <body class="min-h-dvh" style={brandStyle}>
+    <div id="veil" class="veil" transition:persist aria-hidden="true">
+      <p id="veil-label" class="veil-label"></p>
+    </div>
+    <div id="cursor-blend" class="cursor-blend" transition:persist aria-hidden="true">
+      <div id="cursor-dot" class="cursor-dot"></div>
+    </div>
+    <a href="#main" class="skip-link">Skip to content</a>
+    {nav && <Nav />}
+    <main id="main">
+      <slot />
+    </main>
+    {footer && <Footer />}
+    {boardNotes && <script type="application/json" id="board-notes" set:html={boardNotes} />}
+    <script>
+      import "../scripts/motion.ts";
+      import "../scripts/gl.ts";
+      import "../scripts/transition.ts";
+      import "../scripts/cursor.ts";
+      import "../scripts/ui.ts";
+      import "../scripts/board-notes.ts";
+      import "../scripts/board-sections.ts";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,628 @@
+---
+import { Image } from "astro:assets";
+import Base from "../../layouts/Base.astro";
+import SectionDock from "../../components/SectionDock.astro";
+import Phone from "../../components/Phone.astro";
+import Compare from "../../components/Compare.astro";
+import { site } from "../../data/site";
+
+import loginWrong from "../../assets/satya/03-login-wrong.png";
+import otp from "../../assets/satya/05-email-verif.png";
+import welcome from "../../assets/satya/07-regis-ok.png";
+import beranda from "../../assets/satya/08-beranda.png";
+import pejabat from "../../assets/satya/09-pejabat.png";
+import pejabatDetail from "../../assets/satya/10-pejabat-detail.png";
+import tersangka from "../../assets/satya/11-tersangka.png";
+import tersangkaDetail from "../../assets/satya/12-tersangka-detail.png";
+import kasusDetail from "../../assets/satya/13-kasus-detail.png";
+import kasus from "../../assets/satya/14-kasus.png";
+import progja from "../../assets/satya/15-progja.png";
+import menteri from "../../assets/satya/16-menteri.png";
+import progjaDetail from "../../assets/satya/18-progja-detail.png";
+import anggaran from "../../assets/satya/20-anggaran.png";
+import diskusi from "../../assets/satya/21-diskusi.png";
+import laporan from "../../assets/satya/22-laporan.png";
+import laporanTerisi from "../../assets/satya/23-laporan-terisi.png";
+import laporanKonfirm from "../../assets/satya/24-laporan-konfirm.png";
+import profile from "../../assets/satya/25-profile.png";
+import daftar from "../../assets/satya/04-daftar.png";
+import biodata from "../../assets/satya/06-biodata.png";
+import progjaDetail2 from "../../assets/satya/19-progja-detail-2.png";
+import itCasesHistory from "../../assets/satya/it1-cases-history.png";
+
+import personaArta from "../../assets/satya/persona-arta.png";
+import affinity from "../../assets/satya/affinity.png";
+import wireframe from "../../assets/satya/wireframe.png";
+import itRegisterName from "../../assets/satya/it1-register-name.png";
+import itReportDeclare from "../../assets/satya/it1-report-declare.png";
+import itReportProgja from "../../assets/satya/it1-report-progja.png";
+import itConfirmPassword from "../../assets/satya/it2-confirm-password.png";
+import itUsernameTaken from "../../assets/satya/it2-username-taken.png";
+
+// SATYA brand: orange from the logo flame and app bars, crimson from the logo, navy from the wordmark.
+const brand = { accent: "#1e2a66", accentSoft: "#fdead9", pop: "#f37125" };
+
+const facts = [
+  { k: "Competition", v: "GEMASTIK XVII · UX Design division" },
+  { k: "Team", v: "NcikNickPeriuk · 3 designers" },
+  { k: "Method", v: "Design Thinking + System Usability Scale" },
+  { k: "Tools", v: "Figma, FigJam, Google Forms" },
+];
+
+const survey = [
+  { n: "10/10", d: "agree corruption is a very serious problem" },
+  { n: "4/10", d: "have personally seen a corruption case" },
+  { n: "7/10", d: "believe an app on government performance can raise transparency" },
+  { n: "10/10", d: "want detail on programmes, budgets and who's responsible" },
+  { n: "70%", d: "want users to be able to discuss programmes together" },
+];
+
+const needs = [
+  "A clear explanation of each government programme and the budget it uses",
+  "Which body or institution is responsible for that programme",
+  "Confidence that their privacy and personal data stay safe",
+  "A way to follow programmes and report suspected corruption",
+];
+
+type Feature = {
+  id: string;
+  title: string;
+  summary: string;
+  points: string[];
+  shots: { src: typeof beranda; alt: string }[];
+};
+
+const features: Feature[] = [
+  {
+    id: "beranda",
+    title: "Beranda",
+    summary: "Everything starts on one scroll: report, browse cases and officials, understand the structure of government.",
+    points: [
+      "Guests can browse everything. Reporting and Public Discussion need an account",
+      "Shortcuts to Kasus Terlapor and Daftar Pejabat sit right under the report banner",
+      "Government structure (executive, legislative, judicial), top programmes and upcoming agenda",
+      "Bottom bar: Home, Report, Programmes, Profile",
+    ],
+    shots: [{ src: beranda, alt: "SATYA home" }],
+  },
+  {
+    id: "pejabat",
+    title: "Daftar Pejabat",
+    summary: "Who holds power, and who has been charged. Two tabs, same structure.",
+    points: [
+      "Pejabat Aktif: from the presidency to cabinet ministers to regional government",
+      "Official profile: term, career timeline and declared total wealth",
+      "Tersangka Koruptor: each suspect with the case and the state's loss in rupiah",
+      "Loss detail links to the evidence documents behind it",
+    ],
+    shots: [
+      { src: pejabat, alt: "Active officials list" },
+      { src: pejabatDetail, alt: "Official profile with wealth" },
+      { src: tersangka, alt: "Corruption suspects list" },
+      { src: tersangkaDetail, alt: "Loss detail with evidence" },
+    ],
+  },
+  {
+    id: "kasus",
+    title: "Kasus Terlapor",
+    summary: "Reported cases, each tagged to a ministry and tied to the programme it concerns.",
+    points: [
+      "Cases are listed by date, each tagged with the ministry involved",
+      "Case detail names the programme and explains what's wrong",
+      "Evidence documents can be viewed or downloaded, with photos of receipts and reports",
+    ],
+    shots: [
+      { src: kasus, alt: "Reported cases list" },
+      { src: kasusDetail, alt: "Case detail with evidence documents" },
+    ],
+  },
+  {
+    id: "progja",
+    title: "Program Kerja",
+    summary: "Follow a government programme from plan to spend. This is the screen people asked for most.",
+    points: [
+      "Top programmes ranked, then grouped by ministry cluster",
+      "Each ministry lists its programmes with dates and a one-line description",
+      "Programme detail: person in charge, total budget, progress bar and work timeline",
+      "Budget detail: money in, money out, remaining balance and every expense with proof",
+    ],
+    shots: [
+      { src: progja, alt: "Government programmes overview" },
+      { src: menteri, alt: "Ministries in a cabinet cluster" },
+      { src: progjaDetail, alt: "Programme detail" },
+      { src: anggaran, alt: "Budget detail" },
+    ],
+  },
+  {
+    id: "diskusi",
+    title: "Diskusi Publik",
+    summary: "Citizens talk about a programme where they read it, not in a separate forum.",
+    points: [
+      "Threaded comments with likes and reply counts",
+      "Comment box pinned at the bottom of programme detail and discussion",
+      "Login required, so discussion stays accountable",
+    ],
+    shots: [{ src: diskusi, alt: "Public discussion forum" }],
+  },
+  {
+    id: "lapor",
+    title: "Form Pelaporan",
+    summary: "Report a suspected problem with a programme, with evidence attached and identity protected.",
+    points: [
+      "Subject, programme, institution, evidence upload and description",
+      "Submit stays disabled until the form is complete",
+      "Clear confirmation once the report is sent",
+      "Anonymity for reporters is part of the concept, to protect identity",
+    ],
+    shots: [
+      { src: laporan, alt: "Empty report form" },
+      { src: laporanTerisi, alt: "Filled report form" },
+      { src: laporanKonfirm, alt: "Report sent confirmation" },
+    ],
+  },
+  {
+    id: "akun",
+    title: "Akun & Profil",
+    summary: "Sign-in that doesn't block browsing, a sign-up split into short steps, and a simple profile.",
+    points: [
+      "Username or Google or Facebook, with a skip link for guests",
+      "Wrong password shows a clear inline message in red",
+      "Register, then OTP by email, then complete the profile, then a welcome screen",
+      "Profile: report history, account info, feedback and about the team",
+    ],
+    shots: [
+      { src: loginWrong, alt: "Login with wrong password" },
+      { src: otp, alt: "OTP verification" },
+      { src: welcome, alt: "Registration success" },
+      { src: profile, alt: "User profile" },
+    ],
+  },
+];
+
+const round1 = [72.5, 72.5, 60, 67.5, 70];
+const round2 = [77.5, 82.5, 75, 80, 87.5];
+const pct = (v: number) => `${((v - 40) / 60) * 100}%`; // scale shown from 40 to 100
+
+// Hero screen wall: three columns drifting at different speeds.
+const wall = [
+  [beranda, kasusDetail, anggaran],
+  [progjaDetail, pejabatDetail, diskusi],
+  [kasus, menteri, laporanTerisi],
+];
+
+const stages = ["Empathize", "Define", "Ideate", "Prototype", "Test"];
+
+const changes = [
+  { round: 1, said: "Fill in personal data first, before the username.", did: "Full name moved to the top of registration", before: daftar, after: itRegisterName },
+  { round: 1, said: "Tell me when my report has been sent.", did: "Declaration step before sending, then a confirmation", before: laporanTerisi, after: itReportDeclare },
+  { round: 1, said: "Add a history so I can see my past reports.", did: "Riwayat Laporan Saya at the top of Kasus Terlapor", before: kasus, after: itCasesHistory },
+  { round: 1, said: "Let me report from the programme detail.", did: "Laporkan Program Kerja button on programme detail", before: progjaDetail2, after: itReportProgja },
+  { round: 2, said: "Add a confirm-password field.", did: "Konfirmasi Kata Sandi added to registration", before: itRegisterName, after: itConfirmPassword },
+  { round: 2, said: "Tell me if my username is already taken.", did: "Inline notice when a username is unavailable", before: biodata, after: itUsernameTaken },
+];
+
+const cardTone = [
+  "bg-card text-ink ring-1 ring-line",
+  "bg-[#1e2a66] text-white",
+  "bg-[#f37125] text-[#0e1440]",
+];
+
+// Floating section bar (SectionDock), shared with every case study.
+const sections = [
+  { id: "brief", t: "Brief" },
+  { id: "process", t: "Process" },
+  { id: "prototype", t: "Prototype" },
+  { id: "test", t: "Test" },
+  { id: "iterate", t: "Iterate" },
+  { id: "impact", t: "Impact" },
+];
+---
+
+<Base title={`SATYA case study | ${site.name}`} description="Case study: SATYA, a civic app for monitoring government programmes and reporting suspected corruption. GEMASTIK XVII UX Design." brand={brand}>
+  <!-- HERO: split, with a drifting wall of screens -->
+  <section class="relative isolate overflow-hidden bg-[#1e2a66] text-white">
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(60%_70%_at_85%_30%,rgb(243_113_37/0.35),transparent_70%)]" aria-hidden="true"></div>
+    <div class="wrap grid min-h-[100svh] items-center gap-12 pt-28 pb-16 lg:grid-cols-[1fr_1.05fr] lg:pt-20 lg:pb-0">
+      <div class="relative z-10">
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[#ffb37a]" data-reveal>Case 03 · GEMASTIK XVII · 2024</p>
+        <h1 class="display mt-6 text-[clamp(4.5rem,13vw,10rem)]" data-intro>
+          <span class="inline-block">SATYA</span><span class="inline-block text-[#f37125]">.</span>
+        </h1>
+        <p class="mt-4 font-display text-2xl font-extrabold tracking-tight sm:text-3xl" data-reveal="0.2">
+          Pantau. Evaluasi. <span class="text-[#f37125]">Laporkan.</span>
+        </p>
+        <p class="mt-6 max-w-lg text-lg leading-relaxed text-white/85" data-reveal="0.3">
+          A mobile app that lets Indonesian citizens follow government programmes and budgets,
+          see who's responsible, talk about it in public, and report suspected corruption with
+          evidence.
+        </p>
+        <dl class="mt-10 grid max-w-lg grid-cols-2 gap-x-6 gap-y-5 border-t border-white/15 pt-6 text-sm" data-stagger>
+          {facts.map((f) => (
+            <div>
+              <dt class="text-white/65">{f.k}</dt>
+              <dd class="mt-1 font-medium">{f.v}</dd>
+            </div>
+          ))}
+        </dl>
+        <p class="mt-6 max-w-lg text-xs text-white/65">
+          With Vania Angelica Kusuma Putri Nababan and Natasya Ate Malem Bangun · Teknik Informatika, ITERA.
+        </p>
+      </div>
+
+      <div class="relative -mx-4 h-[30rem] overflow-hidden sm:mx-0 lg:h-[100svh] [mask-image:linear-gradient(to_bottom,transparent,black_12%,black_88%,transparent)]" aria-hidden="true">
+        <div class="grid h-full rotate-[-6deg] scale-110 grid-cols-3 gap-4 sm:gap-6">
+          {wall.map((col, i) => (
+            <div class={`satya-col flex flex-col gap-4 sm:gap-6 ${i === 1 ? "satya-col--rev" : ""}`} style={`--dur:${[38, 46, 34][i]}s`}>
+              {[...col, ...col].map((src) => (
+                <div class="shrink-0 overflow-hidden rounded-[1.4rem] bg-white shadow-[0_20px_40px_-12px_rgb(0_0_0/0.5)] ring-4 ring-[#0e1440]">
+                  <Image src={src} alt="" widths={[260, 400]} sizes="200px" class="block w-full" />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM: one editorial number -->
+  <section id="brief" class="bg-[#f37125] text-[#0e1440]">
+    <div class="wrap grid items-end gap-10 py-20 sm:py-28 lg:grid-cols-[auto_1fr]">
+      <p class="display text-[clamp(9rem,30vw,22rem)] leading-[0.8]" data-reveal>
+        37<span class="text-[0.3em] opacity-60">/100</span>
+      </p>
+      <div class="max-w-xl pb-4" data-reveal="0.15">
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[#1e2a66]">01 · The brief</p>
+        <p class="mt-4 font-display text-2xl font-extrabold leading-snug tracking-tight sm:text-3xl">
+          Indonesia's score on Transparency International's 2020 Corruption Perceptions Index.
+        </p>
+        <p class="mt-5 text-[#0e1440]/85">
+          GEMASTIK XVII asked for better public services. We picked accountability. Complaint
+          portals exist, but people can't see where a programme's money went, so they don't know
+          what to report, or trust that anyone will act on it.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="pill bg-[#1e2a66] text-white">SDG 16.6 · accountable institutions</span>
+          <span class="pill bg-white text-[#1e2a66]">SDG 16.10 · public access to information</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS: vertical timeline -->
+  <section id="process" class="wrap py-24 sm:py-32">
+    <div class="grid gap-6 lg:grid-cols-[1fr_2fr]">
+      <div>
+        <p class="eyebrow">02 · Process</p>
+        <h2 class="h2 mt-4" data-reveal>Five stages, one thread.</h2>
+      </div>
+      <p class="self-end text-lg text-muted" data-reveal="0.1">
+        Design Thinking from survey to prototype, then the System Usability Scale to measure it.
+      </p>
+    </div>
+
+    <ol class="relative mt-16 border-l-2 border-dashed border-[#f37125]/40 pl-8 sm:ml-6 sm:pl-14">
+      <!-- Empathize -->
+      <li class="relative pb-20" data-reveal>
+        <span class="absolute -left-[2.85rem] top-0 grid size-11 place-items-center rounded-full bg-[#1e2a66] font-display text-sm font-bold text-white sm:-left-[4.35rem]">01</span>
+        <p class="font-display text-3xl font-extrabold tracking-tight">{stages[0]}</p>
+        <p class="mt-2 max-w-xl text-muted">Online survey, 10 respondents from different backgrounds, 20–21 June 2024.</p>
+        <ul class="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-5" data-stagger>
+          {survey.map((x) => (
+            <li class="rounded-2xl bg-card p-5 ring-1 ring-line">
+              <p class="display text-4xl text-[#c2410c]">{x.n}</p>
+              <p class="mt-2 text-sm">{x.d}</p>
+            </li>
+          ))}
+        </ul>
+      </li>
+
+      <!-- Define -->
+      <li class="relative pb-20" data-reveal>
+        <span class="absolute -left-[2.85rem] top-0 grid size-11 place-items-center rounded-full bg-[#1e2a66] font-display text-sm font-bold text-white sm:-left-[4.35rem]">02</span>
+        <p class="font-display text-3xl font-extrabold tracking-tight">{stages[1]}</p>
+        <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_1.5fr]">
+          <div>
+            <p class="text-muted">Users are 18–40, from mixed backgrounds, and agree corruption and programme transparency are serious issues. They need:</p>
+            <ol class="mt-5 space-y-3">
+              {needs.map((n, i) => (
+                <li class="flex gap-3 text-sm">
+                  <span class="grid size-6 shrink-0 place-items-center rounded-full bg-[#fdead9] text-xs font-bold text-[#b54708]">{i + 1}</span>
+                  {n}
+                </li>
+              ))}
+            </ol>
+          </div>
+          <figure>
+            <Image src={personaArta} alt="User personas: Arta, 19, law student, and Budi, 38, political observer" widths={[600, 1080]} sizes="(min-width:1024px) 45vw, 100vw" class="w-full rounded-2xl ring-1 ring-line" />
+            <figcaption class="mt-3 text-sm text-muted">
+              <b class="text-ink">Arta, 19</b>, a law student who wants to study government performance.
+              <b class="text-ink">Budi, 38</b>, a political observer who wants credible info and a way to act.
+            </figcaption>
+          </figure>
+        </div>
+      </li>
+
+      <!-- Ideate -->
+      <li class="relative pb-20" data-reveal>
+        <span class="absolute -left-[2.85rem] top-0 grid size-11 place-items-center rounded-full bg-[#1e2a66] font-display text-sm font-bold text-white sm:-left-[4.35rem]">03</span>
+        <p class="font-display text-3xl font-extrabold tracking-tight">{stages[2]}</p>
+        <p class="mt-2 max-w-xl text-muted">An affinity diagram in FigJam sorted notes into problems, users and solution ideas, then low-fi wireframes for every flow.</p>
+        <div class="mt-8 grid gap-4 sm:grid-cols-[1.7fr_1fr]">
+          <Image src={affinity} alt="Affinity diagram: Masalah, Pengguna, Ide Solusi" widths={[800, 1400]} sizes="(min-width:1024px) 50vw, 100vw" class="w-full rounded-2xl bg-white ring-1 ring-line" />
+          <Image src={wireframe} alt="Low-fidelity wireframes" widths={[500, 764]} sizes="(min-width:1024px) 28vw, 100vw" class="w-full rounded-2xl ring-1 ring-line" />
+        </div>
+      </li>
+
+      <!-- Prototype -->
+      <li class="relative pb-20" data-reveal>
+        <span class="absolute -left-[2.85rem] top-0 grid size-11 place-items-center rounded-full bg-[#c2410c] font-display text-sm font-bold text-white sm:-left-[4.35rem]">04</span>
+        <p class="font-display text-3xl font-extrabold tracking-tight">{stages[3]}</p>
+        <p class="mt-2 max-w-xl text-muted">High-fidelity in Figma: seven features, all below. Scroll on.</p>
+      </li>
+
+      <!-- Test -->
+      <li class="relative" data-reveal>
+        <span class="absolute -left-[2.85rem] top-0 grid size-11 place-items-center rounded-full bg-[#c2410c] font-display text-sm font-bold text-white sm:-left-[4.35rem]">05</span>
+        <p class="font-display text-3xl font-extrabold tracking-tight">{stages[4]}</p>
+        <p class="mt-2 max-w-xl text-muted">Two rounds of SUS with five testers each, plus their suggestions. Results further down.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- FEATURES: pinned horizontal scroll -->
+  <section id="prototype" class="satya-h relative bg-paper" style={`--n:${features.length}`} data-hscroll>
+    <div class="satya-h__pin">
+      <div class="wrap flex items-end justify-between gap-6 pt-6 lg:pt-0">
+        <div>
+          <p class="eyebrow">03 · Prototype</p>
+          <h2 class="h2 mt-3" data-reveal>Seven features. See it, then say something.</h2>
+        </div>
+        <p class="hidden shrink-0 font-display text-sm font-bold text-muted lg:block">Scroll ↓ to move →</p>
+      </div>
+
+      <div class="satya-h__viewport mt-10">
+        <ol class="satya-h__track flex w-max gap-6 px-4 pb-6 sm:px-10 lg:px-[max(40px,calc((100vw-1280px)/2+40px))]" data-track>
+          {features.map((f, i) => (
+            <li class={`flex w-[85vw] shrink-0 snap-center flex-col gap-8 rounded-[28px] p-6 sm:p-8 lg:w-auto lg:flex-row lg:items-center ${cardTone[i % 3]}`}>
+              <div class="lg:w-[300px]">
+                <p class="display text-6xl opacity-25">{String(i + 1).padStart(2, "0")}</p>
+                <p class="mt-2 font-display text-sm font-bold uppercase tracking-[0.15em]">{f.title}</p>
+                <p class="mt-3 font-display text-2xl font-extrabold leading-tight tracking-tight">{f.summary}</p>
+                <ul class="mt-5 space-y-2 text-base opacity-90">
+                  {f.points.map((p) => (
+                    <li class="flex gap-2.5"><span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-current opacity-60" />{p}</li>
+                  ))}
+                </ul>
+              </div>
+              <div class="flex gap-3 overflow-x-auto lg:overflow-visible">
+                {f.shots.map((x) => (
+                  <Phone src={x.src} alt={x.alt} class="w-[150px] shrink-0 lg:w-[170px]" />
+                ))}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div class="wrap mt-4 hidden lg:block">
+        <div class="h-1 overflow-hidden rounded-full bg-line">
+          <div class="h-full origin-left rounded-full bg-[#f37125]" style="transform: scaleX(0)" data-bar></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEST -->
+  <section id="test" class="bg-[#1e2a66] py-24 text-white sm:py-32">
+    <div class="wrap">
+      <div class="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:items-end">
+        <div>
+          <p class="eyebrow !text-[#ffb37a]">04 · Test</p>
+          <h2 class="h2 mt-4" data-reveal>Marginal to acceptable in two rounds.</h2>
+        </div>
+        <div class="flex items-end gap-6" data-reveal="0.1">
+          <div>
+            <p class="text-sm text-white/65">Round 1</p>
+            <p class="display text-7xl text-white/65">68.5</p>
+          </div>
+          <span class="pb-4 text-3xl text-[#f37125]">→</span>
+          <div>
+            <p class="text-sm text-white/65">Round 2</p>
+            <p class="display text-7xl text-[#f37125]">80.5</p>
+          </div>
+        </div>
+      </div>
+      <p class="mt-6 max-w-2xl text-white/85" data-reveal="0.15">
+        Five testers per round ran five scenarios (register, log in, open a programme, file a
+        report, browse reported cases) and answered the 10-question System Usability Scale.
+      </p>
+
+      <div class="mt-14 rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 sm:p-10" data-reveal>
+        <div class="relative h-40">
+          <div class="absolute inset-x-0 top-16 flex h-3 overflow-hidden rounded-full">
+            <span class="bg-[#c91f3d]/60" style={`width:${pct(50)}`}></span>
+            <span class="bg-[#f79009]/60" style={`width:calc(${pct(70)} - ${pct(50)})`}></span>
+            <span class="flex-1 bg-[#12b76a]/60"></span>
+          </div>
+          <div class="absolute inset-x-0 top-24 text-xs text-white/65">
+            {[40, 50, 60, 70, 80, 90, 100].map((t) => (
+              <span class="absolute -translate-x-1/2" style={`left:${pct(t)}`}>{t}</span>
+            ))}
+          </div>
+          <div class="absolute top-32 w-full text-xs">
+            <span class="absolute -translate-x-1/2 text-[#fda29b]" style={`left:${pct(45)}`}>Not acceptable</span>
+            <span class="absolute -translate-x-1/2 text-[#fec84b]" style={`left:${pct(60)}`}>Marginal</span>
+            <span class="absolute -translate-x-1/2 text-[#6ce9a6]" style={`left:${pct(85)}`}>Acceptable</span>
+          </div>
+          {round1.map((v) => (
+            <span class="absolute top-[3.6rem] size-5 -translate-x-1/2 rounded-full border-2 border-[#1e2a66] bg-white/70" style={`left:${pct(v)}`} title={`Round 1: ${v}`} />
+          ))}
+          {round2.map((v) => (
+            <span class="absolute top-[3.6rem] size-5 -translate-x-1/2 rounded-full border-2 border-[#1e2a66] bg-[#f37125]" style={`left:${pct(v)}`} title={`Round 2: ${v}`} />
+          ))}
+          <div class="absolute top-0 -translate-x-1/2 text-center" style={`left:${pct(68.5)}`}>
+            <span class="pill bg-white text-[#1e2a66]">avg 68.5</span>
+            <span class="mx-auto mt-1 block h-5 w-px bg-white/60"></span>
+          </div>
+          <div class="absolute top-0 -translate-x-1/2 text-center" style={`left:${pct(80.5)}`}>
+            <span class="pill bg-[#f37125] text-[#0e1440]">avg 80.5</span>
+            <span class="mx-auto mt-1 block h-5 w-px bg-[#f37125]"></span>
+          </div>
+        </div>
+        <p class="mt-6 text-sm text-white/65">Each dot is one tester. Hollow: round 1. Orange: round 2. Scale shown from 40 to 100.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ITERATE: before / after -->
+  <section id="iterate" class="wrap py-24 sm:py-32">
+    <div class="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-end">
+      <div>
+        <p class="eyebrow">05 · Iterate</p>
+        <h2 class="h2 mt-4" data-reveal>Drag to see what testers changed.</h2>
+      </div>
+      <p class="text-lg text-muted" data-reveal="0.1">
+        Six suggestions, six fixes. Each card shows the screen before and after, so you can see
+        exactly what a tester's comment turned into.
+      </p>
+    </div>
+
+    <ul class="mt-14 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3" data-stagger>
+      {changes.map((c) => (
+        <li class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class={`pill text-xs ${c.round === 1 ? "bg-[#1e2a66] text-white" : "bg-[#f37125] text-[#0e1440]"}`}>Round {c.round}</span>
+          </div>
+          <p class="mt-3 font-display text-xl font-extrabold leading-snug tracking-tight">“{c.said}”</p>
+          <p class="mt-2 text-base text-muted"><span class="text-[#c2410c]">→</span> {c.did}</p>
+          <Compare before={c.before} after={c.after} label={c.did} class="mt-5 w-full max-w-[260px]" />
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- STAKEHOLDERS -->
+  <section id="impact" class="border-t border-line bg-card py-24 sm:py-28">
+    <div class="wrap grid gap-12 lg:grid-cols-[1fr_1.6fr]">
+      <div>
+        <p class="eyebrow">06 · Beyond the app</p>
+        <h2 class="h2 mt-4" data-reveal>A report only matters if someone acts on it.</h2>
+        <p class="mt-6 text-sm text-muted">Scope: Indonesian citizens aged 18+, Android 11+ or iOS 14+, anonymous when reporting.</p>
+      </div>
+      <ol class="divide-y divide-line border-y border-line" data-stagger>
+        {[
+          { t: "Ministries & institutions", d: "Publish programmes and budget use honestly, visible in real time." },
+          { t: "Law enforcement", d: "Police, KPK, the Supreme Court and the Judicial Commission follow up verified reports." },
+          { t: "Mass media", d: "Report on verified cases through to the legal process." },
+          { t: "Citizens", d: "Students, activists and anti-corruption NGOs monitor and report with evidence." },
+        ].map((x, i) => (
+          <li class="grid grid-cols-[3rem_1fr] gap-4 py-5 sm:grid-cols-[3rem_14rem_1fr]">
+            <span class="font-display font-bold text-[#c2410c]">{String(i + 1).padStart(2, "0")}</span>
+            <span class="font-display text-lg font-extrabold tracking-tight">{x.t}</span>
+            <span class="col-start-2 text-sm text-muted sm:col-start-auto">{x.d}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- NEXT -->
+  <section class="wrap py-24">
+    <a href="/work/equiteam" class="group flex flex-col items-start justify-between gap-8 rounded-[32px] bg-[#180092] p-8 text-white sm:flex-row sm:items-end sm:p-14" data-reveal>
+      <div>
+        <p class="eyebrow !text-white/65">Next case study</p>
+        <p class="display mt-4 text-[clamp(2.5rem,6vw,5rem)]">EquiTeam<span class="text-[#fec84b]">.</span></p>
+        <p class="mt-3 max-w-md text-white/85">An AI-powered team formation platform for fairer classroom collaboration.</p>
+      </div>
+      <span class="rounded-full bg-[#fec84b] px-6 py-3.5 font-medium text-[#180092] transition-transform group-hover:translate-x-1">Read it →</span>
+    </a>
+  </section>
+  <SectionDock sections={sections} />
+</Base>
+
+<style>
+  /* Hero wall: each column loops its doubled content upward (middle one downward). */
+  .satya-col {
+    animation: satya-drift var(--dur) linear infinite;
+  }
+  .satya-col--rev {
+    animation-direction: reverse;
+  }
+  @keyframes satya-drift {
+    from { transform: translateY(0); }
+    to { transform: translateY(-50%); }
+  }
+
+  /* Features: native horizontal scroll by default... */
+  .satya-h__viewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .satya-h {
+    padding-block: 6rem;
+  }
+  /* ...pinned and scroll-driven on large screens. */
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .satya-h {
+      height: calc(var(--n) * 70vh);
+      padding-block: 0;
+    }
+    .satya-h__pin {
+      position: sticky;
+      top: 0;
+      display: flex;
+      height: 100svh;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .satya-h__viewport {
+      overflow: visible;
+    }
+    .satya-h__track {
+      will-change: transform;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .satya-col {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { scroll } from "motion";
+
+  const mq = window.matchMedia("(min-width: 1024px) and (prefers-reduced-motion: no-preference)");
+  let stop: (() => void) | undefined;
+
+  // Runs on first load and again after each client-side navigation.
+  function setup() {
+    stop?.();
+    stop = undefined;
+    const section = document.querySelector<HTMLElement>("[data-hscroll]");
+    const track = section?.querySelector<HTMLElement>("[data-track]");
+    const bar = section?.querySelector<HTMLElement>("[data-bar]");
+    if (!section || !track) return;
+    track.style.transform = "";
+    if (!mq.matches) return;
+    stop = scroll(
+      (progress: number) => {
+        const distance = Math.max(0, track.scrollWidth - window.innerWidth);
+        track.style.transform = `translate3d(${-progress * distance}px,0,0)`;
+        if (bar) bar.style.transform = `scaleX(${progress})`;
+      },
+      { target: section, offset: ["start start", "end end"] },
+    );
+  }
+
+  mq.addEventListener("change", setup);
+  document.addEventListener("astro:page-load", setup);
+  document.addEventListener("astro:before-swap", () => {
+    stop?.();
+    stop = undefined;
+  });
+  setup();
+</script>

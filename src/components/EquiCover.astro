@@ -1,0 +1,123 @@
+---
+// Landing-page cover for EquiTeam, a scaled-down copy of the case study hero: sticker title over the yellow star
+// burst, the landing page in a dark device frame, the "How it works" and "AI Form Parameter" windows, and both
+// mascots. Sizes are cqw so the whole composition scales with the card.
+import { Image } from "astro:assets";
+import EquiMascotBlue from "./EquiMascotBlue.astro";
+import EquiMascotStar from "./EquiMascotStar.astro";
+
+import landing from "../assets/equiteam/landing.png";
+import logo from "../assets/equiteam/figma/logo.svg";
+import icEdit from "../assets/equiteam/figma/ic-edit.svg";
+import icLoading from "../assets/equiteam/figma/ic-loading.svg";
+import icGroup from "../assets/equiteam/figma/ic-group.svg";
+import wMore from "../assets/equiteam/figma/w-more.svg";
+import wCheck from "../assets/equiteam/figma/w-check.svg";
+import wCancel from "../assets/equiteam/figma/w-cancel.svg";
+import sub1 from "../assets/equiteam/figma/sub1.svg";
+import sub2 from "../assets/equiteam/figma/sub2.svg";
+import sub3 from "../assets/equiteam/figma/sub3.svg";
+import sub4 from "../assets/equiteam/figma/sub4.svg";
+import aspPersonality from "../assets/equiteam/site/personality.svg";
+import aspSkill from "../assets/equiteam/site/skill.svg";
+import aspGender from "../assets/equiteam/site/gender.svg";
+import aspPreference from "../assets/equiteam/site/preference-task.svg";
+
+interface Props {
+  class?: string;
+}
+const { class: cls = "" } = Astro.props;
+
+// Same steps and tiles as the hero windows in pages/work/equiteam.astro.
+const flowSteps = [
+  { t: "Input Data", icon: icEdit, bg: "rgba(235,233,254,.7)", ink: "#27115f", size: "68%" },
+  { t: "AI Processing", icon: icLoading, bg: "rgba(254,240,199,.7)", ink: "#4e1d09", size: "57%" },
+  { t: "Team Formation", icon: icGroup, bg: "rgba(209,250,223,.6)", ink: "#053321", size: "70%" },
+];
+const aspectTiles = [
+  { t: "Personality", icon: aspPersonality, bg: "rgba(209,250,223,.7)", ink: "#027a48", size: "54%" },
+  { t: "Skill", icon: aspSkill, bg: "rgba(254,240,199,.65)", ink: "#b54708", size: "54%" },
+  { t: "Gender", icon: aspGender, bg: "rgba(185,230,254,.65)", ink: "#026aa2", size: "60%" },
+  { t: "Preference", icon: aspPreference, bg: "rgba(217,214,254,.55)", ink: "#5925dc", size: "56%" },
+];
+const winIcons = [wMore, wCheck, wCancel];
+---
+
+<div class={`eq ec relative isolate aspect-[4/3] overflow-hidden rounded-[28px] ring-1 ring-line ${cls}`} style="container-type: inline-size">
+  <!-- top row, as in the hero -->
+  <div class="absolute inset-x-[4%] top-[4%] flex items-center justify-between text-[1.9cqw] font-semibold text-[#0b2a55]">
+    <span class="flex items-center gap-[0.8cqw]"><img src={logo.src} alt="" class="h-[4.2cqw] w-auto" /> EquiTeam</span>
+    <span class="flex items-center gap-[0.8cqw]"><span class="size-[1cqw] rounded-full bg-[#fec84b]"></span>Product design<span class="size-[1cqw] rounded-full bg-[#fec84b]"></span></span>
+  </div>
+
+  <!-- star burst behind the title -->
+  <div class="pointer-events-none absolute left-[9%] top-[8%] -z-10 grid w-[24cqw] -rotate-[24deg] grid-cols-2" aria-hidden="true">
+    <img src={sub1.src} alt="" class="w-full" />
+    <img src={sub2.src} alt="" class="w-full -scale-x-100" />
+    <img src={sub3.src} alt="" class="w-full -scale-y-100" />
+    <img src={sub4.src} alt="" class="w-full rotate-180" />
+  </div>
+
+  <p class="eq-title absolute inset-x-[6%] top-[12%] text-center text-[4.6cqw]">
+    <span class="w">Designing an AI-powered team formation platform</span><br />
+    <span class="y">for equitable classroom collaboration</span>
+  </p>
+
+  <!-- device -->
+  <div class="absolute left-1/2 top-[40%] w-[62%] -translate-x-1/2 rounded-[2.6cqw] bg-[#121212] p-[1cqw] shadow-[0_3cqw_6cqw_-2cqw_rgb(2_80_152/0.55)]">
+    <Image src={landing} alt="EquiTeam landing page: Where Justice Creates Excellence" widths={[500, 880]} sizes="(min-width:1024px) 40vw, 90vw" class="block w-full rounded-[1.8cqw]" />
+  </div>
+
+  <!-- How it works window -->
+  <div class="eq-window absolute left-[3%] top-[50%] w-[27cqw]" data-float="8">
+    <div class="flex items-center justify-between border-b border-line px-[1.2cqw] py-[0.8cqw] text-[1.5cqw] font-semibold text-[#3c3c3c]">
+      How it works
+      <span class="flex items-center gap-[0.6cqw]">{winIcons.map((w) => <img src={w.src} alt="" class="size-[1.5cqw]" />)}</span>
+    </div>
+    <div class="flex items-start justify-between gap-[0.4cqw] p-[1.2cqw]">
+      {flowSteps.map((f, i) => (
+        <>
+          {i > 0 && <span class="mt-[2.6cqw] text-[1.1cqw] font-semibold text-[#065986]">→</span>}
+          <div class="flex w-[27%] flex-col items-center gap-[0.5cqw]">
+            <span class="grid aspect-square w-full place-items-center rounded-[1cqw]" style={`background:${f.bg}`}>
+              <img src={f.icon.src} alt="" style={`width:${f.size}`} />
+            </span>
+            <span class="whitespace-nowrap text-[0.95cqw] font-semibold" style={`color:${f.ink}`}>{f.t}</span>
+          </div>
+        </>
+      ))}
+    </div>
+  </div>
+
+  <!-- AI Form Parameter window -->
+  <div class="eq-window absolute right-[3%] top-[56%] w-[23cqw]" data-float="10">
+    <div class="pointer-events-none absolute -top-[30%] left-[62%] w-[27%]"><EquiMascotStar /></div>
+    <div class="flex items-center justify-between border-b border-line px-[1.2cqw] py-[0.8cqw] text-[1.4cqw] font-semibold text-[#3c3c3c]">
+      AI Form Parameter
+    </div>
+    <div class="grid grid-cols-2 gap-[1cqw] p-[1.2cqw]">
+      {aspectTiles.map((a) => (
+        <div class="flex flex-col items-center gap-[0.4cqw]">
+          <span class="grid aspect-[1.02] w-full place-items-center rounded-[0.8cqw]" style={`background:${a.bg}`}>
+            <img src={a.icon.src} alt="" style={`width:${a.size}`} />
+          </span>
+          <span class="text-center text-[1cqw] font-bold leading-tight" style={`color:${a.ink}`}>{a.t}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <EquiMascotBlue class="pointer-events-none absolute -bottom-[3%] -left-[1%] w-[22cqw]" />
+</div>
+
+<style>
+  /* Light dotted canvas like the hero, kept light in dark mode too (it's the project's own look). */
+  .ec {
+    background-color: #fbfdff;
+    background-image:
+      radial-gradient(ellipse 60% 50% at 0% 90%, rgb(254 200 75 / 0.18), transparent 70%),
+      radial-gradient(ellipse 60% 50% at 100% 20%, rgb(43 143 240 / 0.14), transparent 70%),
+      radial-gradient(circle at 1px 1px, #d6e9f8 1.5px, transparent 2px);
+    background-size: 100% 100%, 100% 100%, 18px 18px;
+  }
+</style>

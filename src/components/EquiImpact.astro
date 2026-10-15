@@ -1,0 +1,147 @@
+---
+import { Image } from "astro:assets";
+// Same icons as the role pills in Key Features; the classroom icon is a line icon drawn for this section.
+import mLecturer from "../assets/equiteam/fig/persona-andi.svg";
+import mStudent from "../assets/equiteam/fig/persona-april-plain.svg";
+import mBlue from "../assets/equiteam/fig/ic-classroom.svg";
+
+const metrics = [
+  { from: "78", to: "87.5", unit: "SUS", note: "Usability went from \"good\" to \"excellent\", and all ten testers scored it higher in round 2." },
+  { from: "2", to: "5/6", unit: "UEQ scales at Excellent", note: "Perspicuity, efficiency, dependability, stimulation and novelty all reached the top benchmark band." },
+  { from: "1.29", to: "0.95", unit: "Heuristic severity", note: "26% lower. The three reviewers left only cosmetic issues in round 2." },
+  { from: "1.15", to: "1.93", unit: "UEQ novelty", note: "The biggest single jump (+68%), driven by the MBTI mascots and the analysis charts." },
+];
+
+const delivered = [
+  { n: "19", l: "functional requirements covered" },
+  { n: "8", l: "end-to-end features" },
+  { n: "2", l: "roles, one product" },
+  { n: "ID / EN", l: "fully bilingual" },
+];
+
+const impact = [
+  {
+    who: "Lecturers",
+    m: mLecturer,
+    c: "bg-[#fff4dc] text-[#b54708]",
+    before: "Split the class by hand every semester and hoped the groups were fair.",
+    after: "Set what a task needs, share one link, and get scored, explainable teams they can still adjust.",
+  },
+  {
+    who: "Students",
+    m: mStudent,
+    c: "bg-[#e3f8ec] text-[#067647]",
+    before: "Ended up in friendship circles, or in a team where one person did everything.",
+    after: "Answer three short, playful questionnaires and see why their team looks the way it does.",
+  },
+  {
+    who: "Classrooms",
+    m: mBlue,
+    c: "bg-[#e3f1ff] text-[#175cd3]",
+    before: "Skills, personalities and genders clustered unevenly across groups.",
+    after: "Every team gets a fair share of skills and perspectives, in support of SDG 4 (Quality Education) and SDG 10 (Reduced Inequalities).",
+  },
+];
+
+const learned = [
+  { t: "Explainability is a feature, not a footnote.", d: "Teams were technically balanced in round 1, but testers couldn't say why. The analysis charts and MBTI icons came from that gap, and SUS rose from 78 to 87.5 once they were in." },
+  { t: "Translate the model, don't expose it.", d: "No user ever sees a vector or a weight. Questions, chips and mascots carry the precision Edu2Com needs." },
+  { t: "Keep the human in charge.", d: "Trust was a key research finding, so lecturers can inspect every input and override any result. The algorithm proposes and the lecturer decides." },
+];
+
+const next = [
+  "Run a full-semester pilot and compare final grades with conventionally formed groups",
+  "Go past team formation: in-team progress and peer review",
+  "A per-student \"why you're in this team\" explanation",
+  "Integrate with the campus academic system so classes and rosters import automatically",
+];
+---
+
+<section class="eq-dots py-20 sm:py-28" id="impact">
+  <div class="wrap">
+    <div>
+      <div class="max-w-4xl">
+        <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" data-reveal>Conclusion <span class="y">&amp; Impact</span></h2>
+        <p class="mt-6 text-lg leading-relaxed sm:text-xl" data-reveal="0.1">
+          EquiTeam proves that a research-grade allocation model can live inside an everyday
+          classroom tool. Lecturers get <mark>balanced teams in one flow</mark> instead of a
+          spreadsheet ritual, students get <mark>a result they can understand</mark>, and the
+          fairness Edu2Com computes is finally <mark>visible, checkable and adjustable</mark>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="eq-select mt-14 rounded-sm p-5 text-[#0277c7] sm:p-7" data-reveal>
+      <span class="h"></span><span class="h"></span><span class="h"></span><span class="h"></span>
+      <span class="eq-ribbon absolute -top-5 left-6 -rotate-2 bg-[#0277c7] text-sm">Measured across two rounds</span>
+      <ul class="mt-4 grid gap-4 text-ink sm:grid-cols-2 lg:grid-cols-4">
+        {metrics.map((m) => (
+          <li class="rounded-2xl bg-white p-5 ring-1 ring-[#d6e9f8]">
+            <p class="text-sm font-bold uppercase tracking-wider text-[#175cd3]">{m.unit}</p>
+            <p class="mt-3 flex items-baseline gap-2 font-extrabold">
+              <span class="text-2xl text-muted line-through decoration-[#fec84b] decoration-2">{m.from}</span>
+              <span class="text-[#b54708]">→</span>
+              <span class="text-5xl tracking-tight text-[#180092]">{m.to}</span>
+            </p>
+            <p class="mt-3 text-sm text-muted">{m.note}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <ul class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4" data-stagger>
+      {delivered.map((d) => (
+        <li class="rounded-2xl bg-[#180092] p-5 text-white">
+          <p class="text-3xl font-extrabold text-[#fec84b]">{d.n}</p>
+          <p class="mt-1 text-sm text-white/85">{d.l}</p>
+        </li>
+      ))}
+    </ul>
+
+    <!-- Impact by stakeholder -->
+    <p class="mt-20 text-xl font-bold text-[#0b2a55]">Who it changes things for</p>
+    <ul class="mt-6 grid gap-5 lg:grid-cols-3" data-stagger>
+      {impact.map((x) => (
+        <li class="flex flex-col rounded-3xl bg-white p-6 ring-1 ring-[#d6e9f8]">
+          <span class={`eq-tag w-fit ${x.c}`}><img src={x.m.src} alt="" />{x.who}</span>
+          <div class="mt-6 rounded-2xl border-2 border-dashed border-[#fecdca] bg-[#fffafa] p-4">
+            <p class="text-xs font-bold uppercase tracking-wider text-[#b42318]">Before</p>
+            <p class="mt-1 text-base">{x.before}</p>
+          </div>
+          <div class="mt-3 rounded-2xl border-2 border-dashed border-[#abefc6] bg-[#f6fef9] p-4">
+            <p class="text-xs font-bold uppercase tracking-wider text-[#067647]">With EquiTeam</p>
+            <p class="mt-1 text-base">{x.after}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+
+    <!-- Learned + next -->
+    <div class="mt-20 grid gap-10 lg:grid-cols-[1.3fr_1fr]">
+      <div>
+        <p class="text-xl font-bold text-[#0b2a55]">What I learned</p>
+        <ol class="mt-6 space-y-5" data-stagger>
+          {learned.map((l, i) => (
+            <li class="flex gap-4">
+              <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-[#fec84b] font-extrabold text-[#0b2a55] shadow-[0_4px_0_#e0a52a]">{i + 1}</span>
+              <div>
+                <p class="text-lg font-bold">{l.t}</p>
+                <p class="mt-1 text-muted">{l.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div>
+        <p class="text-xl font-bold text-[#0b2a55]">What's next</p>
+        <div class="mt-6 grid gap-4">
+          {next.map((n, i) => (
+            <p class={`eq-sticky rounded-sm p-4 text-base ${["-rotate-1", "rotate-1", "-rotate-[0.6deg]", "rotate-[0.8deg]"][i]}`} data-reveal={i * 0.06}>{n}</p>
+          ))}
+        </div>
+        <p class="mt-4 text-sm text-muted">The current scope stops at team formation, by design. These are the next steps I'd propose.</p>
+      </div>
+    </div>
+  </div>
+</section>

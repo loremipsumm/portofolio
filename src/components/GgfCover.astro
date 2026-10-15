@@ -1,0 +1,63 @@
+---
+// Landing-page cover for Great Giant Foods. No shareable screens, so this is an illustration from the facts in
+// cases.ts: a crop-health grid for Drone AI and a field-task card for SPKMobile. Not real data or real UI.
+interface Props {
+  class?: string;
+}
+const { class: cls = "" } = Astro.props;
+
+// A fixed pattern of health levels so the grid looks like a field map; purely decorative.
+const levels = [
+  3, 3, 2, 3, 3, 3, 2, 1, 2, 3,
+  3, 2, 2, 3, 3, 2, 1, 1, 2, 3,
+  3, 3, 3, 3, 2, 2, 2, 2, 3, 3,
+  2, 3, 3, 3, 3, 3, 3, 2, 3, 3,
+  1, 2, 3, 3, 3, 3, 2, 3, 3, 2,
+  2, 2, 3, 3, 2, 3, 3, 3, 3, 3,
+];
+const tone = ["#e5484d", "#f59e0b", "#a3e635", "#22c55e"];
+---
+
+<div class={`gg relative isolate aspect-[4/3] overflow-hidden rounded-[28px] ${cls}`} style="container-type: inline-size">
+  <div class="absolute inset-x-[6%] top-[6%] flex items-center justify-between text-[2.4cqw] font-semibold text-[#1a2e05]/70">
+    <span>Drone AI · SPKMobile</span>
+    <span>/2026</span>
+  </div>
+
+  <!-- crop-health map -->
+  <div class="absolute left-[6%] top-[16%] w-[58%] -rotate-3 rounded-[2.6cqw] bg-white p-[2cqw] shadow-[0_3cqw_6cqw_-2cqw_rgb(26_46_5/0.35)]">
+    <div class="flex items-center justify-between text-[2.2cqw] font-semibold text-[#1a2e05]">
+      <span>Crop health</span>
+      <span class="rounded-full bg-[#ecfccb] px-[1.4cqw] py-[0.4cqw] text-[1.8cqw] text-[#3f6212]">7 parameters</span>
+    </div>
+    <ul class="mt-[1.6cqw] grid grid-cols-10 gap-[0.6cqw]" aria-hidden="true">
+      {levels.map((l) => <li class="aspect-square rounded-[0.5cqw]" style={`background:${tone[l]}`}></li>)}
+    </ul>
+    <p class="mt-[1.6cqw] text-[1.8cqw] text-[#5e6270]">33,000 hectares · 5 plantation levels</p>
+  </div>
+
+  <!-- phone with field task -->
+  <div class="absolute bottom-[-10%] right-[6%] w-[30%] rotate-3 rounded-[4cqw] bg-[#0e0f12] p-[1cqw] shadow-[0_3cqw_6cqw_-2cqw_rgb(0_0_0/0.45)]" data-float="8">
+    <div class="rounded-[3.2cqw] bg-white p-[2cqw] pb-[10cqw]">
+      <p class="text-[2cqw] font-semibold text-[#1a2e05]">SPKMobile</p>
+      {["Task entry", "Reporting", "Payroll"].map((t, i) => (
+        <div class="mt-[1.4cqw] flex items-center gap-[1cqw] rounded-[1.4cqw] bg-[#f7fee7] p-[1.2cqw]">
+          <span class="size-[2.2cqw] shrink-0 rounded-full" style={`background:${["#22c55e", "#f59e0b", "#a3e635"][i]}`}></span>
+          <span class="text-[1.6cqw] text-[#1a2e05]">{t}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <span class="absolute bottom-[8%] left-[6%] rounded-[2.4cqw] bg-white text-[#1a2e05] px-[2.4cqw] py-[1.4cqw] text-[2.4cqw] shadow-lg" data-float="10">
+    <b class="font-display text-[4.4cqw] font-extrabold">25,000</b> field workers
+  </span>
+</div>
+
+<style>
+  .gg {
+    background:
+      radial-gradient(ellipse 70% 60% at 100% 0%, rgb(250 204 21 / 0.35), transparent 70%),
+      linear-gradient(160deg, #d9f99d 0%, #bef264 45%, #86efac 100%);
+  }
+</style>

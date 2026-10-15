@@ -1,0 +1,475 @@
+---
+// Layout follows a story-led case-study format: a dark page with rounded light "panels", centred
+// lead-in questions, a narrative problem path, stat cards, role cards with chips, an insight block,
+// a flowchart and colour tiles that frame the screens. Content and screens are SIA's own.
+import { Image } from "astro:assets";
+import Base from "../../layouts/Base.astro";
+import SectionDock from "../../components/SectionDock.astro";
+import { site } from "../../data/site";
+import SiaFeatures from "../../components/SiaFeatures.astro";
+import SiaAvatar from "../../components/SiaAvatar.astro";
+
+import dashboardProject from "../../assets/sia/dashboard-project.png";
+import dashboard from "../../assets/sia/dashboard.png";
+import ledger from "../../assets/sia/general-ledger.png";
+import worksheet from "../../assets/sia/worksheet.png";
+import journal from "../../assets/sia/journal.png";
+import balance from "../../assets/sia/balance-sheet.png";
+
+// SIA's own semantic colours: green for control, orange for audit, red for unbalanced, graphite for the brand.
+// SIA / TDG design system: a gray-first palette with a near-black graphite brand colour. The semantic colours
+// (success, warning, error) are used only where they carry meaning, as they do in the product itself.
+const C = {
+  green: "#12B76A", // success: control passed, access always on
+  orange: "#F79009", // warning: audit / needs a grant
+  red: "#D92D20", // error: unbalanced
+  ink: "#252B37", // brand graphite (gray 800)
+  g950: "#0A0D12",
+  g900: "#181D27",
+  g700: "#414651",
+  g600: "#535862",
+  g500: "#717680",
+  g300: "#D5D7DA",
+};
+const graphite = `linear-gradient(180deg, ${"#414651"}, ${"#252B37"})`; // the dark header bar used across the UI
+
+const meta = [
+  { k: "Project", v: "Sistem Informasi Akuntansi" },
+  { k: "Client", v: "Tata Data Global" },
+  { k: "Platform", v: "Web app" },
+  { k: "Category", v: "Accounting & audit" },
+];
+
+// Mirrored pairs: same height, same inset from its own edge, opposite tilt, and similar label lengths per row.
+
+// The problem told as the month-end it really was. Facts come from the brief and interviews with TDG.
+const story = [
+  { icon: "files", t: "Month-end. A familiar story...", d: "The General Ledger is exported, the worksheet is rebuilt by hand, and three organisations start emailing spreadsheets back and forth.", side: "left" },
+  { icon: "versions", t: "“Which file is the latest one?”", d: "Files were copied between TDG, the auditors and the client, so nobody was sure which version was current.", side: "right" },
+  { icon: "search", t: "Debit doesn’t equal credit. Again.", d: "Finding the journal that broke the balance meant scrolling thousands of rows by hand.", side: "left" },
+  { icon: "lock", t: "Share it, and everyone sees everything.", d: "Access was all-or-nothing: send the file and the client could read audit notes too. And auditor changes left no trail.", side: "right" },
+  { icon: "bulb", t: "There has to be a way...", d: "One system for the whole chain, where every role sees exactly what it should and every number can be traced back.", side: "left" },
+];
+
+// The project team. Avatars are illustrated stand-ins (see SiaAvatar); set `photo` on a member to use a real image.
+const team = [
+  { name: "Rioga", role: "Project Manager", av: { hairStyle: "side", hair: "#2b2118", skin: "#e8b88f", shirt: "#252B37", bg: ["#e9eaeb", "#d5d7da"], accessory: "glasses" } },
+  { name: "Daffa", role: "System Analyst", av: { hairStyle: "short", hair: "#3b2a1e", skin: "#f2c9a5", shirt: "#535862", bg: ["#eaecf5", "#c8cce5"], accessory: "none" } },
+  { name: "Hafiz", role: "Database Engineer", av: { hairStyle: "buzz", hair: "#1c1c1c", skin: "#d9a577", shirt: "#414651", bg: ["#e0f2fe", "#b9e6fe"], accessory: "beard" } },
+  { name: "Rafif", role: "UI/UX Designer", av: { hairStyle: "curly", hair: "#241a14", skin: "#e8b88f", shirt: "#181D27", bg: ["#ecfdf3", "#a6f4c5"], accessory: "glasses" } },
+  { name: "Bimo", role: "Fullstack Developer", av: { hairStyle: "short", hair: "#2b2118", skin: "#f2c9a5", shirt: "#717680", bg: ["#fef0c7", "#fedf89"], accessory: "headset" } },
+  { name: "Raihan", role: "Fullstack Developer", av: { hairStyle: "side", hair: "#4a3322", skin: "#d9a577", shirt: "#414651", bg: ["#fee4e2", "#fecdca"], accessory: "none" } },
+  { name: "Nabila", role: "Fullstack Developer", av: { hairStyle: "long", hair: "#1f1712", skin: "#f2c9a5", shirt: "#535862", bg: ["#f4f3ff", "#d9d6fe"], accessory: "none" } },
+  { name: "Ilham", role: "Quality Assurance", av: { hairStyle: "bun", hair: "#2b2118", skin: "#e8b88f", shirt: "#252B37", bg: ["#fff4ed", "#fddcab"], accessory: "glasses" } },
+];
+
+// Pipeline tags floating over the foot of the hero screenshot, in pipeline order, darkening step by step.
+const heroTags = [
+  { t: "General Ledger", bg: C.g500 },
+  { t: "Worksheet", bg: C.g600 },
+  { t: "Journal", bg: C.g700 },
+  { t: "Adjustment", bg: C.ink },
+  { t: "Balance Sheet", bg: C.g900 },
+  { t: "PPh Badan", bg: C.g950 },
+];
+
+const stats = [
+  { n: "16", l: "modules specified, each with numbered requirements", c: "#FFFFFF" },
+  { n: "34", l: "functional requirements signed off with TDG", c: "#FFFFFF" },
+  { n: "4", l: "user roles with very different levels of trust", c: "#FFFFFF" },
+  { n: "50+", l: "high-fidelity frames across every flow", c: "#FFFFFF" },
+];
+
+const roles = [
+  { tag: "Role 01", name: "Admin · Team TDG", does: "Creates projects, imports the General Ledger, posts adjustments and decides who sees what.", chips: ["Import GL", "Post adjustments", "Grant access", "Export"] },
+  { tag: "Role 02", name: "Tim KAP", does: "The public accounting firm. Reviews the worksheet and records KAP (audit) adjustments.", chips: ["Review worksheet", "KAP adjustments", "Audit trail"] },
+  { tag: "Role 03", name: "Client", does: "The company being audited. Reads and exports approved reports, nothing more.", chips: ["Read reports", "Export"] },
+  { tag: "Role 04", name: "External Auditor", does: "Limited access to check the numbers and fill in the audit-result columns.", chips: ["Check numbers", "Audit columns"] },
+];
+
+const insights = [
+  "Permissions shape the product more than any visual choice",
+  "Every number has to be traceable to its source",
+  "One shared version beats faster file-sharing",
+  "Colour should carry meaning in dense data",
+];
+
+// From the feature-access sheet ("User × Fitur"). y = always on, d = off by default and granted per project
+// by TDG ("DINAMIS" in the sheet), n = no access, own = KAP's separate adjustment module.
+type Cell = "y" | "d" | "n" | "own";
+const accessGroups = [
+  { name: "Account & navigation", cols: ["Register", "Login", "Forgot password", "Dashboard", "Manage access", "Profile", "Change password"] },
+  { name: "Project data", cols: ["General Ledger", "Worksheet", "Journal", "Adjustment", "Income Stmt", "Balance Sheet"] },
+];
+const basic: Cell[] = ["y", "y", "y", "y", "n", "y", "y"];
+const project: Cell[] = ["d", "d", "n", "d", "d", "d"];
+const accessRows: { who: string; sub: string; cells: Cell[] }[] = [
+  { who: "TDG", sub: "Admin", cells: [...Array(13).fill("y")] },
+  { who: "Client", sub: "Audited company", cells: [...basic, ...project] },
+  { who: "KPP", sub: "Tax office", cells: [...basic, ...project] },
+  { who: "KAP", sub: "Audit firm", cells: [...basic, "d", "d", "n", "own", "d", "d"] },
+  { who: "Bank", sub: "Lender", cells: [...basic, ...project] },
+  { who: "Third party", sub: "Other reader", cells: [...basic, ...project] },
+];
+const accessNotes = [
+  "TDG, as admin, must have every feature.",
+  "General Ledger, Worksheet, Adjustment and the two reports are off by default for everyone else. TDG switches them on per project.",
+  "KAP's adjustment is its own module, not a copy of the admin's, so auditor entries stay separate.",
+];
+
+const flow = [
+  { t: "General Ledger", d: "Import .xlsx, columns auto-classified" },
+  { t: "Worksheet", d: "Accounts auto-sorted, checked against GL" },
+  { t: "Adjustment", d: "TDG posts adjusting entries" },
+  { t: "KAP Adjustment", d: "Auditor entries, logged to audit trail" },
+  { t: "Reports", d: "Balance Sheet + Income Statement" },
+  { t: "PPh Badan", d: "Corporate tax report, then locked" },
+];
+
+const tiles = [
+  { t: "Import the ledger", d: "Drop in the GL export; columns are classified automatically.", img: ledger, alt: "General Ledger import screen", bg: C.ink },
+  { t: "Work the worksheet", d: "Mapping, adjustment and audit columns, colour-coded by meaning.", img: worksheet, alt: "Worksheet with colour-coded columns", bg: C.g700 },
+  { t: "Adjust and audit", d: "Every journal entry balanced and traced to who made it.", img: journal, alt: "Journal list screen", bg: C.g600 },
+  { t: "Report and export", d: "Balance Sheet and Income Statement, ready for the client.", img: balance, alt: "Balance Sheet report", bg: C.g900 },
+];
+
+const takeaways = [
+  { t: "Write the spec, then draw.", d: "Numbering every requirement made reviews with TDG fast. “Is 09.05 in?” beats “is the green thing done?”" },
+  { t: "Permissions are a design problem.", d: "The access matrix shaped the sidebar, the empty states and the request flow more than any visual choice." },
+  { t: "Colour is for meaning in data UI.", d: "Keeping the chrome gray let orange (audit), green (control) and red (unbalanced) do real work." },
+];
+
+const icons: Record<string, string> = {
+  files: '<path d="M8 3h7l5 5v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M15 3v5h5"/><path d="M4 7v12a3 3 0 0 0 3 3h9"/>',
+  versions: '<rect x="3" y="7" width="12" height="14" rx="2"/><path d="M7 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M8 13h4M8 17h2"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/>',
+  lock: '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.5"/>',
+  bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.9V16h5v-.2c0-.8.4-1.5 1-1.9A6 6 0 0 0 12 3Z"/>',
+};
+
+// Floating section bar (SectionDock), shared with every case study.
+const sections = [
+  { id: "story", t: "Story" },
+  { id: "roles", t: "Roles" },
+  { id: "flow", t: "Flow" },
+  { id: "features", t: "Features" },
+  { id: "takeaways", t: "Takeaways" },
+];
+---
+
+<Base brand={{ accent: "#252b37", accentSoft: "#e9eaeb", pop: "#d5d7da" }} title={`SIA case study | ${site.name}`} description="Case study: designing SIA, a web accounting and audit system for Tata Data Global.">
+  <div class="sia bg-[#0A0D12] pb-10 pt-24 text-white sm:pt-28">
+    <!-- HERO -->
+    <section class="sia-panel relative overflow-hidden pt-16 text-center sm:pt-24">
+      <p class="text-sm font-medium tracking-wide text-[#6b6f76]" data-reveal>Case study · 2025</p>
+      <h1 class="mt-4 font-display text-[clamp(3rem,8vw,6.5rem)] font-extrabold leading-none tracking-[-0.04em]" data-reveal>SIA</h1>
+      <p class="mt-4 text-lg text-[#3f4248] sm:text-xl" data-reveal="0.1">
+        Sistem Informasi Akuntansi · for <b class="font-semibold text-[#111]">Tata Data Global</b>
+      </p>
+
+      <div class="relative mx-auto mt-12 max-w-3xl px-4 sm:mt-16" data-reveal="0.2">
+        <div class="rounded-t-[22px] bg-[#0a0d12] p-2 pb-0 shadow-[0_40px_80px_-30px_rgb(0_0_0/0.5)] sm:p-3 sm:pb-0">
+          <Image src={dashboardProject} alt="SIA dashboard with a project's manage menu open" widths={[800, 1440]} sizes="(min-width: 900px) 768px, 92vw" class="block w-full rounded-t-[12px]" loading="eager" />
+        </div>
+      </div>
+
+      <!-- One straight row floating in front of the screenshot's lower edge. It uses the same .wrap width as
+           the Project to Category row below, so its first and last tags line up with those labels. -->
+      <div class="wrap pointer-events-none absolute inset-x-0 bottom-6 z-10 sm:bottom-10">
+        <ul class="eq-bob flex flex-wrap justify-center gap-1.5 md:flex-nowrap md:justify-between md:gap-2" aria-label="The pipeline, in order">
+          {heroTags.map((c) => (
+            <li class="sia-chip" style={`background:${c.bg}`}>{c.t}</li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <dl class="wrap mt-8 grid grid-cols-2 gap-6 text-sm sm:flex sm:justify-between" data-reveal>
+      {meta.map((m) => (
+        <div><dt class="inline font-semibold text-white">{m.k}</dt> <dd class="inline text-white/60">· {m.v}</dd></div>
+      ))}
+    </dl>
+
+    <!-- STATEMENT -->
+    <section class="wrap py-24 text-center sm:py-32">
+      <h2 class="mx-auto max-w-3xl text-[clamp(1.8rem,3.6vw,2.8rem)] font-display font-extrabold leading-tight tracking-[-0.02em]" data-reveal>
+        Making audit season less of a spreadsheet relay between three organisations.
+      </h2>
+    </section>
+
+    <!-- TEAM -->
+    <section class="wrap pb-24 text-center sm:pb-32">
+      <p class="text-white/55" data-reveal>Okay, but who built it?</p>
+      <h2 class="mx-auto mt-3 max-w-2xl font-display text-[clamp(1.6rem,3vw,2.4rem)] font-extrabold leading-snug tracking-[-0.02em]" data-reveal>
+        Eight people, one product, three organisations to keep in sync.
+      </h2>
+      <ul class="mt-14 grid grid-cols-2 gap-4 text-left md:grid-cols-4" data-stagger>
+        {team.map((m) => (
+          <li class="rounded-[1.75rem] bg-[#181D27] p-4 sm:p-5">
+            <SiaAvatar {...m.av} label={m.name} class="aspect-square w-full rounded-[1.25rem]" />
+            <p class="mt-5 font-display text-xl font-extrabold tracking-tight">{m.name}</p>
+            <p class="mt-1 text-sm text-white/60">{m.role}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- STORY -->
+    <section id="story" class="sia-panel mt-24 px-6 py-20 sm:px-16 sm:py-28">
+      <div class="mx-auto max-w-4xl">
+        {story.map((s, i) => (
+          <>
+            <div class={`max-w-md ${s.side === "right" ? "ml-auto" : ""}`} data-reveal>
+              <svg viewBox="0 0 24 24" class="size-12 text-[#111]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" set:html={icons[s.icon]} aria-hidden="true" />
+              <p class="mt-5 text-xl font-semibold tracking-tight text-[#111]">{s.t}</p>
+              <p class="mt-2 leading-relaxed text-[#5b5f66]">{s.d}</p>
+            </div>
+            {i < story.length - 1 && (
+              <svg viewBox="0 0 400 90" class="my-4 h-20 w-full text-[#d0d2d6]" fill="none" preserveAspectRatio="none" aria-hidden="true">
+                <path d={s.side === "left" ? "M90 4 C 150 70, 260 20, 310 86" : "M310 4 C 250 70, 140 20, 90 86"} stroke="currentColor" stroke-width="2" stroke-dasharray="6 7" vector-effect="non-scaling-stroke" />
+              </svg>
+            )}
+          </>
+        ))}
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="wrap py-24 text-center sm:py-32">
+      <p class="text-white/55" data-reveal>So before drawing a single screen, I mapped it...</p>
+      <h2 class="mx-auto mt-3 max-w-3xl text-[clamp(1.6rem,3vw,2.4rem)] font-display font-extrabold leading-snug tracking-[-0.02em]" data-reveal>
+        Every step, from ledger import to the corporate tax report, became a numbered requirement.
+      </h2>
+      <ul class="mt-14 grid gap-4 text-left sm:grid-cols-2 lg:grid-cols-4" data-stagger>
+        {stats.map((s) => (
+          <li class="flex min-h-56 flex-col justify-between rounded-2xl bg-[#181D27] p-6">
+            <p class="text-5xl font-medium tracking-tight" style={`color:${s.c}`}>{s.n}</p>
+            <p class="mt-10 text-sm text-white/60">{s.l}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- ROLES -->
+    <section id="roles" class="wrap pb-24 text-center sm:pb-32">
+      <p class="text-white/55" data-reveal>So, who is this really for?</p>
+      <h2 class="mx-auto mt-3 max-w-2xl text-[clamp(1.6rem,3vw,2.4rem)] font-display font-extrabold leading-snug tracking-[-0.02em]" data-reveal>
+        Four roles, with very different levels of trust.
+      </h2>
+      <ul class="mt-14 grid gap-4 text-left md:grid-cols-2" data-stagger>
+        {roles.map((r) => (
+          <li class="rounded-[2rem] bg-[#f6f6f6] p-7 text-[#111] sm:p-8">
+            <div class="flex items-start justify-between gap-4">
+              <p class="text-2xl font-semibold tracking-tight">{r.name}</p>
+              <span class="shrink-0 rounded-full bg-[#e9eaeb] px-4 py-1.5 text-sm">{r.tag}</span>
+            </div>
+            <p class="mt-3 leading-relaxed text-[#3f4248]">{r.does}</p>
+            <hr class="my-6 border-[#e2e3e6]" />
+            <p class="text-sm font-semibold">Can do</p>
+            <ul class="mt-3 flex flex-wrap gap-2">
+              {r.chips.map((c) => <li class="rounded-full bg-white px-4 py-2 text-sm shadow-[0_1px_0_rgb(0_0_0/0.04)]">{c}</li>)}
+            </ul>
+          </li>
+        ))}
+      </ul>
+
+      <div class="relative mt-4 overflow-hidden rounded-[2rem] p-8 text-left sm:p-12" style={`background:${graphite}`} data-reveal>
+        <div class="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full border-[40px] border-white/10" aria-hidden="true"></div>
+        <p class="text-2xl font-semibold">Core insights</p>
+        <ul class="mt-6 grid gap-x-10 gap-y-4 text-lg sm:grid-cols-2">
+          {insights.map((x) => <li class="flex gap-3"><span class="mt-2.5 size-1.5 shrink-0 bg-white" />{x}</li>)}
+        </ul>
+        <p class="mt-12 text-2xl font-semibold">UX opportunity</p>
+        <p class="mt-4 max-w-3xl text-xl font-medium leading-relaxed">
+          Put the whole chain, from GL import to tax report, in one system where each role sees exactly what it
+          should, and every number can be traced back.
+        </p>
+      </div>
+
+      <div class="mt-4 rounded-[2rem] bg-[#f6f6f6] p-6 text-left text-[#111] sm:p-8" data-reveal>
+        <p class="text-xl font-semibold tracking-tight">Access once TDG grants it</p>
+        <p class="mt-1 text-[#5b5f66]">
+          Mapped with the team before any screen was drawn: every party against every feature, with project data
+          opened up one project at a time.
+        </p>
+        <ul class="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm" aria-label="Legend">
+          <li class="flex items-center gap-2"><span class="grid size-5 place-items-center rounded-full text-xs font-bold text-white" style={`background:${C.green}`}>✓</span>Always on</li>
+          <li class="flex items-center gap-2"><span class="grid size-5 place-items-center rounded-full text-sm font-bold leading-none text-white" style={`background:${C.orange}`}>+</span>Off until TDG grants it, per project</li>
+          <li class="flex items-center gap-2"><span class="grid size-5 place-items-center rounded-full text-[10px] font-bold text-white" style={`background:${C.ink}`}>K</span>KAP's own module</li>
+          <li class="flex items-center gap-2"><span class="text-[#a4a7ae]">—</span>No access</li>
+        </ul>
+        <div class="mt-5 rounded-2xl bg-white">
+          <table class="w-full table-fixed text-left text-xs sm:text-sm">
+            <thead>
+              <tr class="border-b border-[#ececee]">
+                <th rowspan="2" class="w-[5.5rem] p-2 align-bottom font-semibold sm:w-32 sm:p-4">Party</th>
+                {accessGroups.map((g, gi) => (
+                  <th colspan={g.cols.length} class={`px-1 pb-1 pt-3 text-[9px] font-semibold uppercase tracking-wider text-[#6b6f76] sm:px-3 sm:pt-4 sm:text-xs ${gi ? "border-l border-[#ececee]" : ""}`}>{g.name}</th>
+                ))}
+              </tr>
+              <tr class="border-b border-[#ececee]">
+                {accessGroups.map((g, gi) => g.cols.map((c, ci) => (
+                  <th class={`px-0.5 pb-3 text-center text-[10px] font-semibold leading-tight sm:px-1 sm:text-[11px] ${gi && !ci ? "border-l border-[#ececee]" : ""}`}>
+                    <span class="mx-auto block h-24 whitespace-nowrap [writing-mode:vertical-rl] rotate-180 xl:h-auto xl:whitespace-normal xl:[writing-mode:horizontal-tb] xl:rotate-0">{c}</span>
+                  </th>
+                )))}
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#ececee]">
+              {accessRows.map((row) => (
+                <tr>
+                  <th class="p-2 font-medium sm:p-4">
+                    {row.who}
+                    <span class="block text-[10px] font-normal leading-tight text-[#6b6f76] sm:text-xs">{row.sub}</span>
+                  </th>
+                  {row.cells.map((c, i) => (
+                    <td class={`px-0.5 py-3 text-center ${i === 7 ? "border-l border-[#ececee]" : ""}`}>
+                      {c === "y" && <span class="mx-auto grid size-5 place-items-center rounded-full text-[10px] font-bold text-white sm:size-6 sm:text-xs" style={`background:${C.green}`} aria-label="Always on">✓</span>}
+                      {c === "own" && <span class="mx-auto grid size-5 place-items-center rounded-full text-[10px] font-bold text-white sm:size-6 sm:text-xs" style={`background:${C.ink}`} aria-label="KAP's own module" title="KAP's own module">K</span>}
+                      {c === "d" && <span class="mx-auto grid size-5 place-items-center rounded-full text-sm font-bold leading-none text-white sm:size-6 sm:text-base" style={`background:${C.orange}`} aria-label="Off until TDG grants it, per project" title="Per project">+</span>}
+                      {c === "n" && <span class="text-[#a4a7ae]" aria-label="No access">—</span>}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <ul class="mt-5 space-y-2 text-sm text-[#5b5f66]">
+          {accessNotes.map((n) => <li class="flex gap-3"><span class="mt-2 size-1.5 shrink-0 bg-[#111]" />{n}</li>)}
+        </ul>
+      </div>
+    </section>
+
+    <!-- FLOW -->
+    <section id="flow" class="wrap pb-24 text-center sm:pb-32">
+      <p class="text-white/55" data-reveal>So how do the numbers actually move?</p>
+      <h2 class="mx-auto mt-3 max-w-3xl text-[clamp(1.6rem,3vw,2.4rem)] font-display font-extrabold leading-snug tracking-[-0.02em]" data-reveal>
+        One pipeline, from ledger to tax report. The whole UI hangs off it.
+      </h2>
+      <ol class="mx-auto mt-14 flex max-w-5xl flex-col items-stretch gap-3 text-left lg:flex-row" data-stagger>
+        {flow.map((s, i) => (
+          <li class="relative flex-1 rounded-2xl border border-white/15 p-4">
+            <span class="text-xs font-semibold" style={`color:${C.g300}`}>{String(i + 1).padStart(2, "0")}</span>
+            <p class="mt-3 font-semibold leading-tight">{s.t}</p>
+            <p class="mt-1 text-sm text-white/55">{s.d}</p>
+            {i < flow.length - 1 && <span class="absolute -right-2.5 top-1/2 z-10 hidden h-px w-3 bg-white/40 lg:block" aria-hidden="true" />}
+          </li>
+        ))}
+      </ol>
+      <p class="mx-auto mt-6 max-w-2xl text-sm text-white/50">
+        Written module by module as an SRS, 16 in total, each with numbered specs like
+        <code class="rounded bg-white/10 px-1.5 py-0.5">SRS.SIA.09.05</code>.
+      </p>
+    </section>
+
+    <!-- SHOWCASE -->
+    <section class="wrap py-24 text-center sm:py-32">
+      <p class="text-white/55" data-reveal>So, how did the chain turn into a product?</p>
+      <h2 class="mx-auto mt-3 max-w-3xl text-[clamp(1.6rem,3vw,2.4rem)] font-display font-extrabold leading-snug tracking-[-0.02em]" data-reveal>
+        Four steps, one screen each, with colour doing the explaining.
+      </h2>
+    </section>
+    <div class="sia-gap grid gap-4 md:grid-cols-2">
+      {tiles.map((t, i) => (
+        <article class="flex flex-col overflow-hidden rounded-[2rem] pt-8 sm:pt-10" style={`background:${t.bg}`} data-reveal={(i % 2) * 0.1}>
+          <div class="px-8 sm:px-10">
+            <p class="text-2xl font-semibold tracking-tight">{t.t}</p>
+            <p class="mt-2 max-w-sm text-white/85">{t.d}</p>
+          </div>
+          <div class="mt-10 pl-8 sm:pl-10">
+            <Image src={t.img} alt={t.alt} widths={[700, 1100]} sizes="(min-width:768px) 45vw, 100vw" class="aspect-[4/3] w-full rounded-tl-2xl object-cover object-left-top shadow-[0_-10px_40px_rgb(0_0_0/0.2)]" />
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <!-- KEY FEATURES (full spec, light panel) -->
+    <section class="sia-panel mt-24 overflow-hidden text-[#111]">
+      <SiaFeatures />
+    </section>
+
+    <!-- TAKEAWAYS -->
+    <section id="takeaways" class="wrap py-24 text-center sm:py-32">
+      <p class="text-white/55" data-reveal>Okay. Enough building. What did it teach me?</p>
+      <h2 class="mx-auto mt-3 max-w-2xl text-[clamp(1.6rem,3vw,2.4rem)] font-display font-extrabold leading-snug tracking-[-0.02em]" data-reveal>What I'd tell my past self.</h2>
+      <ol class="mt-14 grid gap-4 text-left md:grid-cols-3" data-stagger>
+        {takeaways.map((x, i) => (
+          <li class="rounded-2xl bg-[#181D27] p-6">
+            <span class="text-sm font-semibold" style={`color:${C.g500}`}>0{i + 1}</span>
+            <p class="mt-3 text-xl font-semibold tracking-tight">{x.t}</p>
+            <p class="mt-2 text-white/60">{x.d}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- CLOSING -->
+    <section class="sia-panel px-6 py-20 text-center text-[#181D27] sm:py-28">
+      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[#717680]" data-reveal>Closing entry</p>
+      <p class="mt-6 font-display text-[clamp(2.6rem,7vw,5.5rem)] font-extrabold leading-none tracking-[-0.04em]" data-reveal>
+        Debit = Credit.
+      </p>
+      <div class="mx-auto mt-8 flex max-w-md items-center gap-4 text-sm text-[#535862]" data-reveal="0.1" aria-hidden="true">
+        <span class="h-px flex-1 bg-[#d5d7da]"></span>
+        <span class="font-semibold" style={`color:${C.green}`}>Balanced</span>
+        <span class="h-px flex-1 bg-[#d5d7da]"></span>
+      </div>
+      <p class="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-[#414651]" data-reveal="0.1">
+        Every number traced to its source, every role kept in its lane, and one version of the truth for three
+        organisations. Books closed. Ready for the next audit season.
+      </p>
+      <div class="mt-10 flex flex-wrap justify-center gap-3">
+        <a href="/work/teachtechai" class="btn bg-[#181D27] text-white">Next case: TeachTechAI →</a>
+        <a href={`mailto:${site.email}`} class="btn bg-white text-[#181D27] ring-1 ring-[#d5d7da]">Get in touch</a>
+      </div>
+    </section>
+  </div>
+  <SectionDock sections={sections} />
+</Base>
+
+<style>
+  /* Rounded light panel sitting on the dark page, inset from the edges. */
+  .sia-panel {
+    margin-inline: 0.75rem;
+    border-radius: 2rem;
+    background: #f6f6f6;
+    color: #111;
+  }
+  .sia-gap {
+    margin-inline: 0.75rem;
+  }
+  @media (min-width: 640px) {
+    .sia-panel {
+      margin-inline: 1.5rem;
+      border-radius: 2.75rem;
+    }
+    .sia-gap {
+      margin-inline: 1.5rem;
+    }
+  }
+  .sia-chip {
+    display: inline-flex;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 10px 24px -10px rgb(0 0 0 / 0.45);
+  }
+  @media (min-width: 640px) {
+    .sia-chip {
+      padding: 0.55rem 0.9rem;
+      font-size: 0.72rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .sia-chip {
+      padding: 0.7rem 1.4rem;
+      font-size: 0.82rem;
+    }
+  }
+</style>

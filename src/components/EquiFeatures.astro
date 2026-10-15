@@ -1,0 +1,462 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+// Every screen is a 1440px-wide frame from the latest EquiTeam Figma file (page "eduteams"), so they all
+// share one size here: 1440x1024, except the three questionnaire pages, which are full-length and scroll.
+import role from "../assets/equiteam/v2/role.png";
+import biodata from "../assets/equiteam/v2/biodata.png";
+import dashboard from "../assets/equiteam/v2/dashboard.png";
+import newClass from "../assets/equiteam/v2/new-class.png";
+import newTask from "../assets/equiteam/v2/new-task.png";
+import classPage from "../assets/equiteam/v2/class.png";
+import share from "../assets/equiteam/v2/share.png";
+import taskStatus from "../assets/equiteam/v2/task-status.png";
+import quizSkill from "../assets/equiteam/v2/quiz-skill.png";
+import quizPref from "../assets/equiteam/v2/quiz-pref.png";
+import quizPersonality from "../assets/equiteam/v2/quiz-personality.png";
+import answers from "../assets/equiteam/v2/answers.png";
+import student from "../assets/equiteam/v2/student.png";
+import token from "../assets/equiteam/v2/token.png";
+import groupStart from "../assets/equiteam/v2/group-start.png";
+import groupOptions from "../assets/equiteam/v2/group-options.png";
+import groupPartial from "../assets/equiteam/v2/group-partial.png";
+import groupUngrouped from "../assets/equiteam/v2/group-ungrouped.png";
+import groupRegroup from "../assets/equiteam/v2/group-regroup.png";
+import groups from "../assets/equiteam/v2/groups.png";
+import analysis from "../assets/equiteam/v2/analysis.png";
+import chartHover from "../assets/equiteam/v2/chart-hover.png";
+import profile from "../assets/equiteam/v2/profile.png";
+import profileEdit from "../assets/equiteam/v2/profile-edit.png";
+
+import EquiMbti from "./EquiMbti.astro";
+
+// Role icons match the lecturer and student personas in the research section.
+import mLecturer from "../assets/equiteam/fig/persona-andi.svg";
+import mStudent from "../assets/equiteam/fig/persona-april-plain.svg";
+import icMap from "../assets/equiteam/fig/ic-map.svg";
+
+type Who = "Lecturer" | "Student" | "Both";
+// A screen is either a Figma frame image, or a live widget rebuilt from one (same window, same size).
+type Shot = { src: ImageMetadata; label: string } | { widget: "mbti"; label: string };
+type Feature = {
+  id: string;
+  title: string;
+  who: Who;
+  reqs: string[];
+  job: string; // the user's job-to-be-done
+  what: string[];
+  decision: string; // the design call, shown on a sticky note
+  shots: Shot[];
+};
+
+// Grouped from the 19 functional requirements (F-01 to F-19) in the EquiTeam design document,
+// ordered along the real classroom flow: set up → collect → form → understand.
+const features: Feature[] = [
+  {
+    id: "onboarding",
+    title: "Role-based onboarding",
+    who: "Both",
+    reqs: ["F-01", "F-05", "NF-02", "NF-03"],
+    job: "Get into the right workspace in under a minute.",
+    what: [
+      "Google sign-in, so nobody manages yet another password",
+      "Pick a role, lecturer (Dosen) or student (Mahasiswa), with a mascot for each",
+      "Lecturers then enter a role token (Token Role Dosen), so choosing \"Dosen\" alone doesn't open the lecturer workspace",
+      "A short profile: name, NIM or NIP, gender (one of Edu2Com's inputs)",
+      "Indonesian and English everywhere, via the ID/EN toggle",
+    ],
+    decision: "Gender is collected once in the profile, not in each questionnaire. Edu2Com needs it for team balance, but it doesn't change between tasks, so students only answer it once.",
+    shots: [
+      { src: role, label: "Pilih role kamu" },
+      { src: token, label: "Masukkan token (Dosen)" },
+      { src: biodata, label: "Isi data diri" },
+    ],
+  },
+  {
+    id: "setup",
+    title: "Class & task setup",
+    who: "Lecturer",
+    reqs: ["F-06", "F-07"],
+    job: "Describe what a good team needs, in the lecturer's own terms.",
+    what: [
+      "Dashboard summarising tasks created and teams formed",
+      "Create a class: course, code, year, semester and term",
+      "Create a task with the skills it requires and the topics students can prefer",
+      "These skills and topics become Edu2Com's task model: required competencies and team size",
+    ],
+    decision: "Skills and topics are added as removable chips rather than free text, so the algorithm gets clean, comparable inputs without the lecturer learning its vocabulary.",
+    shots: [
+      { src: dashboard, label: "Dashboard" },
+      { src: newClass, label: "Buat kelas baru" },
+      { src: newTask, label: "Buat tugas baru" },
+    ],
+  },
+  {
+    id: "collect",
+    title: "Questionnaire & sharing",
+    who: "Lecturer",
+    reqs: ["F-08", "F-09", "F-10", "F-11"],
+    job: "Collect structured input from the whole class without chasing anyone.",
+    what: [
+      "No questionnaire to build: every task uses the same three-part questionnaire, filled in from the skills and topics set on the task",
+      "Share one link with the class",
+      "Live status per task: not started, 32 of 42 answered, ready to group, grouped",
+      "Full class roster beside every task",
+    ],
+    decision: "Task status is written as a sentence (\"32 of 42 students have answered\") instead of a progress icon, so the lecturer knows exactly when it's safe to run grouping.",
+    shots: [
+      { src: classPage, label: "Class page · tasks + roster" },
+      { src: share, label: "Bagikan kelas" },
+      { src: taskStatus, label: "Task status" },
+    ],
+  },
+  {
+    id: "quiz",
+    title: "Student questionnaire",
+    who: "Student",
+    reqs: ["F-17", "F-18"],
+    job: "Answer honestly and quickly, without it feeling like a test.",
+    what: [
+      "Three short parts: skill self-rating, topic preference and a personality test (MBTI)",
+      "Answers on a five-step scale drawn with mascot faces, from Sangat Tidak Setuju to Sangat Setuju",
+      "Skill levels named in plain words: Pemula to Jago Banget",
+      "Students can see their own result afterwards",
+    ],
+    decision: "\"Input forms are too long\" was a key student frustration. Every answer is a tap on a five-step scale, never typing, and the personality test is split into three pages with a progress bar, so students always know how much is left. The mascot scale makes a 5-point Likert feel playful instead of clinical.",
+    shots: [
+      { src: quizSkill, label: "Tes Keahlian" },
+      { src: quizPref, label: "Preferensi Topik" },
+      { src: quizPersonality, label: "Tes Kepribadian" },
+    ],
+  },
+  {
+    id: "review",
+    title: "Answer review",
+    who: "Lecturer",
+    reqs: ["F-12"],
+    job: "Check what each student said before trusting the algorithm with it.",
+    what: [
+      "Per-student answers across personality, skill and preference tabs",
+      "Student profile card with MBTI type, skill bars and a personality summary",
+      "Remove students who dropped the course before grouping",
+    ],
+    decision: "Trust and reliability was one of the five key research findings. Letting lecturers inspect raw answers first makes the algorithm's output something they can check, not just accept.",
+    shots: [
+      { src: answers, label: "Jawaban mahasiswa" },
+      { src: student, label: "Profil mahasiswa" },
+    ],
+  },
+  {
+    id: "form",
+    title: "AI team formation",
+    who: "Lecturer",
+    reqs: ["F-13", "F-15", "F-16"],
+    job: "Turn a class into balanced teams in one click, and still be in charge.",
+    what: [
+      "Choose how to split first, by number of groups or by students per group; the button stays disabled until a method is picked",
+      "Then one button sends the class and task model to Edu2Com",
+      "Teams come back with a quality score and their assigned topic",
+      "Lecturers can move members between teams, rerun grouping or export the result",
+      "Every student gets a team, and the screen confirms it (100% assigned)",
+    ],
+    decision: "The algorithm proposes and the lecturer decides. Manual editing stays one click away, and a quality score on each team keeps the trade-off visible when they override it.",
+    shots: [
+      { src: groupStart, label: "Buat kelompok" },
+      { src: groupOptions, label: "Metode pembagian · states" },
+      { src: groups, label: "Kelompok with quality score" },
+    ],
+  },
+  {
+    id: "edge",
+    title: "Incomplete classes & regrouping",
+    who: "Lecturer",
+    reqs: [],
+    job: "Group a class that isn't complete, and redo it safely when needed.",
+    what: [
+      "If some students haven't answered, grouping asks first: they'll be left out, continue anyway?",
+      "Students who haven't answered are marked in red in the class roster",
+      "After grouping, a banner counts who didn't get a team and lists who still hasn't answered",
+      "Regrouping warns that the current teams will be deleted and rebuilt from the latest answers, and that it can't be undone",
+    ],
+    decision: "Grouping doesn't wait for a perfect class. The lecturer can go ahead with the students who are ready, and the system says exactly who was left out, so nobody quietly ends up without a team. Destructive actions like regrouping always ask first.",
+    shots: [
+      { src: groupPartial, label: "Lanjutkan pembagian?" },
+      { src: groupUngrouped, label: "Belum dapat kelompok" },
+      { src: groupRegroup, label: "Bagi ulang kelompok" },
+    ],
+  },
+  {
+    id: "analysis",
+    title: "Group quality analysis",
+    who: "Both",
+    reqs: ["F-02", "F-03", "F-14"],
+    job: "See why the teams are fair, not just be told they are.",
+    what: [
+      "Personality spread across all 16 MBTI types, drawn with the mascot icons",
+      "Average skill per role (UI/UX, frontend, backend, QA, PM)",
+      "Topic preference and gender split as donut charts",
+      "Hover any bar for exact numbers (added after testing round 2)",
+    ],
+    decision: "\"Equity had to be visible.\" These charts were added after round 1, when testers could form teams but couldn't explain why they were balanced.",
+    shots: [
+      { src: analysis, label: "Lihat analisis jawaban" },
+      { src: chartHover, label: "Hover tooltips (iteration 2)" },
+    ],
+  },
+  {
+    id: "me",
+    title: "Personality & profile",
+    who: "Student",
+    reqs: ["F-04", "F-19"],
+    job: "Understand myself as a teammate, and where I ended up.",
+    what: [
+      "Own MBTI result as a mascot, with a readable explanation (e.g. ENFP, The Campaigner)",
+      "Browse all 16 types and what they bring to a team",
+      "History of past group assignments",
+      "Edit profile and change password",
+    ],
+    decision: "Aprilianda's quote drove this one: \"If a system groups me, I want to know why I ended up there.\" The profile turns her test result into something she can take into the team.",
+    shots: [
+      { src: profile, label: "Profil · ENFP" },
+      { widget: "mbti", label: "MBTI distribution · interactive" },
+      { src: profileEdit, label: "Edit profil" },
+    ],
+  },
+];
+
+const whoStyle: Record<Who, { pill: string; m: ImageMetadata[]; label: string }> = {
+  Lecturer: { pill: "bg-[#fff4dc] text-[#b54708]", m: [mLecturer], label: "Lecturer" },
+  Student: { pill: "bg-[#e3f8ec] text-[#067647]", m: [mStudent], label: "Student" },
+  Both: { pill: "bg-[#e3f1ff] text-[#175cd3]", m: [mLecturer, mStudent], label: "Lecturer + student" },
+};
+
+// Each role gets its own tinted lane on the feature map, in the colours of its tag.
+const lanes: { who: Who; title: string; panel: string }[] = [
+  { who: "Lecturer", title: "Lecturer", panel: "bg-[#fffcf5] ring-[#fedf89]" },
+  { who: "Student", title: "Student", panel: "bg-[#f6fef9] ring-[#abefc6]" },
+];
+const stepOf = (id: string) => features.findIndex((f) => f.id === id) + 1;
+// Frames taller than 1440x1024 are full-length pages: they scroll inside the same-size window.
+const isTall = (s: Shot) => "src" in s && s.src.height / s.src.width > 1024 / 1440 + 0.01;
+---
+
+<section class="eq-dots py-20 sm:py-28" id="features">
+  <div class="wrap">
+    <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" data-reveal>Key <span class="y">Features</span></h2>
+    <p class="mt-6 max-w-3xl text-lg text-muted" data-reveal="0.1">
+      The 19 functional requirements group into eight features, plus one flow added in the final
+      design for classes that aren't complete. They follow a real semester, from setting up a class
+      to understanding why a team is balanced. Each one lists the requirement codes it covers and
+      the design decision behind it.
+    </p>
+
+    <!-- Feature map: the whole flow at a glance, by role -->
+    <div class="eq-select mt-12 rounded-sm p-5 text-[#0277c7] sm:p-7" data-reveal>
+      <span class="h"></span><span class="h"></span><span class="h"></span><span class="h"></span>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <span class="eq-tag bg-[#e3f1ff] text-[#175cd3]"><img src={icMap.src} alt="" class="!m-0 !ml-1 !size-6" />Feature map</span>
+        <span class="text-sm font-medium text-muted">Tap a feature to jump to it</span>
+      </div>
+      <div class="mt-6 space-y-3 text-ink">
+        {lanes.map((lane) => (
+          <div class={`grid gap-3 rounded-2xl p-3 ring-1 sm:p-4 lg:grid-cols-[9rem_1fr] lg:items-start ${lane.panel}`}>
+            <span class={`eq-tag w-fit ${whoStyle[lane.who].pill}`}>{whoStyle[lane.who].m.map((m, i) => <img src={m.src} alt="" class={i ? "-ml-3" : ""} />)}{lane.title}</span>
+            <ol class="flex flex-wrap items-center gap-2">
+              {features
+                .filter((f) => f.who === lane.who || f.who === "Both")
+                .map((f, i, arr) => (
+                  <>
+                    <li>
+                      <a href={`#ef-${f.id}`} class="flex min-h-11 items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm font-semibold shadow-[0_6px_14px_-8px_rgb(2_80_152/0.45)] ring-1 ring-[#d6e9f8] transition-transform hover:-translate-y-0.5 hover:ring-[#0277c7]">
+                        <span class="grid size-6 place-items-center rounded-full bg-[#fec84b] text-xs font-bold text-[#0b2a55]">{stepOf(f.id)}</span>
+                        {f.title}
+                      </a>
+                    </li>
+                    {i < arr.length - 1 && <li class="text-[#0277c7]" aria-hidden="true">→</li>}
+                  </>
+                ))}
+            </ol>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature detail -->
+  <div class="wrap mt-6">
+    {features.map((f, i) => {
+      const w = whoStyle[f.who];
+      return (
+        <article id={`ef-${f.id}`} class="scroll-mt-28 border-b-2 border-dashed border-[#d6e9f8] py-16 last:border-b-0 sm:py-20">
+          <div class={`grid gap-10 lg:items-start ${i % 2 ? "lg:grid-cols-[1.35fr_1fr]" : "lg:grid-cols-[1fr_1.35fr]"}`}>
+            <div class={`${i % 2 ? "lg:order-2" : ""} lg:sticky lg:top-28`} data-reveal>
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="grid size-12 place-items-center rounded-2xl bg-[#fec84b] text-xl font-extrabold text-[#0b2a55] shadow-[0_5px_0_#e0a52a]">{i + 1}</span>
+                <span class={`eq-tag ${w.pill}`}>{w.m.map((m, i) => <img src={m.src} alt="" class={i ? "-ml-3" : ""} />)}{w.label}</span>
+              </div>
+              <h3 class="mt-5 text-3xl font-extrabold tracking-tight text-[#0b2a55]">{f.title}</h3>
+              <p class="mt-2 text-lg font-medium text-[#0277c7]">{f.job}</p>
+
+              <ul class="mt-6 space-y-2.5">
+                {f.what.map((x) => (
+                  <li class="flex gap-3 text-base">
+                    <span class="mt-2 size-2 shrink-0 rounded-full bg-[#0277c7]" />
+                    {x}
+                  </li>
+                ))}
+              </ul>
+
+              <div class="mt-6 flex flex-wrap gap-1.5" aria-label="Requirements covered">
+                {!f.reqs.length && (
+                  <span class="rounded-lg bg-[#fff4dc] px-2 py-1 text-xs font-semibold text-[#b54708] ring-1 ring-[#fedf89]">Added in the final design</span>
+                )}
+                {f.reqs.map((r) => (
+                  <code class="rounded-lg bg-white px-2 py-1 text-xs font-semibold text-[#175cd3] ring-1 ring-[#d6e9f8]">{r}</code>
+                ))}
+              </div>
+
+              <p class="eq-sticky mt-8 rotate-[-1.2deg] rounded-sm p-5 text-base font-medium">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wider text-[#175cd3]">Design decision</span>
+                {f.decision}
+              </p>
+            </div>
+
+            <!-- Screen viewer: one window at the same size for every feature, tabs to switch screens. -->
+            <div class={`${i % 2 ? "lg:order-1" : ""} min-w-0`} data-ef-viewer data-reveal>
+              {f.shots.length > 1 && (
+                <div class="mb-3 flex flex-wrap gap-2" role="tablist" aria-label={`${f.title} screens`}>
+                  {f.shots.map((s, k) => (
+                    <button
+                      type="button"
+                      role="tab"
+                      id={`ef-${f.id}-t${k}`}
+                      aria-controls={`ef-${f.id}-p${k}`}
+                      aria-selected={k === 0 ? "true" : "false"}
+                      tabindex={k === 0 ? 0 : -1}
+                      class="ef-tab min-h-9 rounded-2xl bg-white px-3 py-1.5 text-sm font-semibold text-[#0b2a55] ring-1 ring-[#d6e9f8] transition-colors"
+                      data-ef-tab={k}
+                    >
+                      <span class="mr-1.5 text-xs font-bold text-[#0277c7]">{k + 1}</span>{s.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div class="eq-window overflow-hidden">
+                <div class="flex items-center gap-1.5 border-b border-[#e9eaeb] bg-[#f8fafc] px-3 py-2" aria-hidden="true">
+                  <span class="size-2.5 rounded-full bg-[#f04438]/70" /><span class="size-2.5 rounded-full bg-[#fec84b]" /><span class="size-2.5 rounded-full bg-[#3ccf7d]/80" />
+                </div>
+                {f.shots.map((s, k) => (
+                  <figure
+                    id={`ef-${f.id}-p${k}`}
+                    role={f.shots.length > 1 ? "tabpanel" : undefined}
+                    aria-labelledby={f.shots.length > 1 ? `ef-${f.id}-t${k}` : undefined}
+                    class={`ef-shot relative ${k ? "is-off" : ""}`}
+                    data-ef-panel={k}
+                  >
+                    <div class={`ef-screen ${isTall(s) ? "is-tall" : ""}`} tabindex={isTall(s) ? 0 : undefined} aria-label={isTall(s) ? `${s.label}, scrollable` : undefined}>
+                      {"src" in s ? (
+                        <Image src={s.src} alt={`${f.title}: ${s.label}`} widths={[720, 1080, 1440]} sizes="(min-width:1024px) 640px, 100vw" class="block w-full bg-white" loading="lazy" />
+                      ) : (
+                        <EquiMbti />
+                      )}
+                    </div>
+                    {isTall(s) && <span class="ef-scroll" aria-hidden="true">Scroll ↓</span>}
+                    <figcaption class="sr-only">{s.label}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            </div>
+          </div>
+        </article>
+      );
+    })}
+  </div>
+</section>
+
+<style>
+  /* Every screen shows at the frame's own 1440x1024 ratio; full-length pages scroll inside it. */
+  .ef-screen {
+    aspect-ratio: 1440 / 1024;
+    overflow: hidden;
+    background: #fff;
+  }
+  .ef-screen.is-tall {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .ef-screen.is-tall:focus-visible {
+    outline: 3px solid #0277c7;
+    outline-offset: -3px;
+  }
+  /* Without JS every screen is listed; with it, only the selected tab's. */
+  .ef-shot + .ef-shot {
+    border-top: 1px solid #e9eaeb;
+  }
+  :global(html.js) .ef-shot.is-off {
+    display: none;
+  }
+  .ef-scroll {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #0b2a55;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .ef-shot.is-scrolled .ef-scroll {
+    opacity: 0;
+  }
+  .ef-tab:hover {
+    --tw-ring-color: #0277c7;
+  }
+  .ef-tab[aria-selected="true"] {
+    background: #0b2a55;
+    color: #fff;
+    --tw-ring-color: #0b2a55;
+  }
+  .ef-tab[aria-selected="true"] span {
+    color: #fec84b;
+  }
+</style>
+
+<script>
+  // Screen viewers: tabs switch which screen fills the window (arrow keys move between tabs), and the
+  // "Scroll" badge on full-length pages fades once the page is scrolled. Re-runs after client-side navigation.
+  function init() {
+    document.querySelectorAll<HTMLElement>("[data-ef-viewer]").forEach((viewer) => {
+      if (viewer.dataset.ready) return;
+      viewer.dataset.ready = "1";
+      const tabs = [...viewer.querySelectorAll<HTMLButtonElement>("[data-ef-tab]")];
+      const panels = [...viewer.querySelectorAll<HTMLElement>("[data-ef-panel]")];
+      const select = (i: number, focus = false) => {
+        tabs.forEach((t, k) => {
+          t.setAttribute("aria-selected", String(k === i));
+          t.tabIndex = k === i ? 0 : -1;
+        });
+        panels.forEach((p, k) => p.classList.toggle("is-off", k !== i));
+        if (focus) tabs[i]?.focus();
+      };
+      tabs.forEach((t, i) => {
+        t.addEventListener("click", () => select(i));
+        t.addEventListener("keydown", (e) => {
+          const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+          if (next === undefined) return;
+          e.preventDefault();
+          select((next + tabs.length) % tabs.length, true);
+        });
+      });
+      viewer.querySelectorAll<HTMLElement>(".ef-screen.is-tall").forEach((screen) => {
+        screen.addEventListener("scroll", () => screen.parentElement?.classList.toggle("is-scrolled", screen.scrollTop > 24), { passive: true });
+      });
+    });
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

@@ -1,0 +1,15 @@
+---
+interface Props {
+  label: string;
+  tone?: "violet" | "ink" | "lime";
+  class?: string;
+}
+const { label, tone = "violet", class: cls = "" } = Astro.props;
+const fill = { violet: "#6938ef", ink: "#0e0f12", lime: "#c8f169" }[tone];
+const text = tone === "lime" ? "text-ink" : "text-white";
+---
+
+<div class={`pointer-events-none flex flex-col items-start ${cls}`} aria-hidden="true">
+  <svg width="18" height="18" viewBox="0 0 18 18"><path d="M1 1l6 15 2.2-6.2L16 7.5 1 1Z" fill={fill} stroke="white" stroke-width="1.2" stroke-linejoin="round" /></svg>
+  <span class={`pill -mt-0.5 ml-3 text-xs ${text}`} style={`background:${fill}`}>{label}</span>
+</div>

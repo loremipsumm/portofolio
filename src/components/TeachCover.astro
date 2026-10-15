@@ -1,0 +1,48 @@
+---
+import Phone from "./Phone.astro";
+import Sparkle from "./Sparkle.astro";
+import home from "../assets/teachtech/cover-home.png";
+import chat from "../assets/teachtech/chat.png";
+
+interface Props {
+  class?: string;
+}
+const { class: cls = "" } = Astro.props;
+---
+
+<div
+  class={`relative isolate aspect-[4/3] overflow-hidden rounded-[28px] bg-[radial-gradient(120%_90%_at_20%_0%,#f04438_0%,#b42318_45%,#7a271a_100%)] ${cls}`}
+  style="container-type: inline-size"
+>
+  <p
+    class="display pointer-events-none absolute left-[5%] top-[7%] select-none text-[11cqw] text-white"
+    aria-hidden="true"
+  >
+    TeachTech<span class="text-lime">AI</span>
+  </p>
+  <p class="absolute left-[5.5%] top-[20%] max-w-[40%] text-[2.2cqw] font-medium leading-snug text-white/75">
+    Shaping tomorrow's education with today's technology.
+  </p>
+
+  <div class="absolute bottom-[-30%] right-[8%] w-[30%] rotate-[8deg]">
+    <Phone src={home} alt="TeachTechAI home screen with topic categories" />
+  </div>
+  <div class="absolute bottom-[-40%] right-[31%] w-[24%] -rotate-[6deg]">
+    <Phone src={chat} alt="TeachTechAI chat with the assistant" />
+  </div>
+
+  <span data-float="8" class="pill absolute left-[5%] top-[44%] bg-lime text-ink shadow-lg">
+    SEA-LION 7B · fine-tuned
+  </span>
+  <span data-float="10" class="pill absolute left-[9%] top-[58%] bg-white text-[#b42318] shadow-lg">
+    Hello! How can I assist you today?
+  </span>
+  <Sparkle class="absolute right-[6%] top-[9%] size-[4cqw] text-lime" />
+  <Sparkle class="absolute right-[12%] top-[16%] size-[2cqw] text-white/70" />
+
+  <div class="absolute bottom-[5%] left-[5%] flex gap-3 text-[11px] font-medium sm:text-sm">
+    <span class="text-white">Mobile Dev</span><span class="text-white/40">•</span>
+    <span class="text-[#fec84b]">Android</span><span class="text-white/40">•</span>
+    <span class="text-lime">AI</span>
+  </div>
+</div>

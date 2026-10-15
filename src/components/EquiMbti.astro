@@ -1,0 +1,359 @@
+---
+// Interactive "MBTI Distribution" explorer, rebuilt from the EquiTeam Figma popup ("MBTI Classification", one
+// variant per type): a 4x4 grid of the 16 types, one row per temperament group in that group's colours, and a
+// detail panel with the type's character and description. Copy translated to English from the Figma text.
+// Sized with container units so it fits the Key Features screen window at any width.
+import { getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+const art = import.meta.glob<{ default: ImageMetadata }>("../assets/equiteam/mbti/*.png", { eager: true });
+const img = (code: string) => art[`../assets/equiteam/mbti/${code}.png`].default;
+
+type Group = "NT" | "NF" | "SJ" | "SP";
+// Colours from the Figma variants: tile fill, tile label, selected-tile border, panel border and glow, name.
+const groups: Record<Group, { label: string; tile: string; ink: string; ring: string; border: string; glow: string; accent: string }> = {
+  NT: { label: "Analysts", tile: "#ebe9fe", ink: "#6938ef", ring: "#9b8afb", border: "#d9d6fe", glow: "#f6ccff", accent: "#7a5af8" },
+  NF: { label: "Diplomats", tile: "#d1fadf", ink: "#027a48", ring: "#32d583", border: "#a6f4c5", glow: "#ccffd2", accent: "#12b76a" },
+  SJ: { label: "Sentinels", tile: "#e0f2fe", ink: "#0086c9", ring: "#36bffa", border: "#b9e6fe", glow: "#ade9ff", accent: "#0ba5ec" },
+  SP: { label: "Explorers", tile: "#fef0c7", ink: "#b54708", ring: "#fdb022", border: "#fedf89", glow: "#ffefad", accent: "#f79009" },
+};
+
+type Type = { code: string; name: string; group: Group; about: string; team: string };
+// Grid order as in Figma: one row per group.
+const types: Type[] = [
+  { code: "INTJ", group: "NT", name: "The Architect", about: "INTJs are strategic thinkers who always have a well-laid plan. They enjoy complex challenges and tend to work best on their own. Focused, logical and with a long-term vision, they are often the team's source of solutions.", team: "In group work, INTJs usually take the planner or analyst role. They can seem serious or overly idealistic, but they care deeply about results and efficiency. Need room to think things through? They are the experts." },
+  { code: "INTP", group: "NT", name: "The Logician", about: "INTPs are free thinkers full of curiosity. They love exploring unusual ideas and can spend hours getting to the bottom of a concept. Logical, critical, and keen to take apart how things work.", team: "In a team, INTPs often bring an angle nobody else thought of. They may seem to be in their own world, but they contribute a lot through clever ideas and creative approaches." },
+  { code: "ENTJ", group: "NT", name: "The Commander", about: "ENTJs are natural leaders: decisive, visionary and quick to take the initiative. They are confident organising plans, building strategy and steering the team toward a shared goal.", team: "In group work, ENTJs read the situation fast and step straight into a directing role. They can come across as dominant, but what they really want is for everything to run efficiently and productively." },
+  { code: "ENTP", group: "NT", name: "The Debater", about: "ENTPs are energetic, quick-thinking and always full of fresh ideas. They love discussion, challenging arguments and saying what they think. To them, a debate is not a conflict but a way to explore ideas.", team: "In a team, ENTPs bring dynamic energy and often drive innovation. They can struggle to stay on one thing for long, but their ideas spark progress when paired with the right person to execute them." },
+  { code: "INFJ", group: "NF", name: "The Advocate", about: "INFJs are known for being wise and deeply empathetic. They think about long-term wellbeing, for themselves and for others. With strong values, they like to support things that matter.", team: "In a group, they are often the emotional link between members. INFJs may seem quiet, but when they speak it counts. They prefer to support from behind the scenes, yet their contribution runs deep." },
+  { code: "INFP", group: "NF", name: "The Mediator", about: "INFPs are idealistic, sensitive and imaginative. They have a rich inner world and care a lot about what they believe is right. Sometimes they lead with feelings rather than logic, and that is their strength.", team: "When working in a group, INFPs tend to be good listeners who encourage harmony. They may dislike conflict, but they will speak up when something goes against their values." },
+  { code: "ENFJ", group: "NF", name: "The Protagonist", about: "ENFJs are warm, charismatic and love helping others grow. They believe cooperation and empathy are the keys to a team's success. You could say they have the aura of a friendly leader.", team: "In group work, ENFJs tend to take an active, constructive guiding role. They are good at reading the team's mood and know when to push and when to listen." },
+  { code: "ENFP", group: "NF", name: "The Campaigner", about: "ENFPs are enthusiastic, creative and expressive. They love exploring new ideas, connecting with people and building positive relationships around them.", team: "In group work, ENFPs are usually the motivator and the link between members. They understand other people's emotions and are open to discussion. Having them around makes a team feel more alive." },
+  { code: "ISTJ", group: "SJ", name: "The Logistician", about: "ISTJs are thorough, disciplined and highly responsible. They like things clear, structured and straightforward. If someone can be relied on to keep everything going to plan, it is an ISTJ.", team: "In a group, ISTJs usually keep the system running and remind everyone of deadlines. Quiet as they are, they take responsibility very seriously: they may not say much, but they are always on time and efficient." },
+  { code: "ISFJ", group: "SJ", name: "The Defender", about: "ISFJs are caring, loyal and genuinely concerned for other people's wellbeing. They tend to be quiet but very responsible and hard-working, and they value tradition.", team: "In a group, they often help quietly without expecting praise. They make sure everything goes well, even if it means giving up some of their own comfort for the common good." },
+  { code: "ESTJ", group: "SJ", name: "The Executive", about: "ESTJs are decisive, like order and tend to lead naturally. They are good at organising strategy and execution, and they do not hesitate to make decisions.", team: "In a group, ESTJs often become the coordinator or leader who keeps everything running smoothly. They may seem rigid, but that is because they want the best result and do not want to waste time." },
+  { code: "ESFJ", group: "SJ", name: "The Consul", about: "ESFJs are friendly, attentive and happy to help. They like keeping things harmonious and are very sensitive to how the people around them feel. For them, teamwork is about cooperating and caring for each other.", team: "If a group has someone who looks after everyone, it is usually the ESFJ. They are quick to help, easy to work with, and make every member feel valued." },
+  { code: "ISTP", group: "SP", name: "The Virtuoso", about: "ISTPs are calm, logical and hands-on. They like tinkering, experimenting and learning by doing. Not much for theory, but they get it as soon as they try.", team: "In a group, ISTPs often become the quiet executor. They do not talk much, but their work speaks for itself. Need someone fast and practical? An ISTP is the answer." },
+  { code: "ISFP", group: "SP", name: "The Adventurer", about: "ISFPs are artistic, sensitive and value their freedom. They like exploring new things, but tend to do it privately, without much talk. Their style is calm, yet full of colour.", team: "In group work, ISFPs are often the source of unusual, original ideas. They may not like the spotlight, but their work often shows a strong sense of beauty and sensitivity." },
+  { code: "ESTP", group: "SP", name: "The Entrepreneur", about: "ESTPs are energetic, spontaneous and action-oriented. They tend to jump in first and think later, but often succeed thanks to sharp instincts. They enjoy being the centre of attention and are not afraid of risk.", team: "In a team, ESTPs bring the atmosphere to life. They are great at improvising and can make quick decisions under pressure, a good fit for a flexible, resilient executor." },
+  { code: "ESFP", group: "SP", name: "The Entertainer", about: "ESFPs bring the cheer. They love interacting, performing and making other people smile. To them, life is a stage, and they want everyone to enjoy the show.", team: "In a group, ESFPs often break the ice. They are full of energy and care, though they can lose focus on technical details. If you need a boost, they are always ready to lift the mood." },
+];
+const start = "ENFP"; // the variant Figma shows first
+
+const tileArt = Object.fromEntries(await Promise.all(types.map(async (t) => [t.code, (await getImage({ src: img(t.code), width: 192 })).src])));
+const bigArt = Object.fromEntries(await Promise.all(types.map(async (t) => [t.code, (await getImage({ src: img(t.code), width: 400 })).src])));
+const cssVars = (g: Group) => {
+  const c = groups[g];
+  return `--m-tile:${c.tile};--m-ink:${c.ink};--m-ring:${c.ring};--m-border:${c.border};--m-glow:${c.glow};--m-accent:${c.accent}`;
+};
+---
+
+<div class="mb" data-mb>
+  <div class="mb-pop" role="group" aria-label="MBTI distribution: pick one of the 16 types">
+    <header class="mb-head" aria-hidden="true">
+      <span class="mb-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+      </span>
+      <b>MBTI Distribution</b>
+      <span class="mb-x">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </span>
+    </header>
+
+    <div class="mb-body">
+      <!-- 4x4 grid, one row per temperament group -->
+      <div class="mb-grid" role="radiogroup" aria-label="16 personality types">
+        {
+          types.map((t) => (
+            <button
+              type="button"
+              role="radio"
+              class="mb-tile"
+              style={cssVars(t.group)}
+              aria-checked={t.code === start ? "true" : "false"}
+              tabindex={t.code === start ? 0 : -1}
+              aria-label={`${t.code}, ${t.name} (${groups[t.group].label})`}
+              data-mb-type={t.code}
+            >
+              <span class="mb-code">{t.code}</span>
+              <img src={tileArt[t.code]} alt="" loading="lazy" decoding="async" />
+            </button>
+          ))
+        }
+        <ul class="mb-legend" aria-label="Temperament groups">
+          {(Object.keys(groups) as Group[]).map((g) => <li style={cssVars(g)}>{groups[g].label}</li>)}
+        </ul>
+      </div>
+
+      <!-- Detail for each type; only the selected one is shown -->
+      <div class="mb-details" aria-live="polite">
+        {
+          types.map((t) => (
+            <article class="mb-detail" style={cssVars(t.group)} data-mb-detail={t.code} hidden={t.code !== start}>
+              <p class="mb-badge">
+                <span aria-hidden="true">✦</span>
+                <b>{t.code}</b>
+                <span aria-hidden="true">✦</span>
+              </p>
+              <img class="mb-art" src={bigArt[t.code]} alt={`${t.code} mascot`} loading="lazy" decoding="async" />
+              <div class="mb-card">
+                <h4>{t.name}</h4>
+                <p>{t.about}</p>
+                <p>{t.team}</p>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Fills the 1440x1024 screen window: a dimmed app backdrop with the popup on top, like the Figma screen. */
+  .mb {
+    container-type: inline-size;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    background: #e4e7ec;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    color: #000;
+  }
+  .mb-pop {
+    display: flex;
+    flex-direction: column;
+    width: 92cqw;
+    height: 62cqw;
+    padding: 1.6cqw 2cqw 2cqw;
+    border-radius: 1.4cqw;
+    background: #fff;
+    box-shadow: 0 0.1cqw 1.2cqw -0.1cqw rgb(0 0 0 / 0.25);
+  }
+  .mb-head {
+    display: flex;
+    align-items: center;
+    gap: 1cqw;
+    font-size: max(12px, 2.1cqw);
+  }
+  .mb-head b {
+    flex: 1 1 auto;
+    font-weight: 500;
+  }
+  .mb-back,
+  .mb-x {
+    display: grid;
+    place-items: center;
+    width: 3.6cqw;
+    height: 3.6cqw;
+  }
+  .mb-head svg {
+    width: 2.5cqw;
+    height: 2.5cqw;
+  }
+  .mb-body {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3cqw;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 1.4cqw;
+  }
+
+  /* Tiles: 80px squares in Figma, group fill, code top-left, character peeking in from the bottom. */
+  .mb-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 9.2cqw);
+    grid-auto-rows: 9.2cqw;
+    gap: 1.6cqw 1.5cqw;
+    align-content: start;
+    padding: 0.4cqw;
+  }
+  .mb-tile {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+    border: 0.22cqw solid transparent;
+    border-radius: 0.9cqw;
+    background: var(--m-tile);
+    cursor: pointer;
+    transition:
+      transform 0.15s,
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+  .mb-tile:hover {
+    transform: translateY(-0.2cqw);
+  }
+  .mb-tile[aria-checked="true"] {
+    border-color: var(--m-ring);
+    transform: scale(1.06);
+    box-shadow: 0 0 0.6cqw 0.35cqw rgb(202 202 202 / 0.35);
+  }
+  .mb-tile:focus-visible {
+    outline: 0.3cqw solid #0d99ff;
+    outline-offset: 0.2cqw;
+  }
+  .mb-code {
+    position: absolute;
+    top: 0.5cqw;
+    left: 0.65cqw;
+    z-index: 1;
+    color: var(--m-ink);
+    font-size: max(9px, 1.75cqw);
+    font-weight: 700;
+    line-height: 1;
+  }
+  .mb-tile img {
+    position: absolute;
+    left: 1.1cqw;
+    top: 0.8cqw;
+    width: 10.4cqw;
+    max-width: none;
+    height: auto;
+    pointer-events: none;
+  }
+  .mb-legend {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+    gap: 0.6cqw 1.4cqw;
+    margin: 0.8cqw 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: max(9px, 1.25cqw);
+    font-weight: 600;
+  }
+  .mb-legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.5cqw;
+    color: var(--m-ink);
+  }
+  .mb-legend li::before {
+    content: "";
+    width: 1.2cqw;
+    height: 1.2cqw;
+    border-radius: 0.3cqw;
+    background: var(--m-tile);
+    box-shadow: inset 0 0 0 0.15cqw var(--m-ring);
+  }
+
+  /* Detail: badge with the code, the character, then name and description in a card. */
+  .mb-details {
+    min-width: 0;
+    min-height: 0;
+  }
+  .mb-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2cqw;
+    height: 100%;
+    animation: mb-in 0.25s ease-out;
+  }
+  .mb-detail[hidden] {
+    display: none;
+  }
+  @keyframes mb-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.6cqw);
+    }
+  }
+  .mb-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2.6cqw;
+    margin: 0;
+    padding: 0.5cqw 0;
+    border: 1px solid var(--m-border);
+    border-radius: 1.1cqw;
+    background: #fff;
+    box-shadow: 0 0.2cqw 0.45cqw var(--m-glow);
+    color: var(--m-accent);
+    font-size: max(12px, 2.2cqw);
+  }
+  .mb-badge b {
+    color: #fff;
+    font-size: max(18px, 4.2cqw);
+    font-weight: 800;
+    letter-spacing: 0.25cqw;
+    line-height: 1.1;
+    -webkit-text-stroke: max(1px, 0.18cqw) var(--m-accent);
+    paint-order: stroke fill;
+  }
+  .mb-art {
+    align-self: center;
+    width: auto;
+    height: 14cqw;
+    object-fit: contain;
+  }
+  .mb-card {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 1.5cqw;
+    border: 1px solid var(--m-border);
+    border-radius: 1.1cqw;
+    background: #fdfdfd;
+    box-shadow: 0 0.2cqw 0.45cqw var(--m-glow);
+    scrollbar-width: thin;
+  }
+  .mb-card h4 {
+    margin: 0 0 1cqw;
+    color: var(--m-accent);
+    font-size: max(15px, 2.9cqw);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 1.1;
+  }
+  .mb-card p {
+    margin: 0;
+    font-size: max(11px, 1.35cqw);
+    line-height: 1.45;
+  }
+  .mb-card p + p {
+    margin-top: 0.9cqw;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mb-detail,
+    .mb-tile {
+      animation: none;
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Selecting a tile (click, or arrow keys inside the grid) shows that type's detail.
+  function init() {
+    document.querySelectorAll<HTMLElement>("[data-mb]").forEach((root) => {
+      if (root.dataset.ready) return;
+      root.dataset.ready = "1";
+      const tiles = [...root.querySelectorAll<HTMLButtonElement>("[data-mb-type]")];
+      const details = [...root.querySelectorAll<HTMLElement>("[data-mb-detail]")];
+      const select = (i: number, focus = false) => {
+        const code = tiles[i].dataset.mbType;
+        tiles.forEach((t, k) => {
+          t.setAttribute("aria-checked", String(k === i));
+          t.tabIndex = k === i ? 0 : -1;
+        });
+        details.forEach((d) => (d.hidden = d.dataset.mbDetail !== code));
+        if (focus) tiles[i].focus();
+      };
+      tiles.forEach((t, i) => {
+        t.addEventListener("click", () => select(i));
+        t.addEventListener("keydown", (e) => {
+          const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 4, ArrowUp: -4 }[e.key];
+          if (step === undefined) return;
+          e.preventDefault();
+          select((i + step + tiles.length) % tiles.length, true);
+        });
+      });
+    });
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

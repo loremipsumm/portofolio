@@ -1,0 +1,72 @@
+---
+import { Image } from "astro:assets";
+import dashboard from "../assets/sia/dashboard.png";
+import Sparkle from "./Sparkle.astro";
+
+interface Props {
+  class?: string;
+}
+const { class: cls = "" } = Astro.props;
+---
+
+<div
+  class={`relative isolate aspect-[4/3] overflow-hidden rounded-[28px] bg-[linear-gradient(160deg,#414651_0%,#252b37_55%,#181d27_100%)] ${cls}`}
+  style="container-type: inline-size"
+>
+  <!-- ghost wordmark -->
+  <p
+    class="display pointer-events-none absolute inset-x-0 top-[4%] select-none text-center text-[clamp(4rem,34cqw,24rem)] text-white/[0.07]"
+    aria-hidden="true"
+  >
+    SIA
+  </p>
+  <div
+    class="absolute -bottom-1/3 left-1/2 -z-10 size-[80%] -translate-x-1/2 rounded-full bg-violet/40 blur-[90px]"
+    aria-hidden="true"
+  >
+  </div>
+
+  <!-- monitor -->
+  <div class="absolute inset-x-[17%] top-[19%] [perspective:1400px]">
+    <div class="origin-top [transform:rotateX(14deg)]">
+      <div class="rounded-[14px] bg-[#0a0d12] p-[1.2%] shadow-[0_40px_80px_-20px_rgb(0_0_0/0.6)] ring-1 ring-white/10">
+        <Image
+          src={dashboard}
+          alt="SIA dashboard listing client projects as folder cards"
+          widths={[480, 800, 1200]}
+          sizes="(min-width: 1024px) 50vw, 90vw"
+          class="block w-full rounded-[8px]"
+        />
+      </div>
+      <div class="mx-auto h-[5cqw] w-[18%] bg-gradient-to-b from-[#9aa0ad] to-[#5d6270]"></div>
+    </div>
+  </div>
+
+  <!-- chips -->
+  <span
+    data-float="8"
+    class="pill absolute right-[5%] top-[28%] bg-lime text-ink shadow-lg"
+  >
+    <span class="size-1.5 rounded-full bg-ok"></span> Control to GL · TRUE
+  </span>
+  <span
+    data-float="10"
+    class="pill absolute left-[4%] top-[52%] bg-white/90 text-ink shadow-lg backdrop-blur"
+  >
+    Approve access
+  </span>
+  <Sparkle class="absolute left-[8%] top-[12%] size-6 text-lime" />
+  <Sparkle class="absolute left-[13%] top-[20%] size-3 text-white/60" />
+
+  <!-- meta -->
+  <div class="absolute inset-x-[5%] bottom-[5%] flex items-end justify-between text-[11px] sm:text-sm">
+    <p class="flex gap-3 font-medium">
+      <span class="text-[#fda29b]">UX</span>
+      <span class="text-white/40">•</span>
+      <span class="text-[#7cd4fd]">UI Design</span>
+      <span class="text-white/40">•</span>
+      <span class="text-[#fec84b]">Research</span>
+    </p>
+    <p class="font-display font-bold text-white/80">/2025</p>
+  </div>
+</div>

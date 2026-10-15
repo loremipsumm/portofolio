@@ -1,0 +1,369 @@
+---
+import { Image, getImage } from "astro:assets";
+import mNT from "../assets/equiteam/m-purple.png";
+import mNF from "../assets/equiteam/m-green.png";
+import mSJ from "../assets/equiteam/m-blue.png";
+import mSP from "../assets/equiteam/m-orange.png";
+import mThinking from "../assets/equiteam/fig/glance-mascot.svg";
+import aspSkill from "../assets/equiteam/fig/asp-skill.svg";
+import aspPersonality from "../assets/equiteam/fig/asp-personality.svg";
+import aspGender from "../assets/equiteam/fig/asp-gender.svg";
+import aspPreference from "../assets/equiteam/fig/asp-preference.svg";
+
+// ---- Demo class: illustrative, not research data. Mascot colour = MBTI temperament, as in the EquiTeam design system.
+type Temp = "NT" | "NF" | "SJ" | "SP";
+type Role = "UI/UX" | "Frontend" | "Backend" | "PM";
+const students: { id: number; name: string; temp: Temp; role: Role; g: "F" | "M" }[] = [
+  { id: 1, name: "Andi", temp: "NT", role: "Frontend", g: "M" },
+  { id: 2, name: "Bima", temp: "NT", role: "Frontend", g: "M" },
+  { id: 3, name: "Dika", temp: "NT", role: "Backend", g: "M" },
+  { id: 4, name: "Raka", temp: "NT", role: "Backend", g: "M" },
+  { id: 5, name: "Sari", temp: "NF", role: "UI/UX", g: "F" },
+  { id: 6, name: "Nina", temp: "NF", role: "UI/UX", g: "F" },
+  { id: 7, name: "Putri", temp: "NF", role: "PM", g: "F" },
+  { id: 8, name: "Tia", temp: "SJ", role: "PM", g: "F" },
+  { id: 9, name: "Yoga", temp: "SJ", role: "Backend", g: "M" },
+  { id: 10, name: "Fajar", temp: "SP", role: "Frontend", g: "M" },
+  { id: 11, name: "Lala", temp: "SP", role: "UI/UX", g: "F" },
+  { id: 12, name: "Rio", temp: "SJ", role: "PM", g: "M" },
+];
+const layouts = {
+  friends: [[1, 2, 3, 4], [5, 6, 7, 11], [8, 9, 10, 12]],
+  edu2com: [[1, 9, 5, 8], [10, 3, 6, 7], [2, 4, 11, 12]],
+};
+const mascot: Record<Temp, string> = {
+  NT: (await getImage({ src: mNT, width: 96 })).src,
+  NF: (await getImage({ src: mNF, width: 96 })).src,
+  SJ: (await getImage({ src: mSJ, width: 96 })).src,
+  SP: (await getImage({ src: mSP, width: 96 })).src,
+};
+const tempLabel: Record<Temp, string> = { NT: "Analyst", NF: "Diplomat", SJ: "Sentinel", SP: "Explorer" };
+const byId = Object.fromEntries(students.map((s) => [s.id, s]));
+
+const agent = [
+  { k: "Skill", d: "Each skill is graded from 0 to 1, not just yes or no. A skill ontology (ESCO in the thesis) lets related skills count as partly covering each other.", f: "coverage ∈ [0, 1]", icon: aspSkill },
+  { k: "Personality", d: "MBTI as a four-axis vector, scored from −1 to 1 on each axis. A good team spreads across thinking and feeling, and across sensing and intuition, and has at least one introvert and one extrovert-thinking-judging member.", f: "SN, TF, EI, JP ∈ [−1, 1]", icon: aspPersonality },
+  { k: "Gender", d: "Measured as diversity: lowest when everyone in a team is the same, highest when the team mirrors the whole class. It also works beyond two genders.", f: "diversity vs the class", icon: aspGender },
+  { k: "Preference", d: "Each student ranks the tasks. The higher a task sits in their ranking, the more satisfied they are with it, and the team's motivation is the average.", f: "sat = (m − pos + 1) / m", icon: aspPreference },
+];
+const task = [
+  { k: "Required competencies", f: "Cτ" },
+  { k: "Minimum level for each", f: "lτ" },
+  { k: "Importance of each competency", f: "wτ" },
+  { k: "Fixed team size", f: "sτ" },
+];
+const collegiality = [
+  { k: "Competence affinity", d: "How well the members cover what the task needs", used: true },
+  { k: "Congeniality", d: "Personality and gender diversity", used: true },
+  { k: "Motivation", d: "How happy members are with the task they got", used: true },
+  { k: "Social cohesion", d: "How much members want to work with each other", used: false },
+];
+const pipeline = [
+  { t: "Import", d: "Student and task data from EquiTeam" },
+  { t: "Score", d: "Rate students against tasks: skill fit, personality and gender diversity, motivation" },
+  { t: "Collegiality", d: "Weigh those terms into one score for any candidate team" },
+  { t: "Phase 1", d: "Rank tasks by hardness (how few students can cover their skills) and fill the hardest first" },
+  { t: "Phase 2", d: "Swap members between pairs of tasks, and try unassigned students, keeping every swap that scores higher" },
+  { t: "Result", d: "Stops after many rounds with no gain, or when the lecturer stops it. The best teams go back to the dashboard" },
+];
+const mapping = [
+  { ui: "Tes Keahlian", in: "Skill proficiency 0–1", who: "Student" },
+  { ui: "Tes Kepribadian", in: "MBTI vector", who: "Student" },
+  { ui: "Preferensi Topik", in: "Normalised preference", who: "Student" },
+  { ui: "Profile: gender", in: "Team gender ratio", who: "Student" },
+  { ui: "New task: skills + weight", in: "Cτ and wτ", who: "Lecturer" },
+  { ui: "New task: team size", in: "sτ", who: "Lecturer" },
+  { ui: "Quality score + analysis charts", in: "Collegiality output, made readable", who: "Both" },
+];
+---
+
+<section id="edu2com" class="relative isolate mx-2 overflow-hidden rounded-[2rem] bg-[#180092] py-20 text-white sm:mx-5 sm:rounded-[3rem] sm:py-28">
+  <div class="absolute inset-0 -z-10 opacity-40 [background-image:radial-gradient(circle_at_1px_1px,#3b2fc2_2px,transparent_2.5px)] [background-size:26px_26px]" aria-hidden="true"></div>
+  <div class="absolute -right-40 -top-40 -z-10 size-[36rem] rounded-full bg-[#1ea7fd]/20 blur-[120px]" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <div class="flex flex-wrap items-end gap-5">
+      <img src={mThinking.src} alt="" class="w-20 sm:w-28" />
+      <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" style="-webkit-text-stroke-color:#0b0048;text-shadow:0 0.07em 0 #0b0048" data-reveal>
+        <span class="w">Inside the</span> <span class="y">Edu2Com Algorithm</span>
+      </h2>
+    </div>
+    <p class="mt-6 max-w-3xl text-lg leading-relaxed text-white/85" data-reveal="0.1">
+      EquiTeam's engine is <b class="text-white">Edu2Com</b>, a team-allocation algorithm from Athina Georgara's
+      2023 PhD thesis (Universitat Autònoma de Barcelona, with the Spanish National Research Council's AI
+      institute, IIIA-CSIC). It doesn't group people at random or by who sits together. It treats every
+      student as an agent with skills, a personality, a gender and preferences, then searches for the set of
+      teams that best balances all four.{" "}
+      <a href="https://www.iiia.csic.es/media/publications/Trustworth_Task_Allocation_for_Human_Teams.pdf" target="_blank" rel="noreferrer" class="font-semibold text-[#fec84b] underline underline-offset-4">Read the thesis ↗</a>
+    </p>
+
+    <!-- DEMO -->
+    <div class="mt-14 rounded-[28px] bg-white p-5 text-ink shadow-[0_40px_80px_-30px_rgb(0_0_0/0.5)] sm:p-8" data-edu-demo={JSON.stringify({ students, layouts })} data-reveal>
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p class="text-xl font-extrabold tracking-tight text-[#0b2a55]">Same class, two ways to group</p>
+          <p class="mt-1 text-sm text-muted">12 students, 3 teams of 4. Illustrative data, not from the study.</p>
+        </div>
+        <div class="flex rounded-full bg-[#eef2ff] p-1" role="group" aria-label="Grouping method">
+          <button type="button" class="min-h-11 rounded-full px-5 text-sm font-semibold transition-colors aria-pressed:bg-[#180092] aria-pressed:text-white" aria-pressed="true" data-mode="friends">Friendship circles</button>
+          <button type="button" class="min-h-11 rounded-full px-5 text-sm font-semibold transition-colors aria-pressed:bg-[#180092] aria-pressed:text-white" aria-pressed="false" data-mode="edu2com">Edu2Com</button>
+        </div>
+      </div>
+
+      <!-- Group cards, as in the EquiTeam Figma ("Group Card", QualityTag variant): white card, "KELOMPOK 0n",
+           a Kualitas Skor tag, and members as student cards (MBTI mascot + name) in two columns. -->
+      <div class="mt-6 grid gap-4 lg:grid-cols-3">
+        {layouts.friends.map((team, t) => (
+          <div class="rounded-[16px] border border-[#e9eaeb] bg-white px-[10px] py-4" data-team={t}>
+            <div class="flex items-center justify-between gap-3">
+              <p class="whitespace-nowrap text-2xl font-semibold tracking-[-0.96px] text-black">KELOMPOK 0{t + 1}</p>
+              <p class="whitespace-nowrap rounded-[4px] bg-[#fef3f2] px-3 py-0.5 text-sm font-medium leading-5 text-[#b42318] transition-colors duration-500" data-tag>Kualitas Skor : <span data-score>0</span>%</p>
+            </div>
+            <ul class="mt-[10px] grid min-h-[8.5rem] grid-cols-2 gap-2" data-slots>
+              {team.map((id) => {
+                const s = byId[id];
+                return (
+                  <li class="flex min-w-0 items-center gap-[10px] rounded-[16px] border border-[#e9eaeb] bg-[#fdfdfd] px-3 py-2" data-student={id}>
+                    <span class="grid h-[42px] w-[46px] shrink-0 place-items-center"><img src={mascot[s.temp]} alt="" class="size-[30px] object-contain" width="30" height="30" /></span>
+                    <span class="min-w-0">
+                      <b class="block truncate text-base font-normal leading-6 text-[#030331]">{s.name}</b>
+                      <span class="block truncate text-xs leading-4 text-muted">{s.role} · {s.g === "F" ? "♀" : "♂"}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <dl class="mt-4 space-y-2 border-t border-[#e9eaeb] px-1 pt-4 text-xs">
+              {[["skills", "Skill coverage"], ["temps", "Personality mix"], ["gender", "Gender balance"]].map(([k, l]) => (
+                <div class="grid grid-cols-[6.5rem_1fr_2.5rem] items-center gap-2">
+                  <dt class="text-muted">{l}</dt>
+                  <dd class="h-2 overflow-hidden rounded-full bg-[#eef2ff]"><span class="block h-full w-0 rounded-full bg-[#0277c7] transition-[width] duration-700" data-bar={k}></span></dd>
+                  <dd class="text-right font-semibold" data-val={k}>0%</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[#f8fafc] p-4">
+        <p class="text-sm" aria-live="polite" data-summary></p>
+        <div class="flex flex-wrap gap-3 text-xs text-muted">
+          {(Object.keys(tempLabel) as Temp[]).map((t) => (
+            <span class="flex items-center gap-1.5"><img src={mascot[t]} alt="" class="size-5 object-contain" width="20" height="20" />{tempLabel[t]} ({t})</span>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <!-- MODELS -->
+    <div class="mt-16 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <div data-reveal>
+        <span class="eq-ribbon -rotate-2 bg-[#0277c7] text-sm">Every student is an agent</span>
+        <ul class="mt-6 grid gap-3 sm:grid-cols-2" data-stagger>
+          {agent.map((a) => (
+            <li class="rounded-2xl bg-white p-5 text-ink">
+              <div class="flex items-center gap-3">
+                <img src={a.icon.src} alt="" class="size-12 rounded-xl" />
+                <p class="text-lg font-bold">{a.k}</p>
+              </div>
+              <p class="mt-3 text-sm text-muted">{a.d}</p>
+              <code class="mt-3 inline-block rounded-lg bg-[#eef2ff] px-2 py-1 text-xs font-semibold text-[#180092]">{a.f}</code>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div data-reveal="0.1">
+        <span class="eq-ribbon rotate-2 bg-[#fec84b] text-sm !text-[#0b2a55]">Every task is a model</span>
+        <ul class="mt-6 divide-y divide-white/15 rounded-2xl border-2 border-dashed border-white/25 px-5">
+          {task.map((x) => (
+            <li class="flex items-center justify-between gap-4 py-4">
+              <span class="text-white/85">{x.k}</span>
+              <code class="rounded-lg bg-white/10 px-2 py-1 text-sm font-bold text-[#fec84b]">{x.f}</code>
+            </li>
+          ))}
+        </ul>
+        <p class="mt-4 text-sm text-white/65">The lecturer sets these when creating a task in EquiTeam, without seeing the notation. How hard a task is gets worked out by the algorithm, not entered.</p>
+      </div>
+    </div>
+
+    <!-- COLLEGIALITY -->
+    <div class="mt-16 rounded-[28px] border-2 border-dashed border-white/25 p-6 sm:p-8" data-reveal>
+      <span class="eq-ribbon -rotate-1 bg-[#0277c7] text-sm">How a team is scored</span>
+      <p class="mt-6 text-lg leading-relaxed text-white/85">
+        Edu2Com compares teams with one number, <b class="text-white">collegiality</b>, a weighted sum of four
+        measures. The weights are set by whoever configures the system.
+      </p>
+      <code class="mt-4 block overflow-x-auto rounded-xl bg-white/10 px-4 py-3 text-sm font-bold text-[#fec84b] sm:text-base">
+        collegiality(K, τ) = α·affinity + β·congeniality + γ·motivation + δ·cohesion
+      </code>
+      <ul class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {collegiality.map((c) => (
+          <li class={`rounded-2xl p-4 ${c.used ? "bg-white/10" : "border border-dashed border-white/30 text-white/70"}`}>
+            <p class="font-extrabold text-white">{c.k}</p>
+            <p class="mt-1 text-sm">{c.d}</p>
+            {!c.used && <p class="mt-2 text-xs font-semibold text-[#fec84b]">Not used in EquiTeam: students aren't asked who they'd like to work with</p>}
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <!-- PIPELINE -->
+    <div class="mt-16" data-reveal>
+      <p class="text-sm font-semibold uppercase tracking-widest text-[#fec84b]">How it searches · anytime heuristic</p>
+      <ol class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        {pipeline.map((p, i) => (
+          <li class={`relative rounded-2xl p-4 ${i === 3 || i === 4 ? "bg-[#fec84b] text-[#0b2a55]" : "bg-white/10 text-white"}`}>
+            <span class="text-xs font-bold opacity-80">{String(i + 1).padStart(2, "0")}</span>
+            <p class="mt-1 text-lg font-extrabold">{p.t}</p>
+            <p class={`mt-1 text-sm ${i === 3 || i === 4 ? "" : "text-white/85"}`}>{p.d}</p>
+            {i < pipeline.length - 1 && <span class="absolute -right-2.5 top-1/2 z-10 hidden size-5 -translate-y-1/2 place-items-center rounded-full bg-white text-xs text-[#180092] lg:grid" aria-hidden="true">→</span>}
+          </li>
+        ))}
+      </ol>
+      <p class="mt-4 max-w-3xl text-sm text-white/65">
+        "Anytime" means it can stop at any point and still return the best teams found so far,
+        which matters when a lecturer is waiting on a class of 40+.
+      </p>
+      <p class="mt-3 max-w-3xl text-sm text-white/65">
+        <b class="text-white/85">Why not just solve it exactly?</b> Giving every student at most one team and every
+        task exactly one team is NP-complete. An exact integer-programming solver needs a variable for every possible
+        team on every task, so it stalls as classes grow. In the thesis, Edu2Com matched the exact solver's best result
+        on synthetic tests, far faster, and kept working on real internship data where an exact solve was out of reach.
+      </p>
+    </div>
+
+    <!-- EVIDENCE -->
+    <div class="mt-16 grid gap-4 md:grid-cols-2 lg:grid-cols-4" data-stagger>
+      <div class="rounded-2xl bg-white p-6 text-ink">
+        <div class="flex items-center gap-4">
+          <div class="size-20 shrink-0 rounded-full" style="background: conic-gradient(#3ccf7d 0 55.18%, #e9eaeb 55.18% 100%)"><div class="m-4 size-12 rounded-full bg-white"></div></div>
+          <p class="text-4xl font-extrabold text-[#067647]">55.18%</p>
+        </div>
+        <p class="mt-4 text-sm">of head-to-head comparisons were won by Edu2Com when matching students to internships at FBK, against 34.48% for a human expert and 10.34% for random grouping (8 expert evaluators, 29 comparisons).</p>
+      </div>
+      <div class="rounded-2xl bg-white p-6 text-ink">
+        <p class="text-4xl font-extrabold text-[#0277c7]">&lt; 2 h</p>
+        <p class="mt-4 text-sm">for Edu2Com to build the internship allocation, against about a working week for the human expert. The evaluators preferred Edu2Com's teams.</p>
+      </div>
+      <div class="rounded-2xl bg-white p-6 text-ink">
+        <p class="text-4xl font-extrabold text-[#180092]">4 → 9</p>
+        <p class="mt-4 text-sm">out of 10: in a university class, the team with the lowest collegiality (0.40) got the lowest mark and the one with the highest (0.63) got the highest. Across teams, higher collegiality went with higher marks.</p>
+      </div>
+      <div class="rounded-2xl bg-white p-6 text-ink">
+        <p class="text-4xl font-extrabold text-[#b54708]">3 of 3</p>
+        <p class="mt-4 text-sm">"Outstanding" teams (mark above 8) in a class of 28 teams were <mark>formed by Edu2Com</mark>, against teacher-made groups. It also had fewer failing teams (2 of 5).</p>
+      </div>
+    </div>
+    <p class="mt-6 max-w-3xl text-sm text-white/65">
+      Small studies run by the algorithm's own authors, in internship matching and university courses, so read them as
+      encouraging signals rather than proof. Source: Georgara (2023), chapters 3 to 5.
+    </p>
+
+    <!-- MAPPING -->
+    <div class="mt-16 grid gap-8 lg:grid-cols-[1fr_1.4fr]">
+      <div data-reveal>
+        <span class="eq-ribbon -rotate-2 bg-[#0277c7] text-sm">Where design meets the model</span>
+        <p class="mt-6 text-lg text-white/85">
+          The algorithm needed precise, comparable numbers. People don't think in vectors. My job
+          was to make every input feel like a normal question, and every output feel like a
+          normal answer.
+        </p>
+        <p class="mt-4 text-sm text-white/65">
+          On the build side, Galin prepared the payload for the Edu2Com API, filtered and sized
+          groups, and moved processing to the background so larger classes stay reliable.
+        </p>
+      </div>
+      <div class="overflow-hidden rounded-2xl bg-white text-ink" data-reveal="0.1">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-[#eef2ff] text-[#180092]">
+            <tr><th class="px-4 py-3 font-bold">In EquiTeam</th><th class="px-4 py-3 font-bold">Becomes</th><th class="hidden px-4 py-3 font-bold sm:table-cell">Set by</th></tr>
+          </thead>
+          <tbody class="divide-y divide-[#e9eaeb]">
+            {mapping.map((m) => (
+              <tr>
+                <td class="px-4 py-3 font-semibold">{m.ui}</td>
+                <td class="px-4 py-3"><span class="text-[#0277c7]">→</span> {m.in}</td>
+                <td class="hidden px-4 py-3 text-muted sm:table-cell">{m.who}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Runs on first load and again after each client-side navigation.
+  function init() {
+    const demo = document.querySelector<HTMLElement>("[data-edu-demo]");
+    if (!demo || demo.dataset.ready) return;
+    demo.dataset.ready = "1";
+    type Student = { id: number; name: string; temp: string; role: string; g: "F" | "M" };
+    const { students, layouts } = JSON.parse(demo.dataset.eduDemo!) as {
+      students: Student[];
+      layouts: Record<string, number[][]>;
+    };
+    const byId = Object.fromEntries(students.map((s) => [s.id, s]));
+    const teams = [...demo.querySelectorAll("[data-team]")];
+    const nodes = Object.fromEntries([...demo.querySelectorAll("[data-student]")].map((n) => [n.dataset.student, n]));
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const metrics = (ids) => {
+      const m = ids.map((i) => byId[i]);
+      const skills = new Set(m.map((s) => s.role)).size / 4;
+      const temps = new Set(m.map((s) => s.temp)).size / 4;
+      const f = m.filter((s) => s.g === "F").length;
+      const gender = Math.min(f, m.length - f) / 2;
+      return { skills, temps, gender, score: (skills + temps + gender) / 3 };
+    };
+
+    const render = (mode) => {
+      const first = Object.fromEntries(Object.entries(nodes).map(([id, n]) => [id, n.getBoundingClientRect()]));
+      let total = 0;
+      layouts[mode].forEach((ids, t) => {
+        const slots = teams[t].querySelector("[data-slots]");
+        ids.forEach((id) => slots.appendChild(nodes[id]));
+        const r = metrics(ids);
+        total += r.score;
+        for (const k of ["skills", "temps", "gender"]) {
+          teams[t].querySelector(`[data-bar="${k}"]`).style.width = `${Math.round(r[k] * 100)}%`;
+          teams[t].querySelector(`[data-val="${k}"]`).textContent = `${Math.round(r[k] * 100)}%`;
+        }
+        teams[t].querySelector("[data-score]").textContent = Math.round(r.score * 100);
+        // Quality tag: green for Edu2Com's teams; for friend groups it follows the score (red low, amber middling).
+        const tone = mode === "edu2com" ? "good" : r.score < 0.4 ? "low" : "mid";
+        const tag = teams[t].querySelector("[data-tag]");
+        // "good" is the Figma tag's success colours (Success/50 on Success/900).
+        tag.classList.remove("bg-[#fef3f2]", "text-[#b42318]", "bg-[#fff4dc]", "text-[#b54708]", "bg-[#ecfdf3]", "text-[#054f31]");
+        tag.classList.add(...{ good: ["bg-[#ecfdf3]", "text-[#054f31]"], mid: ["bg-[#fff4dc]", "text-[#b54708]"], low: ["bg-[#fef3f2]", "text-[#b42318]"] }[tone]);
+      });
+      const avg = Math.round((total / layouts[mode].length) * 100);
+      demo.querySelector("[data-summary]").innerHTML =
+        mode === "friends"
+          ? `<b>Average balance ${avg}%.</b> Friends cluster by role, temperament and gender: one team is four male analysts with no designer or PM, another has no men at all.`
+          : `<b>Average balance ${avg}%.</b> Every team covers all four roles, mixes at least three temperaments and is as gender-balanced as this class allows.`;
+      if (reduce) return;
+      // FLIP: animate each card from where it was to where it is now.
+      for (const [id, n] of Object.entries(nodes)) {
+        const a = first[id], b = n.getBoundingClientRect();
+        const dx = a.left - b.left, dy = a.top - b.top;
+        if (!dx && !dy) continue;
+        n.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "translate(0, 0)" }], {
+          duration: 650, easing: "cubic-bezier(0.16, 1, 0.3, 1)", delay: Number(id) * 18,
+        });
+      }
+    };
+
+    demo.querySelectorAll("[data-mode]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        demo.querySelectorAll("[data-mode]").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+        render(btn.dataset.mode);
+      }),
+    );
+    render("friends");
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

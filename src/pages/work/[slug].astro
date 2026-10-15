@@ -1,0 +1,149 @@
+---
+import Base from "../../layouts/Base.astro";
+import SectionDock from "../../components/SectionDock.astro";
+import Sparkle from "../../components/Sparkle.astro";
+import { site } from "../../data/site";
+import { cases } from "../../data/cases";
+
+export function getStaticPaths() {
+  // sister-bkd has its own page (sister-bkd.astro).
+  return cases.filter((c) => c.slug !== "sister-bkd").map((c) => ({ params: { slug: c.slug }, props: { c } }));
+}
+
+const { c } = Astro.props;
+const facts = [
+  { k: "Client", v: c.client },
+  { k: "Role", v: c.role },
+  { k: "Period", v: c.period },
+  { k: "Where", v: c.place },
+];
+const others = cases.filter((x) => x.slug !== c.slug);
+
+// Floating section bar (SectionDock), shared with every case study.
+const sections = [
+  { id: "context", t: "Context" },
+  { id: "work", t: "What I did" },
+  { id: "details", t: "Details" },
+];
+---
+
+<Base
+  title={`${c.title} case study | ${site.name}`}
+  description={`Case study: ${c.title}, ${c.full}. ${c.blurb}`}
+>
+  <!-- HERO -->
+  <section class="relative isolate overflow-hidden pt-28 sm:pt-32">
+    <div data-gl="gradient" class="pointer-events-none absolute inset-0 -z-10" aria-hidden="true"></div>
+    <div
+      data-gl-fallback
+      class="absolute -right-32 top-20 -z-10 size-[26rem] rounded-full bg-lime/50 blur-[110px]"
+      aria-hidden="true"
+    >
+    </div>
+    <div class="wrap pb-16 sm:pb-24">
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <span class="pill bg-card ring-1 ring-line">{c.sector}</span>
+        {c.tags.map((t) => <span class="pill bg-card text-muted ring-1 ring-line">{t}</span>)}
+      </div>
+      <h1 class="display mt-8 text-[clamp(3rem,11vw,9rem)] [&>span]:inline-block" data-intro>
+        <span class="relative">
+          {c.title}
+          <Sparkle class="absolute -right-[0.35em] -top-[0.1em] size-[0.32em] text-violet" />
+        </span>
+      </h1>
+      <p class="mt-6 max-w-2xl font-display text-xl font-bold text-muted sm:text-2xl" data-reveal="0.2">{c.full}</p>
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted" data-reveal="0.3">{c.blurb}</p>
+
+      <dl class="mt-12 grid gap-px overflow-hidden rounded-[28px] bg-line ring-1 ring-line sm:grid-cols-2 lg:grid-cols-4" data-reveal="0.4">
+        {
+          facts.map((f) => (
+            <div class="bg-card px-6 py-5">
+              <dt class="eyebrow">{f.k}</dt>
+              <dd class="mt-1 font-display font-bold">{f.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <!-- NUMBERS -->
+  <section class="border-y border-line bg-card" aria-label="Key numbers">
+    <ul class="wrap grid grid-cols-2 gap-6 py-10 sm:py-14 lg:grid-cols-4" data-stagger>
+      {
+        c.stats.map((s) => (
+          <li>
+            <p class="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">{s.n}</p>
+            <p class="mt-1 text-sm text-muted">{s.l}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- CONTEXT -->
+  <section id="context" class="wrap py-20 sm:py-28">
+    <p class="eyebrow">Context</p>
+    <p class="mt-4 max-w-3xl font-display text-2xl font-bold leading-snug tracking-tight sm:text-3xl" data-reveal>
+      {c.context}
+    </p>
+  </section>
+
+  <!-- WORK -->
+  <section id="work" class="bg-ink py-20 text-paper sm:py-28">
+    <div class="wrap">
+      <p class="eyebrow !text-lime">What I did</p>
+      <div class="mt-10 grid gap-14 md:grid-cols-2">
+        {
+          c.sections.map((s, i) => (
+            <div class={c.sections.length === 1 ? "md:col-span-2 md:max-w-3xl" : ""} data-reveal={i * 0.1}>
+              <h2 class="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">{s.heading}</h2>
+              {s.intro && <p class="mt-3 text-paper/65">{s.intro}</p>}
+              <ul class="mt-6 divide-y divide-white/10 border-y border-white/10">
+                {s.points.map((p) => (
+                  <li class="flex gap-4 py-4 text-paper/85">
+                    <Sparkle class="mt-1.5 size-3 shrink-0 text-lime" />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ASK + NEXT -->
+  <section id="details" class="wrap py-20 sm:py-28">
+    <div class="rounded-[32px] bg-lime px-6 py-12 sm:px-12 sm:py-16" data-reveal>
+      <h2 class="display text-[clamp(2rem,5vw,4rem)]">Want the details?</h2>
+      <p class="mt-4 max-w-lg text-lg text-ink/70">
+        Flows, wireframes and documents are happy to travel. Just ask, and I'll share what I'm able to.
+      </p>
+      <a href={`mailto:${site.email}?subject=${encodeURIComponent(`${c.title} case study`)}`} class="btn btn-primary mt-8">
+        Email me →
+      </a>
+    </div>
+
+    <h3 class="mt-16 font-display text-lg font-extrabold">More work</h3>
+    <ul class="mt-4 grid gap-4 sm:grid-cols-2">
+      {
+        others.map((o) => (
+          <li>
+            <a
+              href={`/work/${o.slug}`}
+              data-cursor="View"
+              class="block rounded-[24px] bg-card p-6 ring-1 ring-line transition-transform hover:-translate-y-1"
+            >
+              <p class="eyebrow">{o.sector}</p>
+              <p class="mt-2 font-display text-xl font-extrabold">{o.title}</p>
+              <p class="mt-1 text-sm text-muted">{o.full}</p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+  <SectionDock sections={sections} />
+</Base>

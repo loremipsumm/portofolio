@@ -1,0 +1,2994 @@
+---
+// Alternative landing page: the portfolio as the Figma desktop app's "My Work" home (frame FigmaLandingPage).
+// Markup is server-rendered so it works without JS (cards are plain links); scripts/figma-app.ts adds tabs,
+// filters, a file viewer, context menus and a few fake collaborators.
+import Base from "../layouts/Base.astro";
+import SiaCover from "../components/SiaCover.astro";
+import TeachCover from "../components/TeachCover.astro";
+import SatyaCover from "../components/SatyaCover.astro";
+import EquiCover from "../components/EquiCover.astro";
+import BewizeCover from "../components/BewizeCover.astro";
+import GgfCover from "../components/GgfCover.astro";
+import SisterCover from "../components/SisterCover.astro";
+import { site, projects } from "../data/site";
+import { cases } from "../data/cases";
+import { facts, summary, education, skills, featured, earlier, awards, certs } from "../data/profile";
+import { versions } from "../data/versions";
+import { tours } from "../data/tours";
+import { edited, editedLabel } from "../scripts/edited";
+import { icon } from "../scripts/figma-icons";
+
+const covers: Record<string, any> = {
+  sia: SiaCover,
+  teachtechai: TeachCover,
+  satya: SatyaCover,
+  equiteam: EquiCover,
+  "bsi-bewize": BewizeCover,
+  "great-giant-foods": GgfCover,
+  "sister-bkd": SisterCover,
+};
+const area: Record<string, string> = {
+  "sister-bkd": "Government",
+  satya: "Government",
+  equiteam: "Education",
+  teachtechai: "Education",
+  "bsi-bewize": "Business",
+  "great-giant-foods": "Business",
+  sia: "Business",
+};
+const areas = ["Government", "Education", "Business"];
+const areaIcon: Record<string, string> = { Government: "star", Education: "user", Business: "grid" };
+const tabNames: Record<string, string> = { "sister-bkd": "SisterBKD", teachtechai: "Teachtech", "bsi-bewize": "BEWIZE" };
+const yearOf = (s: string) => Number(s.match(/\d{4}/g)?.pop() ?? 0);
+const linkedin = site.socials.find((s) => s.label === "LinkedIn")?.href ?? "#";
+const behance = site.socials.find((s) => s.label === "Behance")?.href ?? "#";
+
+interface FileItem {
+  id: string;
+  tab: string;
+  title: string;
+  full: string;
+  sub: string;
+  blurb: string;
+  tags: string[];
+  year: number;
+  area: string;
+  type: string;
+  href: string;
+  meta: [string, string][];
+  stats: { n: string; l: string }[];
+}
+
+const files: FileItem[] = [
+  ...projects.map((p) => ({
+    id: p.slug,
+    tab: tabNames[p.slug] ?? p.title,
+    title: p.title,
+    full: p.full,
+    sub: p.client,
+    blurb: p.blurb,
+    tags: p.tags,
+    year: yearOf(p.year),
+    area: area[p.slug],
+    type: p.slug === "teachtechai" ? "Mobile app" : "UX design",
+    href: `/work/${p.slug}`,
+    meta: [["Client", p.client], ["Year", p.year], ["Area", area[p.slug]]] as [string, string][],
+    stats: [],
+  })),
+  ...cases.map((c) => ({
+    id: c.slug,
+    tab: tabNames[c.slug] ?? c.title,
+    title: c.title,
+    full: c.full,
+    sub: c.client,
+    blurb: c.blurb,
+    tags: c.tags,
+    year: yearOf(c.period),
+    area: area[c.slug],
+    type: "UX design",
+    href: `/work/${c.slug}`,
+    meta: [["Client", c.client], ["Period", c.period], ["Role", c.role], ["Sector", c.sector]] as [string, string][],
+    stats: c.stats,
+  })),
+];
+const openTabs: string[] = []; // tabs appear once a file is opened
+const byId = (id: string) => files.find((f) => f.id === id)!;
+const data = JSON.stringify({ files, openTabs, email: site.email, linkedin, behance, role: site.role, versions, tours });
+const winBtns = [["chevron", "Options"], ["min", "Minimize"], ["max", "Maximize"], ["close", "Close"]];
+const pretty = (u: string) => u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+const profileTabs = ["Account", "Experience", "Education", "Skills"];
+const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
+---
+
+<Base nav={false} footer={false} title={`${site.name} | ${site.role} (Figma view)`}>
+  <div class="fb-app" data-fb data-native-cursor>
+    <!-- Skeleton state, like figma.com's file browser while it loads. Set inline (before first paint) so it only
+         shows when JS runs; figma-app.ts clears it once fonts and covers are ready, the timeout is a safety net. -->
+    <script is:inline>
+      (function () {
+        var app = document.querySelector("[data-fb]");
+        if (!app) return;
+        app.classList.add("is-loading");
+        setTimeout(function () {
+          app.classList.remove("is-loading");
+        }, 4000);
+      })();
+    </script>
+    <!-- TAB BAR -->
+    <div class="fb-tabbar" role="tablist" aria-label="Open files">
+      <button class="fb-home is-active" data-fb-home aria-label="Home" title="Home" set:html={icon("home")} />
+      <div class="fb-tabs" data-fb-tabs>
+        {
+          openTabs.map((id) => (
+            <button class="fb-tab" role="tab" data-tab={id}>
+              <span class="fb-tab-ico" set:html={icon("file", 14)} />
+              <span class="fb-tab-label">{byId(id).tab}</span>
+              <span class="fb-tab-x" data-close role="button" aria-label={`Close ${byId(id).tab}`} set:html={icon("close", 12)} />
+            </button>
+          ))
+        }
+      </div>
+      <button class="fb-plus" data-fb-newtab aria-label="New tab" title="New tab" set:html={icon("plus")} />
+      <div class="fb-spacer"></div>
+      <div class="fb-win">
+        {winBtns.map(([ic, label]) => <button data-fb-win={label} aria-label={label} title={label} set:html={icon(ic)} />)}
+      </div>
+    </div>
+
+    <div class="fb-body">
+      <!-- SIDEBAR -->
+      <aside class="fb-sidebar" data-fb-sidebar aria-label="Workspace">
+        <div class="fb-side-top">
+          <button class="fb-user" data-fb-user aria-haspopup="menu">
+            <span class="fb-avatar">RA</span>
+            <span class="fb-user-name">{site.name}</span>
+            <span set:html={icon("chevron", 12)} />
+          </button>
+          <div class="fb-divider"></div>
+          <div class="fb-search">
+            <span set:html={icon("search")} />
+            <input type="search" placeholder="Search" aria-label="Search files" data-fb-search autocomplete="off" />
+            <kbd>⌘K</kbd>
+          </div>
+          <div class="fb-teams">
+          <button class="fb-team-head fb-all" data-fb-area="">
+            <span class="fb-team-ico" set:html={icon("folder", 16)} />
+            <span class="fb-team-name">All projects</span>
+            <span class="fb-all-count">{files.length}</span>
+          </button>
+          {
+            areas.map((a) => (
+              <div class="fb-team" data-team={a}>
+                <button class="fb-team-head" data-fb-area={a}>
+                  <span class="fb-team-ico" set:html={icon(areaIcon[a], 16)} />
+                  <span class="fb-team-name">{a}</span>
+                  <span class="fb-team-chev" data-fb-collapse aria-label={`Toggle ${a}`} role="button" set:html={icon("chevron", 12)} />
+                </button>
+                <div class="fb-team-items">
+                  {files
+                    .filter((f) => f.area === a)
+                    .map((f) => (
+                      <a class="fb-item" href={f.href} data-fb-open={f.id}>
+                        <span set:html={icon("file")} />
+                        <span>{f.title}</span>
+                      </a>
+                    ))}
+                </div>
+              </div>
+            ))
+          }
+          </div>
+        </div>
+
+        <div class="fb-side-bottom">
+          <div class="fb-divider"></div>
+          <button class="fb-starred" data-fb-collapse-social aria-expanded="true">
+            <span set:html={icon("chevron", 10)} />
+            <span>Social Media</span>
+          </button>
+          <div data-fb-social>
+            <a class="fb-item" href={linkedin} target="_blank" rel="noopener"><span set:html={icon("linkedin")} /><span>LinkedIn</span></a>
+            <a class="fb-item" href={behance} target="_blank" rel="noopener"><span set:html={icon("behance")} /><span>Behance</span></a>
+            <a class="fb-item" href={`mailto:${site.email}`}><span set:html={icon("mail")} /><span>Email</span></a>
+          </div>
+        </div>
+      </aside>
+      <div class="fb-scrim" data-fb-scrim></div>
+
+      <!-- MAIN -->
+      <section class="fb-main" data-fb-main>
+        <header class="fb-topbar">
+          <button class="fb-burger" data-fb-burger aria-label="Open sidebar" set:html={icon("menu")} />
+          <p class="fb-top-title">{site.role}</p>
+          <div class="fb-spacer"></div>
+          <div class="fb-actions">
+            <div class="fb-create">
+              <a class="fb-create-main" href={`mailto:${site.email}`}>
+                <span set:html={icon("chat")} />
+                <span>Let's Talk</span>
+              </a>
+              <span class="fb-create-div"></span>
+              <button class="fb-create-drop" data-fb-talk aria-label="More ways to get in touch" aria-haspopup="menu" set:html={icon("chevron")} />
+            </div>
+            <button class="fb-btn fb-share" data-fb-share>Share</button>
+            <button class="fb-sq" data-fb-settings aria-label="Settings" title="Settings" aria-haspopup="menu" set:html={icon("settings")} />
+            <button class="fb-sq fb-fav" data-fb-favfilter aria-label="Show favorites only" aria-pressed="false" title="Favorites" set:html={icon("star")} />
+          </div>
+        </header>
+
+        <!-- Home: My Work -->
+        <div class="fb-content" data-fb-view="home">
+          <div class="fb-folder-head">
+            <span class="fb-folder-ico" set:html={icon("folder", 32)} />
+            <h1 class="fb-folder-title" data-fb-title>My Work</h1>
+            <span class="fb-folder-chev" set:html={icon("chevron")} />
+            <div class="fb-spacer"></div>
+            <button class="fb-chip" data-fb-type aria-haspopup="menu"><span data-fb-type-label>All types</span><span set:html={icon("chevron", 12)} /></button>
+            <button class="fb-chip" data-fb-sort aria-haspopup="menu"><span data-fb-sort-label>Last modified</span><span set:html={icon("chevron", 12)} /></button>
+            <div class="fb-toggle" role="group" aria-label="View">
+              <button class="is-on" data-fb-view-btn="grid" aria-label="Grid view" aria-pressed="true" set:html={icon("grid")} />
+              <button data-fb-view-btn="list" aria-label="List view" aria-pressed="false" set:html={icon("list")} />
+            </div>
+          </div>
+
+          <div class="fb-grid" data-fb-grid>
+            {
+              files.map((f, i) => {
+                const Cover = covers[f.id];
+                return (
+                  <article class="fb-card" style={`--i:${i}`} data-id={f.id} data-area={f.area} data-type={f.type} data-year={f.year} data-name={f.title} data-sub={f.sub}>
+                    <a class="fb-thumb" href={f.href} data-fb-open={f.id}>
+                      {Cover ? (
+                        <div class="fb-thumb-inner"><Cover class="!rounded-none !ring-0" /></div>
+                      ) : (
+                        <div class="fb-about">
+                          <span class="fb-about-av">RA</span>
+                          <strong>{site.name}</strong>
+                          <span>{site.role} · {site.location}</span>
+                        </div>
+                      )}
+                    </a>
+                    <button class="fb-star" data-fb-star={f.id} aria-label={`Favorite ${f.title}`} aria-pressed="false" set:html={icon("star", 14)} />
+                    <div class="fb-info">
+                      <span class="fb-fileico" set:html={icon("file", 11)} />
+                      <div class="fb-text">
+                        <p class="fb-name">{f.title}</p>
+                        <p class="fb-sub"><span data-fb-edited={edited[f.id] ?? f.year}>{editedLabel(edited[f.id] ?? String(f.year))}</span> · {f.sub}</p>
+                      </div>
+                      <p class="fb-tags">{f.tags.join(" · ")}</p>
+                      <p class="fb-year">{f.year}</p>
+                    </div>
+                  </article>
+                );
+              })
+            }
+          </div>
+          <p class="fb-empty" data-fb-empty hidden>No files match. Try another search.</p>
+        </div>
+
+        <!-- Viewer: an opened file or an untitled tab (filled by script) -->
+        <div class="fb-viewer" data-fb-view="file" hidden></div>
+
+        <div class="fb-cursors" data-fb-cursors aria-hidden="true"></div>
+      </section>
+    </div>
+
+    <button class="fb-help" data-fb-help aria-label="Help and shortcuts" aria-haspopup="menu">?</button>
+    <div class="fb-toast" data-fb-toast role="status" aria-live="polite"></div>
+    <div class="fb-menu" data-fb-menu role="menu" hidden></div>
+
+    <!-- Quick actions (Ctrl/Cmd+K, Ctrl+/): search files and actions, like Figma's quick actions -->
+    <dialog class="fb-qa" data-fb-qa aria-label="Quick actions">
+      <div class="fb-qa-field">
+        <span set:html={icon("search", 16)} />
+        <input type="text" placeholder="Search files and actions" aria-label="Search files and actions" role="combobox" aria-expanded="true" aria-controls="fb-qa-list" aria-autocomplete="list" autocomplete="off" data-fb-qa-input />
+        <kbd>Esc</kbd>
+      </div>
+      <ul id="fb-qa-list" class="fb-qa-list" role="listbox" aria-label="Results" data-fb-qa-list></ul>
+      <p class="fb-qa-foot"><span><kbd>↑</kbd><kbd>↓</kbd> to move</span><span><kbd>Enter</kbd> to run</span></p>
+    </dialog>
+
+    <!-- Share dialog, like Figma's: the link, who has access, and where to send it -->
+    <dialog class="fb-modal fb-share-modal" data-fb-share-modal aria-labelledby="fb-share-title">
+      <header class="fb-modal-head">
+        <h2 id="fb-share-title" class="fb-share-title" data-fb-share-title>Share</h2>
+        <button class="fb-modal-x" data-fb-share-close aria-label="Close" set:html={icon("close", 16)} />
+      </header>
+      <div class="fb-share-body">
+        <div class="fb-share-link">
+          <input type="text" readonly aria-label="Link" data-fb-share-url />
+          <button class="fb-share-copy" data-fb-share-copy><span set:html={icon("copy", 14)} /><span data-fb-share-copy-label>Copy link</span></button>
+        </div>
+        <p class="fb-share-label">Who has access</p>
+        <ul class="fb-share-people">
+          <li><span class="fb-share-av" style="background:#0d99ff">RA</span><span><b>{site.name}</b><small>{site.email}</small></span><em>owner</em></li>
+          <li><span class="fb-share-av fb-share-globe" set:html={icon("external", 14)} /><span><b>Anyone with the link</b><small>No sign-in needed</small></span><em>can view</em></li>
+        </ul>
+        <p class="fb-share-label">Send it</p>
+        <div class="fb-share-to">
+          <a data-fb-share-linkedin target="_blank" rel="noopener"><span set:html={icon("linkedin", 16)} />LinkedIn</a>
+          <a data-fb-share-email><span set:html={icon("mail", 16)} />Email</a>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Account settings modal (opened from the name in the account menu), after Figma's Settings dialog. Data is the CV's. -->
+    <dialog class="fb-modal" data-fb-profile aria-labelledby="fb-modal-title">
+      <header class="fb-modal-head">
+        <h2 id="fb-modal-title" class="sr-only">Account settings</h2>
+        <div class="fb-modal-tabs" role="tablist" aria-label="Account settings">
+          {
+            profileTabs.map((t, i) => (
+              <button role="tab" id={`fb-ptab-${i}`} aria-controls={`fb-ppanel-${i}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? 0 : -1} data-fb-ptab={i}>
+                {t}
+              </button>
+            ))
+          }
+        </div>
+        <button class="fb-modal-x" data-fb-profile-close aria-label="Close" set:html={icon("close", 16)} />
+      </header>
+
+      <div class="fb-modal-body">
+        <!-- Account -->
+        <section class="fb-ppanel" role="tabpanel" id="fb-ppanel-0" aria-labelledby="fb-ptab-0" data-fb-ppanel="0">
+          <div class="fb-prof">
+            <span class="fb-prof-av">RA</span>
+            <div class="fb-prof-text">
+              <p class="fb-prof-name">{site.name}</p>
+              <p class="fb-prof-role">{site.role}</p>
+              <a class="fb-link" href="/rafif-aditya-cv.pdf" download>Download CV</a>
+            </div>
+          </div>
+          <dl class="fb-rows">
+            <div><dt>Email</dt><dd>{site.email}</dd><button class="fb-link" data-fb-copy={site.email}>Copy</button></div>
+            <div><dt>Location</dt><dd>{fact("Based in")}</dd></div>
+            <div><dt>Currently</dt><dd>{fact("Now")}</dd></div>
+            <div><dt>LinkedIn</dt><dd>{pretty(linkedin)}</dd><a class="fb-link" href={linkedin} target="_blank" rel="noopener">Open</a></div>
+            <div><dt>Behance</dt><dd>{pretty(behance)}</dd><a class="fb-link" href={behance} target="_blank" rel="noopener">Open</a></div>
+          </dl>
+          <h3 class="fb-psec">Profile</h3>
+          <p class="fb-pbody">{summary}</p>
+        </section>
+
+        <!-- Experience -->
+        <section class="fb-ppanel" role="tabpanel" id="fb-ppanel-1" aria-labelledby="fb-ptab-1" data-fb-ppanel="1" hidden>
+          <ul class="fb-xp">
+            {
+              featured.map((e) => (
+                <li>
+                  <span class="fb-xp-ico">{e.org.replace(/^PT\s+/, "").charAt(0)}</span>
+                  <div class="fb-xp-text">
+                    <p class="fb-xp-role">{e.role}</p>
+                    <p class="fb-xp-org">{e.org} · {e.where}</p>
+                    <p class="fb-xp-d">{e.d}</p>
+                  </div>
+                  <span class="fb-xp-when">{e.when}</span>
+                </li>
+              ))
+            }
+          </ul>
+          <h3 class="fb-psec">Earlier and alongside</h3>
+          <dl class="fb-rows fb-rows--compact">
+            {earlier.map((e) => <div><dt>{e.w}</dt><dd>{e.r}, {e.o}</dd></div>)}
+          </dl>
+        </section>
+
+        <!-- Education -->
+        <section class="fb-ppanel" role="tabpanel" id="fb-ppanel-2" aria-labelledby="fb-ptab-2" data-fb-ppanel="2" hidden>
+          <ul class="fb-xp">
+            <li>
+              <span class="fb-xp-ico">I</span>
+              <div class="fb-xp-text">
+                <p class="fb-xp-role">{education.program}</p>
+                <p class="fb-xp-org">{education.school}</p>
+              </div>
+              <span class="fb-xp-when">{education.when}</span>
+            </li>
+          </ul>
+          <h3 class="fb-psec">Honors &amp; awards</h3>
+          <ul class="fb-plist">{awards.map((a) => <li>{a}</li>)}</ul>
+          <h3 class="fb-psec">Certifications</h3>
+          <ul class="fb-plist">{certs.map((c) => <li>{c}</li>)}</ul>
+        </section>
+
+        <!-- Skills -->
+        <section class="fb-ppanel" role="tabpanel" id="fb-ppanel-3" aria-labelledby="fb-ptab-3" data-fb-ppanel="3" hidden>
+          <h3 class="fb-psec fb-psec--first">Skills</h3>
+          <div class="fb-chips">{skills.map((s) => <span>{s}</span>)}</div>
+          <h3 class="fb-psec">Tools</h3>
+          <div class="fb-chips">{fact("Tools").split(/,\s*/).map((s) => <span>{s}</span>)}</div>
+        </section>
+      </div>
+    </dialog>
+  </div>
+
+  <script type="application/json" id="fb-data" set:html={data} />
+  <script>
+    import "../scripts/figma-app.ts";
+  </script>
+</Base>
+
+<style is:global>
+  .fb-app {
+    --fb-app: #2c2c2c;
+    --fb-tabbar: #1e1e1e;
+    --fb-field: #383838;
+    --fb-border: #444;
+    --fb-text: #fff;
+    --fb-text2: #b3b3b3;
+    --fb-blue: #0d99ff;
+    --fb-hover: rgba(255, 255, 255, 0.08);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100svh;
+    min-height: 640px;
+    background: var(--fb-app);
+    color: var(--fb-text);
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: normal;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  html .fb-app,
+  html .fb-app * {
+    cursor: auto !important;
+  }
+  html .fb-app button,
+  html .fb-app a,
+  html .fb-app [role="button"] {
+    cursor: pointer !important;
+  }
+  :where(.fb-app) button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+  :where(.fb-app) a {
+    color: inherit;
+    text-decoration: none;
+  }
+  :where(.fb-app) p,
+  :where(.fb-app) h1 {
+    margin: 0;
+  }
+  .fb-app :focus-visible {
+    outline: 2px solid var(--fb-blue);
+    outline-offset: -2px;
+    border-radius: 4px;
+  }
+  .fb-i {
+    display: block;
+    flex: none;
+  }
+  .fb-spacer {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* Tab bar */
+  .fb-tabbar {
+    display: flex;
+    align-items: stretch;
+    flex: none;
+    height: 38px;
+    background: var(--fb-tabbar);
+  }
+  .fb-home,
+  .fb-plus,
+  .fb-win button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fb-text2);
+  }
+  .fb-home {
+    width: 56px;
+    border-right: 1px solid var(--fb-border);
+  }
+  .fb-home.is-active {
+    background: var(--fb-app);
+    color: #fff;
+  }
+  .fb-plus {
+    width: 40px;
+  }
+  .fb-win {
+    display: flex;
+  }
+  .fb-win button {
+    width: 50px;
+  }
+  .fb-home:hover,
+  .fb-plus:hover,
+  .fb-win button:hover {
+    background: var(--fb-hover);
+    color: #fff;
+  }
+  .fb-win button:last-child:hover {
+    background: #e5484d;
+  }
+  .fb-tabs {
+    display: flex;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .fb-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .fb-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    /* Like Figma desktop: room for the full file name, shrinking (down to a readable minimum) as tabs pile up;
+       past that the tab strip scrolls. */
+    flex: 0 1 200px;
+    gap: 8px;
+    min-width: 128px;
+    max-width: 200px;
+    padding: 0 8px 0 12px;
+    border-right: 1px solid var(--fb-border);
+    color: var(--fb-text2);
+    text-align: left;
+  }
+  .fb-tab:hover {
+    background: var(--fb-hover);
+  }
+  .fb-tab.is-active {
+    background: var(--fb-app);
+    color: #fff;
+  }
+  .fb-tab-ico {
+    display: flex;
+  }
+  .fb-tab-label {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fb-tab-x {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    margin-right: -4px;
+  }
+  .fb-tab:hover .fb-tab-x,
+  .fb-tab.is-active .fb-tab-x {
+    display: flex;
+  }
+  .fb-tab-x:hover {
+    background: var(--fb-hover);
+  }
+
+  /* Body */
+  .fb-body {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
+  }
+  .fb-sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: none;
+    width: 241px;
+    padding: 12px 8px 42px;
+    background: var(--fb-app);
+    border-right: 1px solid var(--fb-border);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #555 transparent;
+  }
+  .fb-side-top {
+    display: flex;
+    flex-direction: column;
+  }
+  .fb-teams,
+  .fb-team,
+  .fb-team-items,
+  [data-fb-social] {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .fb-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 45px;
+    padding: 0 4px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .fb-user:hover,
+  .fb-team-head:hover,
+  .fb-item:hover,
+  .fb-starred:hover {
+    background: var(--fb-hover);
+  }
+  .fb-avatar,
+  .fb-about-av {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--fb-blue);
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .fb-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    margin-bottom: 14px;
+    padding: 0 8px 0 10px;
+    border-radius: 6px;
+    background: var(--fb-field);
+    color: var(--fb-text2);
+  }
+  .fb-search:focus-within {
+    box-shadow: 0 0 0 1px var(--fb-blue);
+  }
+  .fb-search input {
+    flex: 1 1 0;
+    min-width: 0;
+    background: none;
+    border: 0;
+    outline: 0;
+    color: #fff;
+    font: inherit;
+    appearance: none;
+  }
+  .fb-app .fb-search input:focus-visible {
+    outline: 0;
+  }
+  .fb-search input::placeholder {
+    color: var(--fb-text2);
+  }
+  .fb-search input::-webkit-search-cancel-button {
+    display: none;
+  }
+  .fb-search kbd {
+    font: 10px Inter, sans-serif;
+    color: var(--fb-text2);
+    border: 1px solid var(--fb-border);
+    border-radius: 4px;
+    padding: 1px 4px;
+  }
+  .fb-divider {
+    height: 1px;
+    margin: 18px 0;
+    background: var(--fb-border);
+    flex: none;
+  }
+  .fb-team-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+  }
+  .fb-team-head.is-on {
+    background: rgba(13, 153, 255, 0.16);
+  }
+  .fb-team-name {
+    flex: 1 1 0;
+  }
+  .fb-all {
+    margin-bottom: 4px;
+  }
+  .fb-all-count {
+    padding: 1px 7px;
+    border-radius: 9px;
+    background: var(--fb-field);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fb-text2);
+  }
+  .fb-all.is-on .fb-all-count {
+    background: rgba(13, 153, 255, 0.28);
+    color: #fff;
+  }
+  .fb-team-chev {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    transition: transform 0.15s;
+  }
+  .fb-team-chev:hover {
+    background: var(--fb-hover);
+  }
+  .fb-team.is-collapsed .fb-team-chev {
+    transform: rotate(-90deg);
+  }
+  [data-fb-social][hidden] {
+    display: none;
+  }
+  .fb-team.is-collapsed .fb-team-items {
+    display: none;
+  }
+  /* Files sit one level in from their category: the file icon lines up under the category name. */
+  .fb-team-items {
+    padding-left: 24px;
+  }
+  /* Regular weight under the semibold category name, so the two levels read apart. */
+  .fb-team-items .fb-item {
+    font-weight: 400;
+  }
+  .fb-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .fb-side-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 24px;
+  }
+  .fb-side-bottom .fb-divider {
+    margin: 0 0 29px;
+  }
+  .fb-starred {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    height: 28px;
+    padding-left: 4px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .fb-starred svg {
+    transition: transform 0.15s;
+  }
+  .fb-starred[aria-expanded="false"] svg {
+    transform: rotate(-90deg);
+  }
+  .fb-scrim {
+    display: none;
+  }
+
+  /* Main */
+  .fb-main {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .fb-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: none;
+    height: 73px;
+    padding: 8px 48px 8px 24px;
+    border-bottom: 1px solid var(--fb-border);
+  }
+  .fb-top-title {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .fb-burger {
+    display: none;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin-left: -8px;
+    border-radius: 5px;
+  }
+  .fb-burger:hover {
+    background: var(--fb-hover);
+  }
+  .fb-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .fb-create {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    border-radius: 5px;
+    background: var(--fb-blue);
+    font-weight: 600;
+  }
+  .fb-create-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    padding: 0 12px 0 10px;
+    border-radius: 5px 0 0 5px;
+  }
+  .fb-create-main:hover,
+  .fb-create-drop:hover {
+    background: rgba(0, 0, 0, 0.12);
+  }
+  .fb-create-div {
+    width: 1px;
+    height: 30px;
+    background: rgba(0, 0, 0, 0.2);
+  }
+  .fb-create-drop {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    padding: 0 6px;
+    border-radius: 0 5px 5px 0;
+  }
+  .fb-btn {
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 5px;
+    background: var(--fb-field);
+    font-weight: 600;
+  }
+  .fb-btn:hover,
+  .fb-sq:hover {
+    background: #444;
+  }
+  .fb-sq {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--fb-border) !important;
+    border-radius: 5px;
+  }
+  .fb-fav svg {
+    fill: #ffcd29;
+    stroke: #ffcd29;
+  }
+  .fb-fav[aria-pressed="true"] {
+    background: rgba(255, 205, 41, 0.16);
+    border-color: #ffcd29 !important;
+  }
+
+  .fb-content,
+  .fb-viewer {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 24px 48px 56px 36px;
+    scrollbar-width: thin;
+    scrollbar-color: #555 transparent;
+  }
+  .fb-content {
+    padding-top: 21px;
+  }
+  .fb-content[hidden],
+  .fb-viewer[hidden] {
+    display: none;
+  }
+  .fb-folder-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 32px; /* same row as the sidebar search field: 73px top bar + 21px = its top edge */
+    margin-bottom: 32px;
+  }
+  .fb-folder-ico {
+    display: flex;
+    color: var(--fb-text2);
+  }
+  .fb-folder-title {
+    font-size: 24px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .fb-folder-chev {
+    display: flex;
+    color: var(--fb-text2);
+  }
+  .fb-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px 4px 8px;
+    border-radius: 4px;
+    background: var(--fb-field);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .fb-chip:hover {
+    background: #444;
+  }
+  .fb-toggle {
+    display: flex;
+    gap: 2px;
+  }
+  .fb-toggle button {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    color: var(--fb-text2);
+  }
+  .fb-toggle button.is-on {
+    background: var(--fb-field);
+    color: #fff;
+  }
+
+  /* Cards */
+  .fb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); /* cards stretch to fill the container */
+    gap: 34px 33px;
+  }
+  .fb-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 6px;
+    background: var(--fb-app);
+  }
+  /* The 1px border is an overlay so the card is exactly 292 x 218 (164 thumbnail + 54 info), as in the frame. */
+  .fb-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border: 1px solid var(--fb-border);
+    border-radius: inherit;
+    pointer-events: none;
+    transition: border-color 0.12s;
+  }
+  .fb-card:hover::after,
+  .fb-card:focus-within::after {
+    border-color: var(--fb-blue);
+  }
+  .fb-card[hidden] {
+    display: none;
+  }
+  .fb-thumb {
+    position: relative;
+    display: block;
+    aspect-ratio: 292 / 164;
+    overflow: hidden;
+    background: #1e1e1e;
+  }
+  .fb-thumb-inner {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-items: center;
+    pointer-events: none;
+  }
+  .fb-about {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 100%;
+    background: linear-gradient(135deg, #0d99ff, #6938ef);
+    color: #fff;
+    font-size: 11px;
+    text-align: center;
+  }
+  .fb-about strong {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .fb-about-av {
+    width: 44px;
+    height: 44px;
+    font-size: 15px;
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .fb-star {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
+    background: rgba(30, 30, 30, 0.8);
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .fb-card:hover .fb-star,
+  .fb-star:focus-visible,
+  .fb-star[aria-pressed="true"] {
+    opacity: 1;
+  }
+  .fb-star[aria-pressed="true"] svg {
+    fill: #ffcd29;
+    stroke: #ffcd29;
+  }
+  .fb-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  .fb-fileico {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background: var(--fb-blue);
+  }
+  .fb-text {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .fb-name {
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .fb-sub {
+    margin-top: 2px !important;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--fb-text2);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fb-tags,
+  .fb-year {
+    display: none;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--fb-text2);
+  }
+  .fb-grid.is-list {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .fb-grid.is-list .fb-card {
+    flex-direction: row;
+    align-items: center;
+  }
+  .fb-grid.is-list .fb-thumb {
+    flex: none;
+    width: 112px;
+    height: 64px;
+    aspect-ratio: auto;
+  }
+  .fb-grid.is-list .fb-thumb-inner {
+    transform: scale(0.45);
+    transform-origin: top left;
+    width: 222%;
+    height: 222%;
+  }
+  .fb-grid.is-list .fb-about strong {
+    font-size: 11px;
+  }
+  .fb-grid.is-list .fb-about span:not(.fb-about-av) {
+    display: none;
+  }
+  .fb-grid.is-list .fb-about-av {
+    width: 24px;
+    height: 24px;
+    font-size: 9px;
+  }
+  .fb-grid.is-list .fb-info {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .fb-grid.is-list .fb-tags {
+    display: block;
+    width: 34%;
+  }
+  .fb-grid.is-list .fb-year {
+    display: block;
+    width: 48px;
+    text-align: right;
+  }
+  .fb-grid.is-list .fb-star {
+    top: 19px;
+    left: 80px;
+    right: auto;
+  }
+  .fb-empty {
+    padding: 48px 0;
+    color: var(--fb-text2);
+  }
+
+  /* Viewer */
+  .fb-crumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    color: var(--fb-text2);
+  }
+  .fb-crumb button:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+  .fb-crumb b {
+    color: #fff;
+    font-weight: 600;
+  }
+  .fb-file {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+  .fb-canvas {
+    overflow: hidden;
+    border: 1px solid var(--fb-border);
+    border-radius: 8px;
+    background: #1e1e1e;
+  }
+  .fb-canvas .fb-about {
+    min-height: 360px;
+  }
+  .fb-canvas .fb-thumb-inner {
+    position: static;
+    display: block;
+  }
+  .fb-file h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .fb-file .fb-lead {
+    margin-top: 6px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--fb-text2);
+  }
+  .fb-file .fb-blurb {
+    margin-top: 20px;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+  .fb-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .fb-chips span {
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--fb-field);
+    font-size: 11px;
+  }
+  .fb-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px 20px;
+    margin: 24px 0 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--fb-border);
+    font-size: 12px;
+  }
+  .fb-meta dt {
+    color: var(--fb-text2);
+    font-weight: 400;
+  }
+  .fb-meta dd {
+    margin: 0;
+  }
+  .fb-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .fb-stats div {
+    padding: 12px;
+    border: 1px solid var(--fb-border);
+    border-radius: 6px;
+  }
+  .fb-stats b {
+    display: block;
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .fb-stats span {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--fb-text2);
+  }
+  .fb-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 28px;
+  }
+  .fb-cta a,
+  .fb-cta button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 5px;
+    background: var(--fb-field);
+    font-weight: 600;
+  }
+  .fb-cta .is-primary {
+    background: var(--fb-blue);
+  }
+  .fb-cta a:hover,
+  .fb-cta button:hover {
+    filter: brightness(1.15);
+  }
+  .fb-suggest {
+    margin-top: 32px;
+  }
+  .fb-suggest h3 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .fb-suggest .fb-search {
+    height: 36px;
+    margin-bottom: 16px;
+  }
+  .fb-untitled {
+    display: grid;
+    place-items: center;
+    min-height: 260px;
+    padding: 40px;
+    text-align: center;
+  }
+  .fb-untitled h2 {
+    font-size: 40px;
+    line-height: 1.1;
+  }
+  .fb-untitled p {
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--fb-text2);
+  }
+  .fb-untitled .fb-cta {
+    justify-content: center;
+  }
+
+  /* Board: an opened case study as a FigJam file. Like a real file tab, it takes the whole window under the
+     tab bar; the page runs in an iframe and FigJam's floating bars sit on top of it. */
+  .fb-app.is-board .fb-sidebar,
+  .fb-app.is-board .fb-topbar,
+  .fb-app.is-board .fb-scrim {
+    display: none;
+  }
+  .fb-app.is-board .fb-viewer {
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+  }
+  .fj {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 1px 1px, #c4c4c4 1px, transparent 1.5px) 0 0 / 24px 24px, #f5f5f5;
+    color: #1e1e1e;
+  }
+  .fj-frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+  }
+  .fj-loading {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.15), 0 10px 28px rgba(0, 0, 0, 0.12);
+    font-weight: 500;
+    transform: translate(-50%, -50%);
+  }
+  .fj-loading span {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #e6e6e6;
+    border-top-color: #0d99ff;
+    border-radius: 50%;
+    animation: fj-spin 0.8s linear infinite;
+  }
+  @keyframes fj-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .fj-bar {
+    position: absolute;
+    top: 12px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 44px;
+    padding: 0 6px;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow:
+      0 0 0 0.5px rgba(0, 0, 0, 0.15),
+      0 2px 6px rgba(0, 0, 0, 0.08),
+      0 10px 28px rgba(0, 0, 0, 0.12);
+  }
+  .fj-tl {
+    left: 12px;
+    max-width: calc(100% - 300px);
+  }
+  .fj-tr {
+    right: 12px;
+  }
+  .fj-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 8px;
+    color: #1e1e1e !important;
+  }
+  .fj-btn:hover {
+    background: #f0f0f0;
+  }
+  .fj-sep {
+    width: 1px;
+    height: 20px;
+    margin: 0 4px;
+    background: #e6e6e6;
+  }
+  .fj-name {
+    min-width: 0;
+    padding: 0 8px 0 2px;
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fj-name span {
+    color: #757575;
+    font-weight: 400;
+  }
+  .fj-name b {
+    font-weight: 600;
+  }
+  .fj-people {
+    display: flex;
+    padding: 0 6px 0 4px;
+  }
+  .fj-people > * {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    margin-left: -6px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .fj-people > :first-child {
+    margin-left: 0;
+  }
+  .fj-share {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: #0d99ff !important;
+    color: #fff !important;
+    font-weight: 600;
+  }
+  .fj-share:hover {
+    background: #0a8ae6 !important;
+  }
+  .fj-zoom {
+    min-width: 64px;
+    justify-content: center;
+    font-size: 12px;
+  }
+  /* File details panel: slides in on the left over the board, under the file menu, like FigJam's side panels. */
+  .fj-panel {
+    --fb-field: #f0f0f0;
+    --fb-border: #e6e6e6;
+    --fb-text2: #757575;
+    position: absolute;
+    top: 68px;
+    left: 12px;
+    bottom: 12px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    width: min(340px, calc(100% - 24px));
+    border-radius: 13px;
+    background: #fff;
+    color: #1e1e1e;
+    box-shadow:
+      0 0 0 0.5px rgba(0, 0, 0, 0.15),
+      0 2px 6px rgba(0, 0, 0, 0.08),
+      0 10px 28px rgba(0, 0, 0, 0.12);
+    animation: fj-panel-in 0.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .fj-panel[hidden] {
+    display: none;
+  }
+  @keyframes fj-panel-in {
+    from {
+      opacity: 0;
+      transform: translateX(-12px);
+    }
+  }
+  .fj-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: none;
+    height: 48px;
+    padding: 0 8px 0 16px;
+    border-bottom: 1px solid var(--fb-border);
+    font-size: 13px;
+  }
+  .fj-panel-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px;
+    scrollbar-width: thin;
+  }
+  .fb-file.fj-panel-body {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .fj-panel .fb-canvas {
+    border-color: var(--fb-border);
+  }
+  .fj-panel .fb-file h2,
+  .fj-panel-body h2 {
+    font-size: 20px;
+  }
+  .fj-panel .fb-blurb {
+    color: #1e1e1e;
+  }
+  .fj-panel .fb-cta .is-primary {
+    color: #fff;
+  }
+
+  /* Spotlight: following Rafif. A blue frame round the board with a "Following" tag, like FigJam,
+     his cursor with cursor chat, and the step bar (styled like the presentation bar). */
+  .fj-follow-btn {
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .fj-follow-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 2px #0d99ff;
+  }
+  .fj-follow-frame {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    border: 3px solid #0d99ff;
+    pointer-events: none;
+  }
+  .fj-follow-frame[hidden],
+  .fj-tour-cur[hidden] {
+    display: none;
+  }
+  .fj-follow-tag {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 4px 6px 6px 8px;
+    border-radius: 0 0 8px 8px;
+    background: #0d99ff;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: auto;
+    transform: translateX(-50%);
+  }
+  .fj-follow-av {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid #fff;
+    border-radius: 50%;
+    font-size: 8px;
+    font-weight: 700;
+  }
+  .fj-follow-tag button {
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .fj-follow-tag button:hover {
+    background: rgba(255, 255, 255, 0.32) !important;
+  }
+  .fj.is-following .fj-tl,
+  .fj.is-following .fj-tr {
+    top: 34px;
+  }
+  .fj-tour-cur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    pointer-events: none;
+    transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  .fj-tour-cur svg {
+    display: block;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+  }
+  .fj-tour-chat {
+    position: absolute;
+    top: 18px;
+    left: 14px;
+    width: max-content;
+    max-width: 280px;
+    padding: 3px 8px;
+    border-radius: 3px 8px 8px 8px;
+    background: #0d99ff;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .fj-tour-cur.is-chatting .fj-tour-chat {
+    padding: 8px 12px;
+    border-radius: 3px 14px 14px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: normal;
+    box-shadow: 0 8px 20px rgba(13, 153, 255, 0.35);
+  }
+  .fj-tourbar {
+    bottom: 76px; /* above the page's own section bar */
+  }
+  .fj-tourbar p {
+    min-width: 80px;
+    justify-content: center;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fj-tour-cur {
+      transition: none;
+    }
+  }
+
+  /* Present: Figma's play button, then the case full screen with a dark presentation bar. */
+  .fj-present {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .fj-present svg {
+    color: #0d99ff;
+  }
+  .fj.is-presenting {
+    background: #1e1e1e;
+  }
+  .fj.is-presenting :is(.fj-bar, .fj-panel, .fj-comments, .fj-cursors, .fj-emotes, .fj-loading) {
+    display: none !important;
+  }
+  .fj-pbar {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 13px;
+    background: #2c2c2c;
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transform: translateX(-50%);
+  }
+  .fj-pbar[hidden] {
+    display: none;
+  }
+  .fj-pbar button {
+    display: grid;
+    place-items: center;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: #fff !important;
+  }
+  .fj-pbar button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .fj-pbar button:disabled {
+    opacity: 0.35;
+    cursor: default !important;
+  }
+  .fj-pbar :is([data-fj-prev], [data-fj-tour-prev]) svg {
+    transform: rotate(90deg);
+  }
+  .fj-pbar :is([data-fj-next], [data-fj-tour-next]) svg {
+    transform: rotate(-90deg);
+  }
+  .fj-pbar p {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 170px;
+    margin: 0;
+    padding: 0 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .fj-pbar p b {
+    font-variant-numeric: tabular-nums;
+  }
+  .fj-pbar p span {
+    color: #b3b3b3;
+  }
+  .fj-psep {
+    width: 1px;
+    height: 20px;
+    margin: 0 4px;
+    background: #444;
+  }
+  .fj-pbar .fj-pexit {
+    gap: 8px;
+    display: flex;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .fj-pexit kbd {
+    padding: 1px 5px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #b3b3b3;
+    font: 10px Inter, sans-serif;
+  }
+
+  /* Top-right bar: emote and comments buttons */
+  .fj-icon {
+    position: relative;
+    justify-content: center;
+    width: 32px;
+    padding: 0;
+    font-size: 16px;
+  }
+  .fj-icon[aria-pressed="true"] {
+    background: #e5f4ff;
+    color: #0d99ff !important;
+  }
+  .fj-count {
+    position: absolute;
+    top: 2px;
+    right: 1px;
+    display: grid;
+    place-items: center;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 3px;
+    border-radius: 7px;
+    background: #f24822;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .fj-count[hidden] {
+    display: none;
+  }
+  /* Comments panel: on the right, under the top-right bar, like Figma's comments sidebar. */
+  .fj-comments {
+    position: absolute;
+    top: 68px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    width: min(320px, calc(100% - 24px));
+    border-radius: 13px;
+    background: #fff;
+    color: #1e1e1e;
+    box-shadow:
+      0 0 0 0.5px rgba(0, 0, 0, 0.15),
+      0 2px 6px rgba(0, 0, 0, 0.08),
+      0 10px 28px rgba(0, 0, 0, 0.12);
+    animation: fj-cmt-in 0.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .fj-comments[hidden] {
+    display: none;
+  }
+  @keyframes fj-cmt-in {
+    from {
+      opacity: 0;
+      transform: translateX(12px);
+    }
+  }
+  .fj-comments .fj-panel-head {
+    border-bottom: 1px solid #e6e6e6;
+  }
+  .fj-comments-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 6px;
+  }
+  .fj-cmt {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 10px;
+    border-radius: 8px;
+    text-align: left;
+  }
+  .fj-cmt:hover {
+    background: #f5f5f5;
+  }
+  .fj-cmt.is-resolved {
+    opacity: 0.55;
+  }
+  .fj-cmt-av {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50% 50% 50% 3px;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .fj-cmt-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+  }
+  .fj-cmt-meta {
+    display: flex;
+    gap: 6px;
+  }
+  .fj-cmt-meta span,
+  .fj-cmt-empty {
+    color: #757575;
+  }
+  .fj-cmt-reply {
+    padding-left: 8px;
+    border-left: 2px solid #e6e6e6;
+    color: #444;
+  }
+  .fj-cmt-empty {
+    padding: 16px 10px;
+  }
+  /* Version history: a timeline, newest first, like Figma's version history panel. */
+  .fj-vlist {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0;
+    padding: 8px;
+    overflow-y: auto;
+    list-style: none;
+  }
+  .fj-ver {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 10px 12px;
+    border-radius: 8px;
+    text-align: left;
+  }
+  .fj-ver:hover {
+    background: #f5f5f5;
+  }
+  .fj-ver.is-on {
+    background: #e5f4ff;
+  }
+  /* The timeline: a dot per version, joined by a line. */
+  .fj-vdot {
+    position: relative;
+    flex: none;
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+    border: 2px solid #b3b3b3;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .fj-vlist > li:first-child .fj-vdot,
+  .fj-ver.is-on .fj-vdot {
+    border-color: #0d99ff;
+    background: #0d99ff;
+  }
+  /* The line joining one dot to the next, drawn on the list item so the button doesn't clip it. */
+  .fj-vlist > li {
+    position: relative;
+  }
+  .fj-vlist > li:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 26px;
+    bottom: -14px;
+    left: 14px;
+    width: 2px;
+    background: #e6e6e6;
+  }
+  .fj-vdot {
+    z-index: 1;
+  }
+  .fj-vbody {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+  }
+  .fj-vtitle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .fj-vtitle b {
+    font-weight: 600;
+  }
+  .fj-vtitle em {
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #e5f4ff;
+    color: #0d99ff;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 600;
+  }
+  .fj-vmeta {
+    color: #757575;
+  }
+  .fj-vby {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #757575;
+    font-size: 11px;
+  }
+  .fj-vav {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #0d99ff;
+    color: #fff;
+    font-size: 7px;
+    font-weight: 700;
+  }
+  .fj-vmore {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+    color: #1e1e1e;
+  }
+  .fj-ver.is-on .fj-vmore {
+    display: flex;
+  }
+  .fj-vmore ul {
+    margin: 0;
+    padding-left: 16px;
+    list-style: disc;
+  }
+  .fj-vgo {
+    color: #0d99ff;
+    font-weight: 600;
+  }
+  .fj--dark .fj-ver:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .fj--dark .fj-ver.is-on,
+  .fj--dark .fj-vtitle em {
+    background: rgba(13, 153, 255, 0.2);
+  }
+  .fj--dark .fj-vdot {
+    background: #2c2c2c;
+  }
+  .fj--dark :is(.fj-vmeta, .fj-vby) {
+    color: #b3b3b3;
+  }
+  .fj--dark .fj-vmore {
+    color: #fff;
+  }
+  .fj--dark .fj-vlist > li:not(:last-child)::before {
+    background: #444;
+  }
+
+  /* Collaborators: cursors over the board, and cursor chat (the name pill becomes the message). */
+  .fj-cursors,
+  .fj-emotes {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .fj-cur span {
+    max-width: 240px;
+    transition: border-radius 0.15s;
+  }
+  .fj-cur.is-chatting span {
+    width: max-content;
+    padding: 6px 10px;
+    border-radius: 3px 12px 12px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: normal;
+  }
+  .fj-emote {
+    position: absolute;
+    bottom: 40px;
+    font-size: 40px;
+    animation: fj-emote 2.2s cubic-bezier(0.2, 0.6, 0.3, 1) both;
+  }
+  @keyframes fj-emote {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) scale(0.6);
+    }
+    15% {
+      opacity: 1;
+      transform: translate(calc(var(--drift) * 0.2), -60px) scale(1.1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--drift), -420px) scale(1);
+    }
+  }
+  /* Emote picker: one row of big emoji instead of a list. */
+  .fb-menu--emote {
+    display: flex;
+    gap: 2px;
+    min-width: 0;
+    padding: 6px;
+    border-radius: 12px;
+  }
+  .fb-menu--emote button {
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 22px;
+  }
+  .fb-menu--emote button:hover {
+    background: var(--fb-hover);
+  }
+
+  /* FigJam dark mode (boards for dark pages, e.g. SIA): dark canvas, bars and panel. */
+  .fj--dark {
+    background: radial-gradient(circle at 1px 1px, #4a4a4a 1px, transparent 1.5px) 0 0 / 24px 24px, #1e1e1e;
+    color: #fff;
+  }
+  .fj--dark :is(.fj-bar, .fj-loading, .fj-panel, .fj-comments) {
+    background: #2c2c2c;
+    color: #fff;
+    box-shadow:
+      0 0 0 0.5px rgba(255, 255, 255, 0.12),
+      0 10px 28px rgba(0, 0, 0, 0.45);
+  }
+  .fj--dark .fj-btn {
+    color: #fff !important;
+  }
+  .fj--dark .fj-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .fj--dark .fj-sep {
+    background: #444;
+  }
+  .fj--dark .fj-name span {
+    color: #b3b3b3;
+  }
+  .fj--dark .fj-people span {
+    border-color: #2c2c2c;
+  }
+  .fj--dark .fj-loading span {
+    border-color: #444;
+    border-top-color: #0d99ff;
+  }
+  .fj--dark .fj-panel {
+    --fb-field: #383838;
+    --fb-border: #444;
+    --fb-text2: #b3b3b3;
+  }
+  .fj--dark .fj-panel .fb-blurb {
+    color: #fff;
+  }
+  .fj--dark .fj-icon[aria-pressed="true"] {
+    background: rgba(13, 153, 255, 0.2);
+  }
+  .fj--dark .fj-comments .fj-panel-head {
+    border-color: #444;
+  }
+  .fj--dark .fj-cmt:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .fj--dark :is(.fj-cmt-meta span, .fj-cmt-empty) {
+    color: #b3b3b3;
+  }
+  .fj--dark .fj-cmt-reply {
+    border-color: #444;
+    color: #d9d9d9;
+  }
+
+  @media (max-width: 719px) {
+    .fj-tl {
+      max-width: calc(100% - 24px);
+    }
+    .fj-tr {
+      top: auto;
+      bottom: 76px;
+      height: 40px;
+    }
+    .fj-people {
+      display: none;
+    }
+  }
+
+  /* Multiplayer cursors */
+  .fb-cursors {
+    position: absolute;
+    inset: 73px 0 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .fb-cursors[hidden] {
+    display: none;
+  }
+  .fb-cur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    will-change: transform;
+  }
+  .fb-cur svg {
+    display: block;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+  }
+  .fb-cur span {
+    position: absolute;
+    top: 16px;
+    left: 12px;
+    padding: 2px 7px;
+    border-radius: 3px 8px 8px 8px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Floating bits */
+  .fb-help {
+    position: absolute;
+    right: 26px;
+    bottom: 24px;
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--fb-border);
+    border-radius: 15px;
+    background: var(--fb-tabbar) !important;
+    font-size: 14px;
+  }
+  .fb-help:hover {
+    border-color: #777;
+  }
+  .fb-menu {
+    position: fixed;
+    z-index: 100;
+    min-width: 200px;
+    max-width: 300px;
+    padding: 6px;
+    border-radius: 8px;
+    background: #1e1e1e;
+    box-shadow: 0 0 0 1px #444, 0 10px 30px rgba(0, 0, 0, 0.5);
+    font-size: 12px;
+  }
+  .fb-menu[hidden] {
+    display: none;
+  }
+  .fb-menu button,
+  .fb-menu a,
+  .fb-menu .fb-mi-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 4px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .fb-menu button:hover,
+  .fb-menu a:hover {
+    background: var(--fb-blue);
+  }
+  .fb-menu .fb-mi-text {
+    color: var(--fb-text2);
+    font-weight: 400;
+  }
+  .fb-menu .fb-mi-label {
+    flex: 1 1 0;
+  }
+  .fb-menu kbd {
+    font: 11px Inter, sans-serif;
+    color: var(--fb-text2);
+  }
+  .fb-menu button:hover kbd,
+  .fb-menu a:hover kbd {
+    color: #fff;
+  }
+  .fb-menu hr {
+    height: 1px;
+    margin: 6px 4px;
+    border: 0;
+    background: var(--fb-border);
+  }
+  .fb-menu .fb-tick {
+    width: 14px;
+    flex: none;
+  }
+
+  /* Account menu (the name button in the sidebar), after Figma's account switcher */
+  .fb-menu--account {
+    width: 280px;
+    max-width: calc(100vw - 16px);
+    padding: 8px;
+    border-radius: 13px;
+  }
+  .fb-menu--account hr {
+    margin: 8px 0;
+  }
+  .fb-menu--account button,
+  .fb-menu--account a {
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 5px;
+  }
+  .fb-acct,
+  .fb-acct-team {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .fb-acct {
+    padding: 6px 8px 4px;
+  }
+  .fb-acct-av {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--fb-blue);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .fb-acct-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .fb-acct-text b {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .fb-acct-text :is(b, span) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fb-acct-text span {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--fb-text2);
+  }
+  .fb-acct-label {
+    padding: 4px 8px 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--fb-text2);
+  }
+  .fb-acct-team {
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .fb-acct-team .fb-acct-text b {
+    font-size: 12px;
+  }
+  .fb-acct-team-ico {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    background: #9747ff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .fb-acct-badge {
+    flex: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(20, 174, 92, 0.2);
+    color: #4ee08f;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .fb-acct-check {
+    display: flex;
+    flex: none;
+    color: #fff;
+  }
+  /* The account header is clickable (opens the settings modal). */
+  .fb-menu .fb-mi-block {
+    display: block;
+    height: auto;
+    padding: 0;
+  }
+  .fb-menu .fb-mi-block:hover,
+  .fb-menu .fb-mi-block:focus-visible {
+    background: var(--fb-hover);
+  }
+
+  /* Quick actions palette (Cmd/Ctrl+K), Figma's dark command menu */
+  .fb-qa {
+    position: fixed;
+    inset: 12vh 0 auto;
+    margin: 0 auto;
+    width: min(560px, calc(100vw - 32px));
+    max-height: min(520px, 76vh);
+    padding: 0;
+    border: 0;
+    border-radius: 13px;
+    background: #2c2c2c;
+    color: #fff;
+    box-shadow: 0 0 0 1px #444, 0 24px 64px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 13px;
+  }
+  .fb-qa[open] {
+    display: flex;
+    flex-direction: column;
+  }
+  .fb-qa::backdrop {
+    background: rgba(0, 0, 0, 0.35);
+  }
+  .fb-qa-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: none;
+    height: 52px;
+    padding: 0 14px;
+    border-bottom: 1px solid #444;
+    color: #b3b3b3;
+  }
+  .fb-qa-field input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: none;
+    color: #fff;
+    font: inherit;
+    font-size: 15px;
+  }
+  .fb-qa-field input::placeholder {
+    color: #8a8a8a;
+  }
+  .fb-qa kbd {
+    padding: 1px 6px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #b3b3b3;
+    font: 11px Inter, sans-serif;
+    white-space: nowrap;
+  }
+  .fb-qa-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0;
+    padding: 6px;
+    overflow-y: auto;
+    list-style: none;
+    scrollbar-width: thin;
+    scrollbar-color: #555 transparent;
+  }
+  .fb-qa-group {
+    padding: 10px 10px 4px;
+    color: #8a8a8a;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .fb-qa-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .fb-qa-item[aria-selected="true"] {
+    background: #0d99ff;
+  }
+  .fb-qa-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fb-qa-hint {
+    flex: none;
+    max-width: 40%;
+    overflow: hidden;
+    color: #8a8a8a;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fb-qa-item[aria-selected="true"] :is(.fb-qa-hint, kbd) {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+  .fb-qa-empty {
+    padding: 24px 10px;
+    color: #8a8a8a;
+    text-align: center;
+  }
+  .fb-qa-foot {
+    display: flex;
+    gap: 16px;
+    flex: none;
+    margin: 0;
+    padding: 8px 14px;
+    border-top: 1px solid #444;
+    color: #8a8a8a;
+    font-size: 11px;
+  }
+  .fb-qa-foot span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .fb-search kbd {
+    cursor: pointer;
+  }
+
+  /* Share dialog: a compact version of the settings modal */
+  .fb-modal.fb-share-modal {
+    width: min(460px, calc(100vw - 32px));
+    height: fit-content;
+  }
+  .fb-share-title {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .fb-share-body {
+    padding: 16px 16px 20px;
+  }
+  .fb-share-link {
+    display: flex;
+    gap: 8px;
+  }
+  .fb-share-link input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    background: #383838;
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+    outline: 0;
+  }
+  .fb-share-link input:focus {
+    border-color: #0d99ff;
+  }
+  .fb-share-copy {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 6px;
+    background: #0d99ff !important;
+    font-weight: 600;
+  }
+  .fb-share-copy:hover {
+    background: #0a8ae6 !important;
+  }
+  .fb-share-label {
+    margin: 20px 0 8px !important;
+    color: var(--fb-text2);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .fb-share-people {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .fb-share-people li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+  }
+  .fb-share-people li > span:nth-child(2) {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .fb-share-people b {
+    font-weight: 600;
+  }
+  .fb-share-people small {
+    overflow: hidden;
+    color: var(--fb-text2);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fb-share-people em {
+    color: var(--fb-text2);
+    font-size: 12px;
+    font-style: normal;
+  }
+  .fb-share-av {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .fb-share-globe {
+    background: #444;
+  }
+  .fb-share-to {
+    display: flex;
+    gap: 8px;
+  }
+  .fb-share-to a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 6px;
+    background: var(--fb-field);
+    font-weight: 600;
+  }
+  .fb-share-to a:hover {
+    background: #444;
+  }
+
+  /* Account settings modal */
+  /* Centred explicitly: the global reset zeroes the UA `margin: auto` that normally centres a modal dialog. */
+  .fb-modal {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    /* Fixed size so switching tabs doesn't resize it; longer tabs scroll inside the body. */
+    width: min(640px, calc(100vw - 32px));
+    height: min(600px, calc(100svh - 48px));
+    padding: 0;
+    border: 0;
+    border-radius: 13px;
+    background: var(--fb-app);
+    color: var(--fb-text);
+    box-shadow: 0 0 0 1px #444, 0 24px 64px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+  }
+  .fb-modal[open] {
+    display: flex;
+    flex-direction: column;
+    animation: fb-modal-in 0.18s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .fb-modal::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+  @keyframes fb-modal-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+  .fb-modal-head {
+    display: flex;
+    align-items: center;
+    flex: none;
+    height: 48px;
+    padding: 0 8px 0 16px;
+    border-bottom: 1px solid var(--fb-border);
+  }
+  .fb-modal-tabs {
+    display: flex;
+    gap: 4px;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .fb-modal-tabs button {
+    flex: none;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fb-text2);
+  }
+  .fb-modal-tabs button:hover {
+    color: #fff;
+  }
+  .fb-modal-tabs button[aria-selected="true"] {
+    background: var(--fb-field);
+    color: #fff;
+    font-weight: 600;
+  }
+  .fb-modal-x {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 5px;
+    color: var(--fb-text2);
+  }
+  .fb-modal-x:hover {
+    background: var(--fb-hover);
+    color: #fff;
+  }
+  .fb-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 24px;
+    scrollbar-width: thin;
+    scrollbar-color: #555 transparent;
+  }
+  .fb-ppanel[hidden] {
+    display: none;
+  }
+  .fb-prof {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .fb-prof-av {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--fb-blue);
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .fb-prof-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    min-width: 0;
+  }
+  .fb-prof-name {
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .fb-prof-role {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--fb-text2);
+  }
+  .fb-prof-text .fb-link {
+    margin-top: 4px;
+  }
+  .fb-link {
+    color: var(--fb-blue) !important;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .fb-link:hover {
+    text-decoration: underline;
+  }
+  .fb-rows {
+    margin: 0;
+    border-top: 1px solid var(--fb-border);
+  }
+  .fb-rows > div {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 44px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--fb-border);
+  }
+  .fb-rows dt {
+    flex: none;
+    width: 96px;
+    font-weight: 400;
+    color: var(--fb-text2);
+  }
+  .fb-rows dd {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .fb-rows--compact > div {
+    min-height: 0;
+    align-items: baseline;
+  }
+  .fb-rows--compact dt {
+    width: 128px;
+    font-size: 11px;
+  }
+  .fb-psec {
+    margin: 28px 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .fb-psec--first {
+    margin-top: 0;
+  }
+  .fb-pbody {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: #e6e6e6;
+  }
+  .fb-xp {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .fb-xp li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--fb-border);
+  }
+  .fb-xp li:first-child {
+    padding-top: 0;
+  }
+  .fb-xp-ico {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--fb-field);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--fb-text2);
+  }
+  .fb-xp-text {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .fb-xp-role {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .fb-xp-org {
+    margin-top: 2px !important;
+    font-weight: 400;
+    color: var(--fb-text2);
+  }
+  .fb-xp-d {
+    margin-top: 6px !important;
+    font-weight: 400;
+    line-height: 1.55;
+    color: #e6e6e6;
+  }
+  .fb-xp-when {
+    flex: none;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--fb-text2);
+    white-space: nowrap;
+  }
+  .fb-plist {
+    margin: 0;
+    padding-left: 16px;
+    font-weight: 400;
+    line-height: 1.8;
+  }
+  @media (max-width: 559px) {
+    .fb-modal-body {
+      padding: 20px 16px;
+    }
+    .fb-xp li {
+      flex-wrap: wrap;
+    }
+    .fb-xp-when {
+      order: -1;
+      width: 100%;
+      padding-left: 44px;
+    }
+    .fb-rows dt,
+    .fb-rows--compact dt {
+      width: 80px;
+    }
+  }
+  .fb-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 28px;
+    z-index: 110;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: #1e1e1e;
+    color: #fff;
+    font-weight: 500;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 10px 28px rgba(0, 0, 0, 0.45);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 8px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .fb-toast.is-on {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  /* Loading skeleton: the real elements turn into grey bones (so nothing shifts when data appears), with one
+     shimmer sweeping across all of them in sync, as on figma.com. */
+  .fb-app.is-loading .fb-avatar,
+  .fb-app.is-loading .fb-user-name,
+  .fb-app.is-loading .fb-team-ico,
+  .fb-app.is-loading .fb-team-name,
+  .fb-app.is-loading .fb-all-count,
+  .fb-app.is-loading .fb-item > span,
+  .fb-app.is-loading .fb-starred span:last-child,
+  .fb-app.is-loading .fb-top-title,
+  .fb-app.is-loading .fb-folder-ico,
+  .fb-app.is-loading .fb-folder-title,
+  .fb-app.is-loading .fb-thumb,
+  .fb-app.is-loading .fb-fileico,
+  .fb-app.is-loading .fb-name,
+  .fb-app.is-loading .fb-sub {
+    color: transparent !important;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #383838 0%, #383838 35%, #454545 50%, #383838 65%, #383838 100%) 0 0 / 200vw 100%
+      fixed;
+    animation: fb-shimmer 1.5s linear infinite;
+  }
+  .fb-app.is-loading .fb-avatar {
+    border-radius: 50%;
+  }
+  .fb-app.is-loading .fb-thumb {
+    border-radius: 0;
+  }
+  .fb-app.is-loading .fb-team-name {
+    flex: none;
+    width: 58%;
+    height: 12px;
+  }
+  .fb-app.is-loading .fb-item > span:last-child {
+    width: 50%;
+    height: 10px;
+  }
+  .fb-app.is-loading .fb-name,
+  .fb-app.is-loading .fb-sub {
+    width: max-content;
+    max-width: 100%;
+    line-height: 11px;
+  }
+  .fb-app.is-loading .fb-name {
+    min-width: 45%;
+  }
+  .fb-app.is-loading .fb-sub {
+    margin-top: 5px !important;
+    min-width: 70%;
+  }
+  /* Hide the content inside each bone and anything that only makes sense once loaded. */
+  .fb-app.is-loading :is(.fb-avatar, .fb-team-ico, .fb-item > span, .fb-folder-ico, .fb-fileico) > *,
+  .fb-app.is-loading .fb-thumb-inner,
+  .fb-app.is-loading .fb-about,
+  .fb-app.is-loading .fb-team-chev,
+  .fb-app.is-loading .fb-folder-chev,
+  .fb-app.is-loading .fb-star,
+  .fb-app.is-loading .fb-cursors,
+  .fb-app.is-loading .fb-card::after {
+    visibility: hidden;
+  }
+  .fb-app.is-loading :is(.fb-sidebar, .fb-grid) {
+    pointer-events: none;
+  }
+  @keyframes fb-shimmer {
+    from {
+      background-position: 100vw 0;
+    }
+    to {
+      background-position: -100vw 0;
+    }
+  }
+  /* Data fades in once, card by card. */
+  .fb-app.is-ready .fb-card,
+  .fb-app.is-ready .fb-teams,
+  .fb-app.is-ready .fb-folder-title {
+    animation: fb-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 35ms);
+  }
+  @keyframes fb-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  /* Narrow screens: the sidebar becomes a drawer */
+  @media (max-width: 1023px) {
+    .fb-sidebar {
+      position: absolute;
+      inset: 0 auto 0 0;
+      z-index: 30;
+      transform: translateX(-100%);
+      transition: transform 0.22s ease;
+      box-shadow: 6px 0 24px rgba(0, 0, 0, 0.4);
+    }
+    .fb-app.is-drawer .fb-sidebar {
+      transform: none;
+    }
+    .fb-app.is-drawer .fb-scrim {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: block;
+      background: rgba(0, 0, 0, 0.45);
+    }
+    .fb-burger {
+      display: grid;
+    }
+    .fb-topbar {
+      padding-right: 20px;
+    }
+    .fb-content,
+    .fb-viewer {
+      padding: 20px 20px 56px;
+    }
+    .fb-file {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+  }
+  @media (max-width: 719px) {
+    .fb-win,
+    .fb-share,
+    .fb-fav {
+      display: none;
+    }
+    .fb-top-title {
+      display: none;
+    }
+    .fb-folder-head {
+      flex-wrap: wrap;
+      height: auto;
+      gap: 12px;
+      margin-top: 0;
+      margin-bottom: 24px;
+    }
+    .fb-folder-head .fb-spacer {
+      flex-basis: 100%;
+      height: 0;
+    }
+    .fb-grid {
+      grid-template-columns: 1fr;
+    }
+    .fb-grid.is-list .fb-tags {
+      display: none;
+    }
+    .fb-untitled h2 {
+      font-size: 28px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fb-sidebar,
+    .fb-toast,
+    .fb-card::after {
+      transition: none;
+    }
+    .fb-app.is-loading *,
+    .fb-app.is-ready *,
+    .fb-modal[open] {
+      animation: none !important;
+    }
+    .fj-comments {
+      animation: none;
+    }
+  }
+</style>

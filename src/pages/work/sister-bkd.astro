@@ -1,0 +1,726 @@
+---
+// Styled after the NEXTSTEP case study on Behance: light grey canvas, black rounded panels, giant lowercase Urbanist
+// words, outlined lowercase pill tags, lead text that mixes ink and grey, pastel highlight labels and pinned
+// sticky-note cards. Pastels are tinted from SISTER's chart colours. Content comes from the Magang Merdeka
+// SISTER BKD Batch VII final report.
+import { Image } from "astro:assets";
+import Base from "../../layouts/Base.astro";
+import SectionDock from "../../components/SectionDock.astro";
+import { site } from "../../data/site";
+
+import pengabdian from "../../assets/sisterbkd/pengabdian.png";
+import pelaporan from "../../assets/sisterbkd/pelaporan.png";
+import penelitian1 from "../../assets/sisterbkd/penelitian-1.png";
+import kewajiban from "../../assets/sisterbkd/kewajiban.png";
+import kesimpulan from "../../assets/sisterbkd/kesimpulan.png";
+
+// Pastel pairs (background, text) tinted from SISTER's teal, orange, blue and red series.
+const P = {
+  mint: { bg: "#D3F0E4", fg: "#0F6B55" },
+  yellow: { bg: "#FCEFB4", fg: "#8A5A00" },
+  lilac: { bg: "#E2E3FB", fg: "#3B3FA8" },
+  pink: { bg: "#FBDCDD", fg: "#B01D31" },
+  sky: { bg: "#D4E8F8", fg: "#1F6B9C" },
+};
+
+const sections = [
+  { id: "case", t: "Case Study" },
+  { id: "planning", t: "Planning" },
+  { id: "sprints", t: "Execution" },
+  { id: "dashboard", t: "Dashboard" },
+  { id: "learnings", t: "Learnings" },
+];
+
+const pains = [
+  { t: "Hundreds of thousands of reports", d: "BKD collects, analyses and reports workload data from lecturers all over Indonesia." },
+  { t: "Data presented ineffectively", d: "The existing views made it hard to see what the numbers were actually saying." },
+  { t: "Slow, error-prone analysis", d: "Staff struggled to analyse the data quickly and accurately enough to act on it." },
+];
+
+const goals = [
+  "Make BKD data easy to visualise and analyse, so ministry staff and lecturers can spot patterns and trends quickly.",
+  "Keep the data shown on the dashboard accurate, accessible and transparent for every stakeholder.",
+  "Support fast, well-founded decisions for universities and the ministry with integrated data.",
+  "Raise the quality of Ditjen Diktiristek's services for managing higher-education staff.",
+  "Present BKD data as informative graphs and diagrams.",
+  "Add lasting value to SISTER, the integrated resources platform.",
+];
+
+const numbers = [
+  { n: "7", label: "Sprints", d: "From 6 September to 30 December 2024, each one re-scoped after review.", p: P.sky },
+  { n: "25", label: "Epics", d: "The work breakdown, split into charts, tables, filters and interactivity.", p: P.mint },
+  { n: "316", label: "Tasks", d: "Every epic broken down until each task could be tracked on its own.", p: P.yellow },
+];
+
+// tasks: each role's terms of reference. handoff: what that role needed from design.
+const roles = [
+  { r: "Product Manager", p: P.lilac, tilt: "-rotate-2", tasks: ["Led the team", "Timeline, WBS and stakeholder talks", "Kept the project on schedule"], handoff: "Design tasks sized to fit a sprint" },
+  { r: "UI/UX Designer", p: P.mint, tilt: "rotate-1", me: true, tasks: ["Observation research with stakeholders", "Lo-fi to hi-fi prototypes", "Qualitative design evaluation", "Design system and consistency"], handoff: "The source every other role builds from" },
+  { r: "Database Engineer", p: P.sky, tilt: "-rotate-1", tasks: ["Queries for every chart's data", "Tables shaped to the data needs"], handoff: "Which fields and groupings each chart shows" },
+  { r: "Fullstack Developer", p: P.yellow, tilt: "rotate-2", tasks: ["Built features from the stories", "Debugged backend and frontend", "Optimised database queries"], handoff: "Components with every state specified" },
+  { r: "QA Engineer", p: P.pink, tilt: "-rotate-2", tasks: ["Test scenarios and manual testing", "Bug reports", "User acceptance testing"], handoff: "Screens to check each story against" },
+];
+
+const phases = [
+  {
+    tag: "kick-off",
+    t: "Plan with stakeholders, then research per role",
+    d: "The team met stakeholders to understand the goal, then the PM built the timeline and WBS. Each division started its own research: database structure, dev environment, and for design, which visual forms suit this data.",
+    me: "I mapped the multi-layered BKD data to chart types, so the layout followed the data's shape rather than the other way round.",
+    p: P.lilac,
+  },
+  {
+    tag: "sprint 1",
+    t: "Learn Agile on a deliberately light sprint",
+    d: "Most of the team had never worked in Agile, so sprint 1 focused on learning it: daily stand-ups, a prioritised backlog, iterative tasks. The team still finished more than 70% of the sprint.",
+    me: "I validated wireframes with the PM and stakeholders before any hi-fi, so developers never built against an unapproved layout.",
+    p: P.mint,
+  },
+  {
+    tag: "sprints 2–7",
+    t: "Stable delivery with acceptance criteria and a DoD",
+    d: "Every user story got clear acceptance criteria and a specific definition of done. QA could check a story without going back to the developers, and revisions from unclear specs dropped sharply.",
+    me: "I turned approved wireframes into hi-fi screens built from one component set, so a chart specified once could be reused on every tab.",
+    p: P.sky,
+  },
+  {
+    tag: "every sprint",
+    t: "Sprint review and retrospective",
+    d: "Stakeholders reviewed finished features directly, so the backlog could follow changing priorities. Retrospectives turned blockers into process fixes.",
+    me: "I fed review feedback into the next sprint's designs as backlog items, not as last-minute changes to stories already in build.",
+    p: P.yellow,
+  },
+  {
+    tag: "close-out",
+    t: "Present, revise, merge to staging",
+    d: "The team presented the result to stakeholders, who gave final feedback and handover instructions. After a last revision, the work went through a merge request into staging.",
+    me: "I made the final revisions from the stakeholder presentation before the merge into staging.",
+    p: P.pink,
+  },
+];
+
+const ceremonies = ["daily stand-up", "backlog refinement", "acceptance criteria", "definition of done", "sprint review", "retrospective"];
+
+const tabs = [
+  { t: "Penelitian Dosen", img: penelitian1, d: "Nine research components behind one row of toggle chips." },
+  { t: "Pengabdian Dosen", img: pengabdian, d: "Community-service output: published and unpublished journals, and journal management." },
+  { t: "Pelaporan BKD", img: pelaporan, d: "Who has reported their workload and who hasn't, across every distribution." },
+  { t: "Kesimpulan LKD BKD", img: kesimpulan, d: "The final verdict on each workload report: met or not met." },
+  { t: "Kewajiban Khusus", img: kewajiban, d: "Special obligations in three states: met, not yet met and not met." },
+];
+
+const research = [
+  "Published research or thinking",
+  "Disseminated research or thinking",
+  "Ministry / LPNK research, unpublished",
+  "Translated or adapted scientific books",
+  "Edited scientific works",
+  "Technology designs registered with HaKI",
+  "Unpublished work applied in industry",
+  "Policy briefs and policy papers",
+  "Unpatented technology presented at a forum",
+];
+
+const distributions = [
+  { t: "Lokasi PT", chips: ["Choropleth map", "Search"], p: P.mint },
+  { t: "Usia Dosen", chips: ["Baby Boomer", "Gen X", "Millennial", "Gen Z"], p: P.yellow },
+  { t: "Jenis PT", chips: ["Akademik", "Vokasi"], p: P.sky },
+  { t: "Akreditasi PT", chips: ["Unggul", "Baik Sekali", "Baik", "A", "B", "C"], p: P.pink },
+  { t: "Status PT", chips: ["PTN-BH", "PTN-BLU", "PTN-SATKER", "PTN", "PTS · LLDIKTI 1–17", "PT-KL", "PTA"], p: P.lilac },
+];
+
+// Each interaction written as a spec: trigger, then what the chart does.
+const features = [
+  { icon: "cursor", t: "Hover", d: "On hover, any bar, slice or province shows its detail and extra notes in a tooltip. No click, no page change.", p: P.mint },
+  { icon: "download", t: "Download", d: "Every chart exports as JPG, PNG or PDF; table data exports as PDF. One menu, same place on every card.", p: P.yellow },
+  { icon: "filter", t: "Filter", d: "A year filter scopes the whole dashboard; Status PT adds an institution-type filter of its own.", p: P.sky },
+  { icon: "search", t: "Search", d: "The location and status charts take a search, jumping straight to a province or a university.", p: P.pink },
+];
+
+// How the design was made buildable. The template and component ideas come from the screens themselves.
+const decisions = [
+  { t: "One template, 13 tabs", d: "Every tab uses the same frame: year filter, five distribution charts, then the table. Developers build it once and fill it 13 times.", p: P.mint },
+  { t: "States are part of the component", d: "Tooltips, active and dimmed pie slices, and per-series callouts were designed as components, so behaviour is specified once, not per screen.", p: P.lilac },
+  { t: "Specs QA can test", d: "Each user story carried acceptance criteria and a definition of done, so QA could check a story without going back to the developers.", p: P.yellow },
+];
+
+const learnings = [
+  { t: "Design in components, not screens", d: "Thirteen tabs only stayed consistent because the parts were shared. A layout fixed once was fixed everywhere." },
+  { t: "Acceptance criteria are design work", d: "Clear criteria and a definition of done on every story meant far less work was redone because of an unclear spec." },
+  { t: "Learn the team's process early", d: "Nobody had used Agile before. Spending sprint 1 learning it still delivered over 70% of the sprint, and every sprint after was steadier." },
+];
+
+const recs = [
+  { t: "Top 10 Asesor, with better indicators", d: "Proposed in batch 7 to list each assessor's origin, mentor and number of assessments. Paused: ranking by count ignores whether the assessments led to good performance.", p: P.yellow },
+  { t: "A dashboard for each university", d: "Roles per university, such as admins or deans, so each sees its own lecturers' reporting, obligations, community service and research.", p: P.mint },
+];
+
+const icons: Record<string, string> = {
+  cursor: '<path d="m4 4 7 17 2.5-7.5L21 11 4 4Z"/>',
+  download: '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/>',
+  filter: '<path d="M3 4h18l-7 8.5V19l-4 2v-8.5L3 4Z"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  check: '<path d="m6 12 4 4 8-8"/>',
+  alert: '<path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/>',
+  arrow: '<path d="M7 17 17 7M8 7h9v9"/>',
+};
+---
+
+<Base
+  brand={{ accent: "#137A63", accentSoft: "#D3F0E4", pop: "#D3F0E4" }}
+  title={`SISTER BKD case study | ${site.name}`}
+  description="Case study: designing the SISTER BKD dashboard as a buildable system, one template, shared chart components and testable specs, for Indonesia's higher-education ministry."
+>
+  <div class="ns">
+    <!-- HERO -->
+    <section class="px-2 pt-20 sm:px-4 sm:pt-24">
+      <div class="relative isolate overflow-hidden rounded-[28px] bg-[linear-gradient(160deg,#d3f0e4_0%,#e6f1fa_55%,#f3f3f5_100%)] px-5 pb-10 pt-6 sm:px-10 sm:pb-14">
+        <div class="flex flex-wrap items-start justify-between gap-3 text-sm font-medium">
+          <p>//Role: UI/UX Designer · UX engineering</p>
+          <p class="flex gap-6"><span>//Type: Government dashboard</span><span>//Year: 2024</span></p>
+        </div>
+
+        <div class="mt-14 grid items-end gap-10 lg:mt-20 lg:grid-cols-[1fr_1.15fr]">
+          <div>
+            <h1 class="ns-giant text-[clamp(5rem,15vw,12.5rem)]" data-intro>
+              <span class="block">sister</span>
+              <span class="block">bkd<span class="text-[#137a63]">.</span></span>
+            </h1>
+            <p class="mt-6 max-w-md text-lg leading-snug" data-reveal="0.3">
+              A lecturer-workload dashboard for Indonesia's higher-education ministry. I designed it as a system the team could build: one template, shared chart components, specs QA could test.
+            </p>
+          </div>
+
+          <!-- laptop mockup -->
+          <div class="relative" data-reveal="0.3">
+            <div class="rounded-t-[18px] bg-[#1c1c1e] p-2 pb-3 shadow-[0_40px_80px_-30px_rgb(0_0_0/0.5)] sm:p-3">
+              <Image src={pengabdian} alt="SISTER BKD dashboard, Pengabdian Dosen tab, with an Indonesia map and a hover tooltip" widths={[700, 1200]} sizes="(min-width:1024px) 640px, 92vw" class="aspect-[16/10] w-full rounded-[8px] object-cover object-top" loading="eager" />
+            </div>
+            <div class="mx-[-4%] h-3 rounded-b-[14px] bg-[linear-gradient(#d4d4d8,#a1a1aa)]"></div>
+
+            <div data-float="8" class="absolute -left-4 top-[18%] hidden items-center gap-3 rounded-2xl bg-white/90 px-4 py-3 shadow-xl backdrop-blur sm:flex">
+              <span class="grid size-9 place-items-center rounded-full" style={`background:${P.mint.bg};color:${P.mint.fg}`}>
+                <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" set:html={icons.check} />
+              </span>
+              <span class="text-sm leading-tight"><b class="font-semibold">Merged to staging</b><br /><span class="text-[#8e8e93]">after 7 sprints</span></span>
+            </div>
+            <div data-float="10" class="absolute -right-3 bottom-[22%] hidden rounded-2xl bg-white/90 px-4 py-3 shadow-xl backdrop-blur md:block">
+              <p class="text-xs text-[#8e8e93]">Shipped</p>
+              <p class="text-2xl font-semibold leading-none">13 <span class="text-sm font-medium">tabs</span></p>
+            </div>
+          </div>
+        </div>
+
+        <a href="#case" class="mx-auto mt-10 grid size-14 place-items-center rounded-full bg-[#161616] text-white transition-transform hover:translate-y-1" aria-label="Scroll to the case study">
+          <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="case" class="ns-anchor wrap pt-24 sm:pt-32">
+      <div class="grid gap-8 rounded-[28px] bg-white p-7 sm:p-12 lg:grid-cols-[1fr_2fr]">
+        <p class="font-medium">About the project</p>
+        <p class="ns-lead text-[clamp(1.6rem,3vw,2.5rem)]" data-reveal>
+          My job was not only to make BKD data readable, but to make the design
+          {" "}<span class="g">buildable, repeatable and testable</span>{" "}
+          for a database engineer, fullstack developers and QA, sprint after sprint, across 13 tabs.
+        </p>
+      </div>
+
+      <div class="mt-4 grid gap-4 lg:grid-cols-[1fr_1.1fr]">
+        <!-- visual with floating issue cards -->
+        <div class="relative min-h-[26rem] overflow-hidden rounded-[28px] bg-[#e4e4e8]" data-reveal>
+          <Image src={kesimpulan} alt="" widths={[600, 1000]} sizes="(min-width:1024px) 600px, 92vw" class="absolute inset-0 size-full object-cover object-top opacity-60 blur-[1.5px]" />
+          <div class="relative flex h-full flex-col justify-between gap-6 p-5 sm:p-7">
+            {pains.map((p, i) => (
+              <div class={`max-w-[17rem] rounded-2xl bg-white/85 p-4 shadow-lg backdrop-blur ${i === 1 ? "self-end" : ""}`}>
+                <p class="flex items-center gap-2 font-semibold">
+                  <span class="grid size-7 shrink-0 place-items-center rounded-lg" style={`background:${P.pink.bg};color:${P.pink.fg}`}>
+                    <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={icons.alert} />
+                  </span>
+                  {p.t}
+                </p>
+                <p class="mt-1.5 text-sm text-[#6e6e73]">{p.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="grid gap-4" data-stagger>
+          <div class="grid gap-4 rounded-[24px] bg-white p-6 sm:grid-cols-[7rem_1fr]">
+            <span class="ns-tag h-fit">problem</span>
+            <div>
+              <p class="font-semibold">BKD data was hard to read, and slow to act on.</p>
+              <p class="mt-2 text-[#8e8e93]">Kemdiktisaintek manages lecturers' workload across every Indonesian university. The data existed, but the way it was presented made patterns hard to see.</p>
+            </div>
+          </div>
+          <div class="grid gap-4 rounded-[24px] bg-white p-6 sm:grid-cols-[7rem_1fr]">
+            <span class="ns-tag h-fit">objective</span>
+            <div>
+              <p class="font-semibold">Make BKD data easy to visualise, analyse and trust.</p>
+              <ol class="mt-3 space-y-1.5 text-sm text-[#8e8e93]">
+                {goals.map((g, i) => <li class="flex gap-2"><span class="font-semibold text-[#161616]">{i + 1}.</span>{g}</li>)}
+              </ol>
+            </div>
+          </div>
+          <div class="grid gap-4 rounded-[24px] bg-white p-6 sm:grid-cols-[7rem_1fr]">
+            <span class="ns-tag h-fit">my approach</span>
+            <div>
+              <p class="font-semibold">Design the system once, then fill it 13 times.</p>
+              <p class="mt-2 text-[#8e8e93]">One page template with the same five data distributions on every tab, chart components with their states built in, and four interactions (hover, download, filter, search) specified once.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- statement card -->
+      <div class="relative mt-24 sm:mt-32">
+        <div class="rounded-[28px] bg-[#161616] text-white">
+          <div class="mx-auto max-w-3xl px-8 py-12 text-center sm:px-14 sm:py-16" data-reveal>
+            <span class="block font-serif text-6xl leading-none" aria-hidden="true">“</span>
+            <p class="mt-2 text-xl italic leading-snug sm:text-2xl">
+              Ditjen Diktiristek decided to build a dashboard into SISTER, so users could
+              {" "}<span class="text-[#bdeed8]">see the patterns, trends and important details in BKD data</span>{" "}
+              without digging for them.
+            </p>
+            <p class="mt-8 text-[#8e8e93]">— The initiative</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLANNING -->
+    <section id="planning" class="ns-anchor wrap pt-24 sm:pt-32">
+      <h2 class="ns-giant text-[clamp(4.5rem,19vw,16rem)]" data-reveal>planning</h2>
+      <div class="mt-10 grid gap-6 lg:grid-cols-[2fr_1fr] lg:items-end">
+        <div>
+          <span class="ns-tag">work plan</span>
+          <p class="mt-5 max-w-2xl text-[clamp(1.6rem,3vw,2.4rem)] leading-tight">Design work had to fit the same plan as the build.</p>
+        </div>
+        <p class="text-[#8e8e93] lg:pb-1">The PM's timeline and work breakdown set the pace. My design tasks sat inside those epics, so every screen had a story and a sprint it belonged to.</p>
+      </div>
+
+      <!-- numbers -->
+      <ul class="mt-14 grid overflow-hidden rounded-[28px] bg-white sm:grid-cols-3" data-stagger>
+        {numbers.map((s, i) => (
+          <li class={`flex flex-col p-6 sm:p-8 ${i ? "border-t border-[#ececf0] sm:border-l sm:border-t-0" : ""}`}>
+            <p class="text-[clamp(3.5rem,6vw,5rem)] font-medium leading-none tracking-[-0.05em]">{s.n}</p>
+            <span class="mt-4 w-fit rounded-md px-2.5 py-1 font-medium" style={`background:${s.p.bg}`}>{s.label}</span>
+            <p class="mt-3 text-sm text-[#8e8e93]">{s.d}</p>
+          </li>
+        ))}
+      </ul>
+
+      <div class="mt-4 grid gap-4 lg:grid-cols-2">
+        <!-- timeline -->
+        <div class="flex flex-col rounded-[28px] bg-white p-6 sm:p-8" data-reveal>
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <p class="text-xl font-semibold">Project timeline</p>
+            <span class="ns-tag">7 sprints</span>
+          </div>
+          <div class="mt-8 flex flex-1 flex-col overflow-x-auto">
+            <div class="flex min-w-[30rem] flex-1 flex-col">
+              <ol class="grid min-h-28 flex-1 grid-cols-7 gap-2">
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <li class="flex items-end justify-center rounded-2xl px-2 py-4 font-semibold tabular-nums" style={`background:${i === 0 ? P.mint.bg : i === 6 ? P.pink.bg : P.sky.bg};color:${i === 0 ? P.mint.fg : i === 6 ? P.pink.fg : P.sky.fg}`}>
+                    S{i + 1}
+                  </li>
+                ))}
+              </ol>
+              <div class="mt-3 grid grid-cols-7 gap-2 text-sm">
+                <p class="border-t-2 pt-2" style={`border-color:${P.mint.fg}`}>Agile onboarding</p>
+                <p class="col-span-5 border-t-2 pt-2" style={`border-color:${P.sky.fg}`}>Iterative delivery</p>
+                <p class="border-t-2 pt-2" style={`border-color:${P.pink.fg}`}>Review, staging</p>
+              </div>
+              <div class="flex justify-between pt-6 text-sm text-[#8e8e93]">
+                <span>6 Sep 2024 · kick-off</span>
+                <span>30 Dec 2024 · close-out</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- work breakdown: project → epics → tasks -->
+        <div class="flex flex-col rounded-[28px] bg-white p-6 sm:p-8" data-reveal="0.1">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <p class="text-xl font-semibold">Work breakdown</p>
+            <span class="ns-tag">WBS</span>
+          </div>
+          <ol class="mt-8 ml-2 flex-1 space-y-6 border-l-2 border-dashed border-[#d4d4d8] pl-6">
+            <li class="relative">
+              <span class="absolute -left-[1.95rem] top-1 size-3 rounded-full bg-[#161616]" aria-hidden="true"></span>
+              <p class="text-sm text-[#8e8e93]">Dashboard features · <b class="font-semibold text-[#161616]">{tabs.length}</b></p>
+              <ul class="mt-2 flex flex-wrap gap-1.5">
+                {tabs.map((t) => <li class="rounded-full bg-[#161616] px-3 py-1.5 text-sm text-white">{t.t}</li>)}
+              </ul>
+            </li>
+            <li class="relative">
+              <span class="absolute -left-[1.95rem] top-1 size-3 rounded-full" style={`background:${P.mint.fg}`} aria-hidden="true"></span>
+              <p class="text-sm text-[#8e8e93]">Epics · <b class="font-semibold text-[#161616]">25</b></p>
+              <ul class="mt-2 grid grid-cols-[repeat(25,minmax(0,1fr))] gap-1" aria-label="25 epics" data-wbs-epics>
+                {Array.from({ length: 25 }).map(() => <li class="aspect-square rounded-[3px]" style={`background:${P.mint.bg};box-shadow:inset 0 0 0 1px ${P.mint.fg}33`}></li>)}
+              </ul>
+            </li>
+            <li class="relative">
+              <span class="absolute -left-[1.95rem] top-1 size-3 rounded-full" style={`background:${P.sky.fg}`} aria-hidden="true"></span>
+              <p class="text-sm text-[#8e8e93]">Tasks · <b class="font-semibold text-[#161616]">316</b></p>
+              <ul class="mt-2 flex flex-wrap gap-1" aria-label="316 tasks" data-wbs-tasks>
+                {Array.from({ length: 316 }).map(() => <li class="size-1.5 rounded-full" style={`background:${P.sky.fg}99`}></li>)}
+              </ul>
+            </li>
+          </ol>
+          <p class="mt-6 flex flex-wrap items-center gap-2 text-sm text-[#8e8e93]">
+            Epics cover:
+            {["charts", "tables", "filters", "interactivity"].map((t) => <span class="ns-tag text-[#161616]">{t}</span>)}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEAM (dark) -->
+    <section class="mx-2 mt-24 rounded-[28px] bg-[#161616] py-20 text-white sm:mx-4 sm:mt-32 sm:py-28">
+      <div class="wrap">
+        <h2 class="ns-giant text-[clamp(4.5rem,19vw,16rem)] text-[#bdeed8]" data-reveal>team</h2>
+        <div class="mt-6 grid gap-8 lg:grid-cols-[2fr_1fr] lg:items-start">
+          <p class="ns-lead text-[clamp(1.4rem,2.6vw,2.1rem)]" data-reveal="0.1">
+            {" "}<span class="g">Every role built from what design handed over,</span>{" "}
+            so I designed for four audiences at once: the PM, the database, the code and the tests.
+          </p>
+          <p class="text-sm text-[#8e8e93]">Five roles, part of a 16-person internship team. "Needs from design" is how I worked with each one.</p>
+        </div>
+
+        <div class="mt-14 flex flex-wrap items-center justify-between gap-4 rounded-2xl px-5 py-4 ring-1 ring-white/25">
+          <p class="flex items-center gap-3">
+            <span class="grid size-10 place-items-center rounded-lg font-semibold text-[#0f6b55]" style={`background:${P.mint.bg}`}>02</span>
+            <span><b class="block font-semibold">UI/UX Designer</b><span class="text-sm text-[#8e8e93]">My role on the team</span></span>
+          </p>
+          <p class="max-w-md italic text-white/85">“If a developer has to guess a state, the design isn't finished.”</p>
+        </div>
+
+        <ul class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-5" data-stagger>
+          {roles.map((r) => (
+            <li class={`relative rounded-[22px] bg-white p-2 shadow-2xl ${r.tilt}`}>
+              <span class="absolute -top-3 left-1/2 size-6 -translate-x-1/2 rounded-full shadow-md" style={`background:radial-gradient(circle at 35% 30%,#fff8,transparent 45%),${r.p.fg}`} aria-hidden="true"></span>
+              <div class="h-full rounded-[16px] p-5" style={`background:${r.p.bg};color:#161616`}>
+                <p class="text-xl font-semibold leading-tight">{r.r}</p>
+                {r.me && <p class="mt-1 text-sm font-semibold" style={`color:${r.p.fg}`}>That's me.</p>}
+                <div class="my-4 border-t-2 border-dashed" style={`border-color:${r.p.fg}40`}></div>
+                <ul class="space-y-2 text-sm">
+                  {r.tasks.map((t) => (
+                    <li class="flex gap-2">
+                      <span class="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full text-white" style={`background:${r.p.fg}`}>
+                        <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" set:html={icons.check} />
+                      </span>
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+                <div class="mt-4 rounded-xl bg-white/70 p-3 text-sm">
+                  <p class="text-xs font-semibold" style={`color:${r.p.fg}`}>{r.me ? "My output" : "Needs from design"}</p>
+                  <p class="mt-1">{r.handoff}</p>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <!-- EXECUTION -->
+    <section id="sprints" class="ns-anchor wrap pt-24 sm:pt-32">
+      <h2 class="ns-giant text-[clamp(4.5rem,19vw,16rem)]" data-reveal>sprints</h2>
+      <div class="mt-8 grid gap-8 lg:grid-cols-[2fr_1fr] lg:items-end">
+        <p class="ns-lead text-[clamp(1.4rem,2.6vw,2.1rem)]" data-reveal="0.1">
+          In Agile, design can't be a phase before the build.
+          {" "}<span class="g">It ships alongside it, one small part of the product per sprint, reviewed by stakeholders every time.</span>{" "}
+        </p>
+        <ul class="flex flex-wrap gap-2">
+          {ceremonies.map((c) => <li class="ns-tag">{c}</li>)}
+        </ul>
+      </div>
+
+      <ol class="mt-14 space-y-4">
+        {phases.map((p, i) => (
+          <li class="grid gap-6 rounded-[24px] bg-white p-6 sm:p-8 lg:grid-cols-[4rem_1.6fr_1fr]" data-reveal>
+            <span class="grid size-12 place-items-center rounded-xl text-lg font-semibold" style={`background:${p.p.bg};color:${p.p.fg}`}>{String(i + 1).padStart(2, "0")}</span>
+            <div>
+              <span class="ns-tag">{p.tag}</span>
+              <p class="mt-3 text-2xl font-semibold leading-tight">{p.t}</p>
+              <p class="mt-2 text-[#8e8e93]">{p.d}</p>
+            </div>
+            <div class="self-start rounded-2xl p-5" style={`background:${p.p.bg}`}>
+              <p class="text-sm font-semibold" style={`color:${p.p.fg}`}>What I did</p>
+              <p class="mt-1.5">{p.me}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="ns-anchor wrap pt-24 sm:pt-32">
+      <p class="ns-lead mx-auto max-w-4xl text-center text-[clamp(1.7rem,3.6vw,3rem)]" data-reveal>
+        Five very different datasets,
+        {" "}<span class="g">reporting, research, community service, conclusions and special obligations,</span>{" "}
+        one frame to build them all on.
+      </p>
+
+      <ol class="mt-14 grid gap-4 md:grid-cols-3" data-stagger>
+        {decisions.map((d, i) => (
+          <li class="rounded-[24px] bg-white p-6 sm:p-7">
+            <div class="flex items-center justify-between">
+              <span class="ns-tag">decision 0{i + 1}</span>
+              <span class="size-3 rounded-full" style={`background:${d.p.fg}`}></span>
+            </div>
+            <p class="mt-6 text-2xl font-semibold leading-tight">{d.t}</p>
+            <p class="mt-2 text-[#8e8e93]">{d.d}</p>
+          </li>
+        ))}
+      </ol>
+
+      <div class="mt-14 rounded-[28px] bg-[linear-gradient(160deg,#e2e3fb,#d4e8f8_60%,#d3f0e4)] p-3 sm:p-8" data-bkd-tabs data-reveal>
+        <div class="mx-auto flex w-fit max-w-full gap-1 overflow-x-auto rounded-full bg-white p-1.5" role="tablist" aria-label="Dashboard tabs">
+          {tabs.map((t, i) => (
+            <button
+              type="button"
+              role="tab"
+              id={`bkd-tab-${i}`}
+              aria-controls={`bkd-panel-${i}`}
+              aria-selected={i === 0 ? "true" : "false"}
+              tabindex={i === 0 ? 0 : -1}
+              class="ns-seg shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium"
+            >
+              {t.t}
+            </button>
+          ))}
+        </div>
+        <!-- monitor mockup -->
+        <div class="mx-auto mt-6 max-w-5xl">
+          <div class="rounded-[18px] bg-[#1c1c1e] p-2 sm:p-3">
+            {tabs.map((t, i) => (
+              <div role="tabpanel" id={`bkd-panel-${i}`} aria-labelledby={`bkd-tab-${i}`} hidden={i !== 0}>
+                <div class="max-h-[34rem] overflow-y-auto rounded-[10px] bg-white">
+                  <Image src={t.img} alt={`${t.t} tab of the SISTER BKD dashboard`} widths={[800, 1400]} sizes="(min-width:1100px) 1000px, 92vw" class="w-full" />
+                </div>
+                <p class="px-2 pt-3 text-center text-sm text-white/70">{t.d}</p>
+              </div>
+            ))}
+          </div>
+          <div class="mx-auto h-8 w-24 bg-[linear-gradient(#a1a1aa,#d4d4d8)] [clip-path:polygon(15%_0,85%_0,100%_100%,0_100%)]"></div>
+          <div class="mx-auto h-2 w-48 rounded-full bg-[#a1a1aa]"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="wrap pt-24 sm:pt-32">
+      <h2 class="ns-giant text-center text-[clamp(4.5rem,17vw,14rem)]" data-reveal>features</h2>
+      <p class="ns-lead mx-auto mt-6 max-w-3xl text-center text-[clamp(1.4rem,2.6vw,2.1rem)]" data-reveal="0.1">
+        {" "}<span class="g">13 tabs, 5 data distributions and 4 interactions,</span>{" "}
+        each specified once, so staff learn it once and developers build it once.
+      </p>
+
+      <div class="mt-16 grid gap-4 lg:grid-cols-6">
+        <!-- 13 tabs -->
+        <div class="rounded-[28px] bg-white p-6 sm:p-8 lg:col-span-3" data-reveal>
+          <div class="flex items-center justify-between gap-4">
+            <p class="ns-clip text-7xl">13</p>
+            <span class="ns-tag">tabs</span>
+          </div>
+          <ul class="mt-4 flex flex-wrap gap-2">
+            {["Pelaporan BKD", "Kewajiban Khusus", "Kesimpulan LKD BKD", "Pengabdian Dosen"].map((t) => (
+              <li class="rounded-full bg-[#161616] px-3 py-1.5 text-sm text-white">{t}</li>
+            ))}
+          </ul>
+          <p class="mt-6 text-sm font-semibold">Penelitian Dosen · 9 components</p>
+          <ol class="mt-3 grid gap-x-4 gap-y-1.5 text-sm text-[#6e6e73] sm:grid-cols-2">
+            {research.map((r, i) => <li class="flex gap-2"><span class="font-semibold text-[#161616]">{i + 1}.</span>{r}</li>)}
+          </ol>
+        </div>
+
+        <!-- distributions -->
+        <div class="rounded-[28px] bg-white p-6 sm:p-8 lg:col-span-3" data-reveal="0.1">
+          <div class="flex items-center justify-between gap-4">
+            <p class="ns-clip text-7xl">5</p>
+            <span class="ns-tag">distributions</span>
+          </div>
+          <ul class="mt-4 divide-y divide-[#ececf0]">
+            {distributions.map((d) => (
+              <li class="grid gap-2 py-3 sm:grid-cols-[8.5rem_1fr]">
+                <span class="w-fit rounded-md px-2 py-0.5 font-medium" style={`background:${d.p.bg}`}>{d.t}</span>
+                <span class="flex flex-wrap gap-1.5">
+                  {d.chips.map((c) => <span class="rounded-full px-2 py-0.5 text-xs ring-1 ring-[#d4d4d8]">{c}</span>)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- 4 features -->
+        {features.map((f, i) => (
+          <div class="flex flex-col justify-between gap-8 rounded-[28px] p-6 lg:col-span-3" style={`background:${f.p.bg}`} data-reveal={i * 0.05}>
+            <div class="flex items-center justify-between">
+              <span class="grid size-11 place-items-center rounded-full bg-[#161616] text-white">
+                <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={icons[f.icon]} />
+              </span>
+              <span class="text-sm" style={`color:${f.p.fg}`}>\\ spec 0{i + 1}</span>
+            </div>
+            <div>
+              <p class="text-3xl font-semibold">{f.t}</p>
+              <p class="mt-2 text-[#3a3a3c]">{f.d}</p>
+            </div>
+          </div>
+        ))}
+
+      </div>
+    </section>
+
+    <!-- LEARNINGS (dark) -->
+    <section id="learnings" class="ns-anchor mx-2 mt-24 rounded-[28px] bg-[#161616] py-20 text-white sm:mx-4 sm:mt-32 sm:py-28">
+      <div class="wrap">
+        <h2 class="ns-giant text-[clamp(4.5rem,17vw,14rem)] text-[#bdeed8]" data-reveal>learnings</h2>
+        <p class="ns-lead mt-6 max-w-3xl text-[clamp(1.4rem,2.6vw,2.1rem)]" data-reveal="0.1">
+          What I'd bring to the next build:
+          {" "}<span class="g">design that ships as parts, specs and criteria, not just screens.</span>
+        </p>
+        <ol class="mt-14 grid gap-4 md:grid-cols-3" data-stagger>
+          {learnings.map((l, i) => (
+            <li class="rounded-[24px] p-6 ring-1 ring-white/20 sm:p-7">
+              <span class="ns-tag !text-white !ring-white/40">0{i + 1}</span>
+              <p class="mt-6 text-2xl font-semibold leading-tight">{l.t}</p>
+              <p class="mt-3 text-[#a1a1a6]">{l.d}</p>
+            </li>
+          ))}
+        </ol>
+
+        <div class="mt-20 flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <span class="ns-tag !text-white !ring-white/40">next batch</span>
+            <p class="mt-4 max-w-xl text-[clamp(1.6rem,3vw,2.4rem)] leading-tight">Two recommendations for whoever picks this up.</p>
+          </div>
+        </div>
+        <div class="mt-8 grid gap-4 md:grid-cols-2" data-stagger>
+          {recs.map((r) => (
+            <div class="rounded-[24px] p-7 text-[#161616] sm:p-8" style={`background:${r.p.bg}`}>
+              <p class="text-2xl font-semibold leading-tight">{r.t}</p>
+              <p class="mt-3 text-[#3a3a3c]">{r.d}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- NEXT -->
+    <section class="wrap py-24">
+      <a href="/work/sia" class="group relative flex flex-col justify-between gap-10 overflow-hidden rounded-[28px] bg-white p-8 sm:flex-row sm:items-end sm:p-12" data-reveal>
+        <div>
+          <span class="ns-tag">next case study</span>
+          <p class="ns-giant mt-6 text-[clamp(5rem,14vw,11rem)]">sia<span class="text-[#137a63]">.</span></p>
+          <p class="mt-4 max-w-md text-[#8e8e93]">A web accounting and audit system for Tata Data Global.</p>
+        </div>
+        <span class="grid size-16 shrink-0 place-items-center rounded-full bg-[#161616] text-white transition-transform group-hover:rotate-45">
+          <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={icons.arrow} />
+        </span>
+      </a>
+    </section>
+
+    <!-- segmented section nav, like the reference's tab bar (shared by every case study) -->
+    <SectionDock sections={sections} />
+  </div>
+</Base>
+
+<style>
+  .ns {
+    font-family: "Urbanist", var(--font-sans);
+    background: #f3f3f5;
+    color: #161616;
+  }
+  :global(body:has(.ns)) {
+    background: #f3f3f5;
+  }
+  .ns-giant {
+    font-family: "Urbanist", sans-serif;
+    font-weight: 500;
+    line-height: 0.82;
+    letter-spacing: -0.055em;
+    padding-bottom: 0.14em; /* room for descenders (p, g) */
+  }
+  .ns-lead {
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: pretty;
+  }
+  .ns-lead .g {
+    color: #a1a1a6;
+  }
+  section.bg-\[\#161616\] .ns-lead .g {
+    color: #6e6e73;
+  }
+  .ns-tag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    box-shadow: inset 0 0 0 1.5px currentColor;
+  }
+  /* Big numbers sliced off at the baseline, like the reference's stat blocks. */
+  .ns-clip {
+    height: 0.74em;
+    overflow: hidden;
+    font-weight: 500;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+  }
+  .ns-anchor {
+    scroll-margin-top: 5rem;
+  }
+  .ns-seg {
+    color: #8e8e93;
+    transition: background 0.2s, color 0.2s;
+  }
+  .ns-seg:hover {
+    color: #161616;
+  }
+  .ns-seg[aria-selected="true"],
+  .ns-seg[aria-current="true"] {
+    background: #161616;
+    color: #fff;
+  }
+</style>
+
+<script>
+  // Dashboard tabs switch screens. Re-runs after client-side navigation. (The section bar is SectionDock.)
+  function init() {
+    document.querySelectorAll<HTMLElement>("[data-bkd-tabs]").forEach((root) => {
+      if (root.dataset.ready) return;
+      root.dataset.ready = "1";
+      const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+      const select = (i: number) => {
+        tabs.forEach((t, j) => {
+          t.setAttribute("aria-selected", String(i === j));
+          t.tabIndex = i === j ? 0 : -1;
+        });
+        panels.forEach((p, j) => (p.hidden = i !== j));
+      };
+      tabs.forEach((t, i) => {
+        t.addEventListener("click", () => select(i));
+        t.addEventListener("keydown", (e) => {
+          const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+          if (!step) return;
+          const n = (i + step + tabs.length) % tabs.length;
+          select(n);
+          tabs[n].focus();
+        });
+      });
+    });
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

@@ -1,0 +1,52 @@
+---
+// Landing-page cover for SISTER BKD, in the case study's own look: light grey canvas, giant lowercase Urbanist
+// wordmark, the real dashboard in a laptop frame and a few floating cards.
+import { Image } from "astro:assets";
+import pengabdian from "../assets/sisterbkd/pengabdian.png";
+
+interface Props {
+  class?: string;
+}
+const { class: cls = "" } = Astro.props;
+---
+
+<div class={`sc relative isolate aspect-[4/3] overflow-hidden rounded-[28px] ring-1 ring-line ${cls}`} style="container-type: inline-size">
+  <div class="absolute inset-x-[5%] top-[5%] flex justify-between text-[2.6cqw] font-medium text-[#161616]">
+    <span>//UI/UX · UX engineering</span>
+    <span>//2024</span>
+  </div>
+
+  <p class="sc-giant absolute left-[5%] top-[13%] text-[19cqw]">sister<br />bkd<span class="text-[#137a63]">.</span></p>
+
+  <!-- laptop -->
+  <div class="absolute -right-[6%] bottom-[9%] w-[62%]">
+    <div class="rounded-t-[2cqw] bg-[#1c1c1e] p-[1cqw] pb-[1.4cqw] shadow-[0_4cqw_8cqw_-3cqw_rgb(0_0_0/0.45)]">
+      <Image src={pengabdian} alt="SISTER BKD dashboard, Pengabdian Dosen tab" widths={[500, 900]} sizes="(min-width:768px) 22vw, 60vw" class="aspect-[16/10] w-full rounded-[0.8cqw] object-cover object-top" />
+    </div>
+    <div class="-mx-[4%] h-[1.6cqw] rounded-b-[1.4cqw] bg-[linear-gradient(#d4d4d8,#a1a1aa)]"></div>
+  </div>
+
+  <div class="absolute bottom-[10%] left-[5%] flex flex-col gap-[1.6cqw]">
+    <span class="flex w-fit items-center gap-[1.4cqw] rounded-[2.4cqw] bg-white px-[2.4cqw] py-[1.6cqw] text-[2.8cqw] text-[#161616] shadow-lg" data-float="8">
+      <span class="grid size-[4cqw] place-items-center rounded-full bg-[#d3f0e4] text-[#0f6b55]">✓</span>
+      Merged to staging
+    </span>
+    <span class="w-fit rounded-[2.4cqw] bg-white px-[2.4cqw] py-[1.4cqw] text-[2.6cqw] text-[#161616] shadow-lg" data-float="10">
+      <b class="text-[5cqw] font-semibold">13</b> tabs · <b class="font-semibold">7</b> sprints
+    </span>
+  </div>
+</div>
+
+<style>
+  .sc {
+    background: linear-gradient(160deg, #d3f0e4 0%, #e6f1fa 55%, #f3f3f5 100%);
+    font-family: "Urbanist", var(--font-sans);
+  }
+  .sc-giant {
+    font-family: "Urbanist", sans-serif;
+    font-weight: 500;
+    line-height: 0.82;
+    letter-spacing: -0.055em;
+    color: #161616;
+  }
+</style>

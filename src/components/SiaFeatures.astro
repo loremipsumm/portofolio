@@ -1,0 +1,364 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+import signIn from "../assets/sia/sign-in.png";
+import signupError from "../assets/sia/signup-error.png";
+import forgotOtp from "../assets/sia/forgot-otp.png";
+import dashboard from "../assets/sia/dashboard.png";
+import dashboardProject from "../assets/sia/dashboard-project.png";
+import dashboardEmpty from "../assets/sia/dashboard-empty.png";
+import accessControl from "../assets/sia/access-control.png";
+import requestAccess from "../assets/sia/user-request-access.png";
+import profile from "../assets/sia/profile.png";
+import changePassword from "../assets/sia/change-password.png";
+import ledger from "../assets/sia/general-ledger.png";
+import worksheet from "../assets/sia/worksheet.png";
+import addAccount from "../assets/sia/add-account.png";
+import journal from "../assets/sia/journal.png";
+import journalDetail from "../assets/sia/journal-detail.png";
+import balance from "../assets/sia/balance-sheet.png";
+import income from "../assets/sia/income-statement.png";
+
+type Shot = { src: ImageMetadata; alt: string; caption?: string; tall?: boolean; small?: boolean };
+type Feature = {
+  id: string;
+  modules: string[];
+  title: string;
+  tone: string;
+  who: string[];
+  summary: string;
+  specs: { c: string; t: string }[];
+  note?: string;
+  shots?: Shot[];
+  wide?: Shot;
+  specOnly?: boolean;
+};
+
+// Grouped from the 16 modules in "Modul SKPL/SRS - SIA". Spec codes are as written in the document.
+const features: Feature[] = [
+  {
+    id: "auth",
+    modules: ["SIA.01 Register", "SIA.02 Login", "SIA.03 Forgot Password", "SIA.16 Logout"],
+    title: "Authentication",
+    tone: "bg-card text-ink ring-1 ring-line",
+    who: ["Everyone"],
+    summary: "The way in. Registration captures role and institution up front, because every later screen depends on it.",
+    specs: [
+      { c: "01.04", t: "Register with name, role, institution, email, username and password" },
+      { c: "01.05", t: "Validate unique email, matching passwords and valid formats" },
+      { c: "02.05–06", t: "Tell roles apart and send each to its own dashboard after login" },
+      { c: "03.06", t: "Recover a forgotten password through the registered email" },
+      { c: "14.04", t: "No internal page is reachable without logging in again" },
+    ],
+    note: "Every field error is designed inline, such as the 8-character minimum on passwords, along with the OTP resend timer.",
+    shots: [
+      { src: signIn, alt: "Sign in screen", caption: "Sign in" },
+      { src: signupError, alt: "Sign up with password error", caption: "Sign up, inline error" },
+      { src: forgotOtp, alt: "Reset password OTP step", caption: "Reset, OTP step" },
+    ],
+  },
+  {
+    id: "dashboard",
+    modules: ["SIA.04 Dashboard"],
+    title: "Dashboard & projects",
+    tone: "bg-lime text-ink",
+    who: ["Admin TDG", "Tim KAP", "Client"],
+    summary: "Projects and folders as cards, mirroring the Drive folders the team already used per client.",
+    specs: [
+      { c: "04.02–03", t: "New project (name, year, notes) or new folder from one + Baru button" },
+      { c: "04.06", t: "Import the General Ledger while creating a project" },
+      { c: "04.08", t: "Show every folder and project as a card" },
+      { c: "04.10", t: "Manage menu: move to folder, share link, manage access, delete" },
+      { c: "04.14", t: "Only Admin TDG gets Remove Permanently" },
+    ],
+    shots: [
+      { src: dashboard, alt: "Dashboard with project cards", caption: "Default" },
+      { src: dashboardProject, alt: "Dashboard with project manage menu", caption: "Project selected" },
+      { src: dashboardEmpty, alt: "Empty dashboard state", caption: "Empty state" },
+    ],
+  },
+  {
+    id: "access",
+    modules: ["SIA.05 Manage Access"],
+    title: "Manage access",
+    tone: "bg-violet text-white",
+    who: ["Admin TDG"],
+    summary: "Users request a project with a reason, and the admin grants it feature by feature. No more sharing whole files.",
+    specs: [
+      { c: "FN.26", t: "Non-admins get a Request Access button on projects" },
+      { c: "05.03–04", t: "List incoming requests with Accept and Reject" },
+      { c: "05.05", t: "Choose what's granted: GL, Worksheet, Balance Sheet, Income Statement" },
+      { c: "05.07", t: "Access updates in real time on the project" },
+    ],
+    shots: [
+      { src: accessControl, alt: "Access control member list", caption: "Akses Kontrol" },
+      { src: requestAccess, alt: "Request access dialog", caption: "Request access" },
+    ],
+  },
+  {
+    id: "profile",
+    modules: ["SIA.06 Profile", "SIA.07 Change Password"],
+    title: "Profile & password",
+    tone: "bg-card text-ink ring-1 ring-line",
+    who: ["Everyone"],
+    summary: "Who you are and which company you represent, since auditors need to see that at a glance.",
+    specs: [
+      { c: "06.02", t: "Show name, role, institution, email and username" },
+      { c: "06.03–04", t: "Edit profile and save to the database" },
+      { c: "07.02–03", t: "Change password: old, new and confirm, with the old one verified" },
+    ],
+    shots: [
+      { src: profile, alt: "Profile page", caption: "Profile" },
+      { src: changePassword, alt: "Change password form", caption: "Ganti kata sandi" },
+    ],
+  },
+  {
+    id: "ledger",
+    modules: ["SIA.08 General Ledger"],
+    title: "General Ledger",
+    tone: "bg-ink text-paper",
+    who: ["Admin TDG imports", "Others by access"],
+    summary: "The source of truth. Everything downstream (worksheet, reports, tax) is computed from this table.",
+    specs: [
+      { c: "08.02", t: "Excel import, available only to Tim TDG" },
+      { c: "08.03", t: "Auto-classify columns: date, account no/name, source, notes, korfis, debit, credit, balance" },
+      { c: "08.07", t: "Account mapping column links GL accounts to worksheet groups" },
+      { c: "08.08–09", t: "Search transactions, totals for debit and credit at the bottom" },
+      { c: "08.10", t: "Export to .xlsx" },
+    ],
+    note: "From the Figma comments: import accepts only .xlsx or .xls, and the failed-import state is designed.",
+    shots: [{ src: ledger, alt: "General Ledger table", caption: "Recap totals sit above the table" }],
+  },
+  {
+    id: "worksheet",
+    modules: ["SIA.09 Worksheet"],
+    title: "Worksheet (neraca lajur)",
+    tone: "bg-ok-soft text-ok",
+    who: ["Tim TDG", "Tim KAP"],
+    summary: "The heart of the audit: GL plus adjustments rolled into one sheet, with a built-in check against the ledger.",
+    specs: [
+      { c: "09.03", t: "Auto-sort accounts into Aktiva, Pasiva, Ekuitas, Pendapatan, Beban" },
+      { c: "09.05", t: "Control to GL flag on every account" },
+      { c: "09.06–07", t: "Move an account's position, or add a manual account" },
+      { c: "09.09", t: "Final balance = opening + GL movement ± adjustments" },
+      { c: "09.11", t: "Audit Result columns reserved for the external auditor" },
+      { c: "09.13", t: "Export as the official worksheet (.xls)" },
+    ],
+    note: "Orange marks mapping and external-audit inputs, and green marks subtotals and control rows. The chrome stays gray so these colours carry meaning.",
+    wide: { src: worksheet, alt: "Worksheet with colour-coded column groups" },
+    shots: [{ src: addAccount, alt: "Add account dialog", caption: "Add Account pop-up", small: true }],
+  },
+  {
+    id: "journal",
+    modules: ["SIA.10 Journal Tracking"],
+    title: "Trace unbalanced journal",
+    tone: "bg-[#fee4e2] text-[#b42318]",
+    who: ["Tim TDG", "Tim KAP"],
+    summary: "Find the entry that broke debit = credit without scrolling through thousands of rows.",
+    specs: [
+      { c: "10.02–03", t: "Group transactions by journal number and run a balance check" },
+      { c: "10.04", t: "Flag any journal where debit ≠ credit as Unbalanced" },
+      { c: "10.05–06", t: "Pick an account and a side (debit or credit) to inspect" },
+      { c: "10.08", t: "Detail Balance page with the account's full history" },
+      { c: "10.10", t: "Export the detail to .xls" },
+    ],
+    shots: [
+      { src: journal, alt: "Trace Unbalanced Journal results", caption: "Results with TRUE/FALSE control" },
+      { src: journalDetail, alt: "Detail balance table", caption: "Detail Balance" },
+    ],
+  },
+  {
+    id: "adjustment",
+    modules: ["SIA.11 Adjustment", "SIA.12 KAP Adjustment"],
+    title: "Adjustments & audit trail",
+    tone: "bg-warn-soft text-[#b54708]",
+    who: ["Tim TDG (Adjustment)", "Tim KAP (KAP Adjustment)"],
+    summary: "Two separate ledgers of adjusting entries, one in-house and one from the auditor, both flowing straight into the worksheet.",
+    specs: [
+      { c: "11.03", t: "Add an adjusting entry: account, debit, credit, note" },
+      { c: "11.05", t: "Saving updates the worksheet's adjustment columns automatically" },
+      { c: "11.06–07", t: "Edit or delete entries, and the worksheet recalculates" },
+      { c: "15.07", t: "Every KAP add, edit and delete is logged to the audit trail" },
+      { c: "FN.13", t: "Compare data before and after KAP adjustments" },
+    ],
+    specOnly: true,
+  },
+  {
+    id: "reports",
+    modules: ["SIA.13 Balance Sheet", "SIA.14 Income Statement"],
+    title: "Financial statements",
+    tone: "bg-warn-soft text-[#b54708]",
+    who: ["Tim KAP", "Client"],
+    summary: "Balance sheet and income statement generated from the worksheet, with templates the team can reshape.",
+    specs: [
+      { c: "12.03–06", t: "Kelola Template: add groups and labels, and set their order" },
+      { c: "12.08", t: "Add accounts to a label manually or pick them from the worksheet" },
+      { c: "12.10–11", t: "Totals per label and group, auto-classified into Aktiva, Kewajiban and Ekuitas" },
+      { c: "13.10", t: "Gross, operating and net profit calculated automatically" },
+      { c: "13.12", t: "Recalculates whenever an adjustment changes the worksheet" },
+    ],
+    note: "Sticky notes in Figma: only admins can open the deepest sub-header level, and original accounts can't be deleted, only ones added later.",
+    shots: [
+      { src: balance, alt: "Balance sheet", caption: "Balance Sheet" },
+      { src: income, alt: "Income statement fully expanded", caption: "Income Statement (scroll)", tall: true },
+    ],
+  },
+  {
+    id: "tax",
+    modules: ["SIA.15 Laporan PPh Badan"],
+    title: "Corporate tax report",
+    tone: "bg-[#fee4e2] text-[#b42318]",
+    who: ["Tim TDG", "Tim KAP"],
+    summary: "Turns the income statement into an annual PPh Badan (corporate income tax) report, then locks it.",
+    specs: [
+      { c: "16.02", t: "Start from a default calculation using GL and income statement balances" },
+      { c: "16.03", t: "Editable fiscal corrections: costs, deductions, loss carry-forward, tax credits" },
+      { c: "16.04", t: "Estimate tax automatically from fiscal profit" },
+      { c: "16.06–07", t: "Save as draft, then preview before finalising" },
+      { c: "16.08–09", t: "Lock data to finalise, and archive per project and tax year" },
+    ],
+    specOnly: true,
+  },
+];
+---
+
+<section class="py-24 sm:py-32" id="features">
+  <div class="wrap text-center">
+    <p class="text-[#6b6f76]" data-reveal>Okay, let's zoom in.</p>
+    <h2 class="mx-auto mt-3 max-w-2xl text-[clamp(1.6rem,3vw,2.4rem)] font-medium leading-snug tracking-[-0.02em]" data-reveal>Sixteen modules, ten features.</h2>
+    <p class="mx-auto mt-4 max-w-2xl text-lg text-muted" data-reveal="0.1">
+      The SKPL splits SIA into 16 modules. Here they're grouped by what people actually do, each
+      with the spec codes from the document so you can trace a screen back to its requirement.
+    </p>
+  </div>
+
+  <!-- feature index -->
+  <nav
+    class="sticky top-16 z-40 mt-10 border-y border-line bg-paper/85 backdrop-blur-md"
+    aria-label="Features"
+  >
+    <ol class="wrap flex gap-2 overflow-x-auto py-3 [scrollbar-width:none]" data-feature-nav>
+      {
+        features.map((f, i) => (
+          <li class="shrink-0">
+            <a
+              href={`#f-${f.id}`}
+              data-target={`f-${f.id}`}
+              class="pill min-h-10 bg-card text-muted ring-1 ring-line transition-colors hover:text-ink aria-[current=true]:bg-ink aria-[current=true]:text-paper aria-[current=true]:ring-ink"
+            >
+              <span class="font-display text-xs font-bold opacity-60">{String(i + 1).padStart(2, "0")}</span>
+              {f.title}
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+
+  <div class="wrap">
+    {
+      features.map((f, i) => (
+        <article id={`f-${f.id}`} class="scroll-mt-36 border-b border-line py-20 last:border-b-0" data-feature>
+          <div class="grid gap-10 lg:grid-cols-[1fr_1.45fr]">
+            <div class="lg:sticky lg:top-40 lg:self-start" data-reveal>
+              <div class="flex items-center gap-3">
+                <span class="text-5xl font-medium tracking-tight text-muted/40">{String(i + 1).padStart(2, "0")}</span>
+                <span class={`pill ${f.tone}`}>{f.title}</span>
+              </div>
+              <p class="mt-5 text-2xl font-semibold leading-tight tracking-tight sm:text-[1.7rem]">{f.summary}</p>
+
+              <div class="mt-5 flex flex-wrap gap-1.5">
+                {f.modules.map((m) => (
+                  <code class="rounded-lg bg-card px-2 py-1 text-xs text-muted ring-1 ring-line">SRS.{m}</code>
+                ))}
+              </div>
+
+              <p class="mt-6 text-sm text-muted">
+                <span class="font-semibold text-ink">Who: </span>
+                {f.who.join(" · ")}
+              </p>
+
+              <ul class="mt-6 space-y-2.5">
+                {f.specs.map((s) => (
+                  <li class="grid grid-cols-[4.5rem_1fr] gap-3 text-base">
+                    <code class="pt-1 text-xs text-violet">{s.c}</code>
+                    <span>{s.t}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {f.note && (
+                <p class="mt-6 rounded-2xl bg-violet-soft p-4 text-sm text-ink">
+                  <span class="font-semibold text-violet">Design note · </span>
+                  {f.note}
+                </p>
+              )}
+            </div>
+
+            <div class="space-y-6">
+              {f.specOnly && (
+                <div class="grid h-full min-h-72 place-items-center rounded-3xl border-2 border-dashed border-line p-10 text-center" data-reveal>
+                  <div>
+                    <span class="pill bg-card ring-1 ring-line">Specified · hi-fi not drawn yet</span>
+                    <p class="mx-auto mt-4 max-w-sm text-muted">
+                      Fully written into the SKPL, but there are no hi-fi screens for this module in the Figma file yet.
+                    </p>
+                  </div>
+                </div>
+              )}
+              {f.shots?.map((s, k) => (
+                <figure class={s.small ? "max-w-sm" : ""} data-reveal={k * 0.08}>
+                  <div class={`shot overflow-hidden ${s.tall ? "aspect-[1440/1024] overflow-y-auto overscroll-contain" : ""}`} tabindex={s.tall ? 0 : undefined}>
+                    <Image src={s.src} alt={s.alt} widths={[700, 1200, 1440]} sizes="(min-width:1024px) 58vw, 100vw" class="block w-full" />
+                  </div>
+                  {s.caption && <figcaption class="mt-2 text-sm text-muted">{s.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          </div>
+
+          {f.wide && (
+            <div class="-mx-4 mt-10 overflow-x-auto px-4 pb-3 sm:-mx-10 sm:px-10" data-reveal>
+              <div class="shot w-[1600px] overflow-hidden lg:w-[2200px]">
+                <Image src={f.wide.src} alt={f.wide.alt} widths={[1600, 2200, 3600]} sizes="2200px" class="block w-full" />
+              </div>
+              <p class="mt-3 text-sm text-muted">Scroll sideways →</p>
+            </div>
+          )}
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  // Highlight the feature currently in view and keep its chip visible.
+  // Runs on first load and again after each client-side navigation.
+  let io: IntersectionObserver | undefined;
+  function init() {
+    io?.disconnect();
+    const links = new Map<string, HTMLAnchorElement>();
+    document.querySelectorAll<HTMLAnchorElement>("[data-feature-nav] a").forEach((a) => {
+      links.set(a.dataset.target!, a);
+    });
+    io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          links.forEach((a) => a.removeAttribute("aria-current"));
+          const a = links.get(e.target.id);
+          if (!a) continue;
+          a.setAttribute("aria-current", "true");
+          const nav = a.closest("ol")!;
+          nav.scrollTo({ left: a.offsetLeft - nav.clientWidth / 2 + a.clientWidth / 2, behavior: "smooth" });
+        }
+      },
+      { rootMargin: "-45% 0px -50% 0px" },
+    );
+    document.querySelectorAll("[data-feature]").forEach((el) => io!.observe(el));
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+  document.addEventListener("astro:before-swap", () => io?.disconnect());
+</script>

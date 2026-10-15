@@ -1,0 +1,59 @@
+---
+import { site } from "../data/site";
+const onCase = Astro.url.pathname.startsWith("/work/");
+---
+
+<header class="site-nav fixed inset-x-0 top-0 z-50 pt-3">
+  <nav
+    class="wrap flex items-center justify-between"
+    aria-label="Main"
+  >
+    <div class="flex items-center gap-2">
+    <a
+      href="/"
+      class="flex items-center gap-2 rounded-full bg-card/80 py-1.5 pl-1.5 pr-4 font-display text-sm font-extrabold tracking-tight shadow-[0_1px_0_rgb(0_0_0/0.04)] ring-1 ring-line backdrop-blur-md"
+    >
+      <span class="grid size-7 place-items-center rounded-full bg-ink text-[11px] text-lime">
+        {site.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+      </span>
+      <span class="hidden sm:inline">{site.name}</span>
+    </a>
+    {
+      onCase && (
+        <a href="/" class="btn btn-secondary btn-sm bg-card/80 text-sm backdrop-blur-md">
+          ← All files
+        </a>
+      )
+    }
+    </div>
+    <ul
+      class="flex items-center gap-1 rounded-full bg-card/80 p-1 text-sm ring-1 ring-line backdrop-blur-md"
+    >
+      <li>
+        <button
+          type="button"
+          data-theme-toggle
+          aria-label="Dark mode"
+          aria-pressed="false"
+          class="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-paper hover:text-ink"
+        >
+          <svg class="moon size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+          </svg>
+          <svg class="sun size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          </svg>
+        </button>
+      </li>
+      <li class="hidden sm:block">
+        <a
+          href={`mailto:${site.email}`}
+          class="btn btn-primary btn-sm"
+        >
+          Let's talk
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>

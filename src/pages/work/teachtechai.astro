@@ -1,0 +1,464 @@
+---
+import Base from "../../layouts/Base.astro";
+import SectionDock from "../../components/SectionDock.astro";
+import Phone from "../../components/Phone.astro";
+import Sparkle from "../../components/Sparkle.astro";
+import Cursor from "../../components/Cursor.astro";
+import { site } from "../../data/site";
+
+import coverHome from "../../assets/teachtech/cover-home.png";
+import home from "../../assets/teachtech/home.png";
+import topic from "../../assets/teachtech/topic.png";
+import chat from "../../assets/teachtech/chat.png";
+import history from "../../assets/teachtech/history.png";
+import login from "../../assets/teachtech/login.png";
+import register from "../../assets/teachtech/register.png";
+import forgot from "../../assets/teachtech/forgot.png";
+import otp from "../../assets/teachtech/otp.png";
+
+const VIDEO = "q1dOfIv6vQY";
+
+const facts = [
+  { k: "Program", v: "Bangkit Academy 2024 · Company Capstone" },
+  { k: "Client", v: "Kaizen Room" },
+  { k: "My role", v: "UI/UX" },
+  { k: "Scope", v: "Flows, UI, handoff, Kotlin build" },
+];
+
+// Pain points, as stated in the capstone presentation
+const pains = [
+  { t: "No time", q: "Educators struggle to find time for long training sessions and incentives are thin.", so: "Short lessons a teacher can finish between classes." },
+  { t: "One size fits all", q: "Most programmes are generic and ignore each teacher's specific, unique needs.", so: "A topic picker plus an AI coach that answers the question they actually have." },
+  { t: "Hard to reach", q: "Quality training is expensive and hard to access, especially in some regions.", so: "A phone app, in Bahasa Indonesia, with no venue or fee barrier." },
+];
+
+const data = [
+  { n: "63%", src: "Ministry of Education and Culture, Indonesia", d: "of teachers feel they need more training in integrating technology into their teaching." },
+  { n: "65%", src: "RAND Corporation", d: "of educators believe professional development doesn't prepare them well enough to handle student behaviour issues." },
+  { n: "74%", src: "EdTech Magazine", d: "of teachers want more training in using educational technology effectively." },
+  { n: "50%", src: "The Learning Policy Institute", d: "of teachers feel unprepared to meet the needs of diverse learners." },
+  { n: "40%", src: "NCES", d: "of teachers say their PD activities are aligned with their daily teaching needs." },
+];
+
+const principles = [
+  { t: "Never a blank box", d: "Every topic opens with a brief and prompt-inspiration cards. Teachers start with a tap, not a guess at what to ask." },
+  { t: "Learn in context", d: "Chat lives inside a topic, so the AI answers with that subject in mind and history stays organised." },
+  { t: "Low-friction entry", d: "Short authentication paths with a recovery route at every dead end (forgot password, resend OTP)." },
+  { t: "Their language", d: "Bahasa Indonesia throughout, written for educators rather than technologists." },
+];
+
+const flows = [
+  {
+    t: "Authentication",
+    goal: "Get a new or returning teacher in without help.",
+    steps: ["Open app", "Already a user?", "No: register, fill form, verify email", "Yes: enter email + password", "Credentials invalid? Forgot password → reset"],
+    decision: "Branch early on 'already a user?' and give failure a recovery path instead of a dead end.",
+  },
+  {
+    t: "Send a chat",
+    goal: "Go from intent to a useful AI answer in a few taps.",
+    steps: ["Open Discover dashboard", "Choose a topic", "Enter a prompt", "TeachTechAI responds", "Search past chats from the menu"],
+    decision: "History is one menu away, so a conversation can be resumed rather than restarted.",
+  },
+  {
+    t: "Profile",
+    goal: "Keep account details current.",
+    steps: ["Open Profile on dashboard", "Change password: old + new", "Or edit profile: photo, name, institution, birth date", "Save"],
+    decision: "Password change and profile edit are separate tasks so each form stays short.",
+  },
+];
+
+const chapters = [
+  { t: 0, l: "Intro" },
+  { t: 26, l: "Background" },
+  { t: 75, l: "Evidence" },
+  { t: 105, l: "Architecture" },
+  { t: 157, l: "User flows" },
+  { t: 228, l: "Product" },
+  { t: 241, l: "Live demo" },
+];
+const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+// Floating section bar (SectionDock), shared with every case study.
+const sections = [
+  { id: "discover", t: "Discover" },
+  { id: "define", t: "Define" },
+  { id: "flows", t: "Flows" },
+  { id: "design", t: "Design" },
+  { id: "delivery", t: "Delivery" },
+  { id: "reflection", t: "Reflection" },
+];
+---
+
+<Base brand={{ accent: "#b42318", accentSoft: "#fee4e2", pop: "#fdb022" }} title={`TeachTechAI case study | ${site.name}`} description="Case study: TeachTechAI, an Android app that helps teachers build soft skills with a fine-tuned LLM. Research, flows, UI and build.">
+  <!-- HERO -->
+  <section class="relative isolate overflow-hidden bg-[linear-gradient(180deg,#fde8e6_0%,#f6f5f1_75%)] pt-28 sm:pt-32">
+    <div class="absolute -right-40 top-40 -z-10 size-[36rem] rounded-full bg-[#f04438]/25 blur-[120px]" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap gap-2">
+          <span class="pill bg-card ring-1 ring-line">UI/UX</span>
+          <span class="pill bg-card ring-1 ring-line">Android</span>
+          <span class="pill bg-card ring-1 ring-line">AI</span>
+          <span class="pill bg-[#b42318] text-white">C241-TA01</span>
+        </div>
+        <span class="font-display font-bold text-muted">/2024</span>
+      </div>
+
+      <h1 class="display mt-10 text-[clamp(3.5rem,13.5vw,12.5rem)] text-[#7a271a] [&>span]:inline-block" data-intro>
+        <span>TeachTech</span><span class="text-[#f04438]">AI</span>
+      </h1>
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl" data-reveal="0.3">
+        Teachers need soft skills like communication, adaptability and empathy, but training is
+        slow, generic and hard to reach. I designed the flows and interface for an Android app
+        that turns that into short topics and a conversation with an AI coach.
+      </p>
+    </div>
+
+    <!-- phone stage -->
+    <div class="wrap relative mt-14 h-[34rem] sm:h-[44rem]" data-reveal="0.4">
+      <div class="absolute left-1/2 top-0 z-10 w-[62%] max-w-[300px] -translate-x-1/2 sm:w-[300px]">
+        <Phone src={coverHome} alt="TeachTechAI home: greeting, search, topic categories and popular topics" eager />
+      </div>
+      <div class="absolute left-1/2 top-16 hidden w-[240px] -translate-x-[150%] -rotate-[8deg] sm:block">
+        <Phone src={topic} alt="Topic detail: Pendidikan Karakter, with prompt inspirations" />
+      </div>
+      <div class="absolute left-1/2 top-16 hidden w-[240px] translate-x-[50%] rotate-[8deg] sm:block">
+        <Phone src={chat} alt="Chat with the TeachTechAI assistant" />
+      </div>
+
+      <span data-float="10" class="pill absolute left-[2%] top-[12%] bg-white px-4 py-2.5 text-sm text-[#b42318] shadow-xl ring-1 ring-[#fecdca] sm:left-[6%]">
+        Hello! How can I assist you today?
+      </span>
+      <span data-float="8" class="pill absolute right-[2%] top-[34%] bg-lime px-4 py-2.5 text-sm font-semibold shadow-xl sm:right-[6%]">
+        SEA-LION-7B-Instruct
+      </span>
+      <span data-float="12" class="pill absolute bottom-[26%] left-[4%] hidden bg-ink px-4 py-2.5 text-sm text-paper shadow-xl md:inline-flex">
+        Kaizen Room × Bangkit
+      </span>
+      <Cursor label="Guru" tone="violet" class="absolute right-[16%] top-[64%] hidden md:flex" />
+      <Sparkle class="absolute right-[18%] top-[4%] size-10 text-[#f04438]" />
+      <Sparkle class="absolute right-[14%] top-[12%] size-4 text-[#f04438]/50" />
+    </div>
+  </section>
+
+  <!-- FACTS -->
+  <section class="wrap pb-20 sm:pb-28">
+    <dl class="grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-line ring-1 ring-line md:grid-cols-4" data-stagger>
+      {
+        facts.map((f) => (
+          <div class="bg-card p-5">
+            <dt class="eyebrow">{f.k}</dt>
+            <dd class="mt-2 font-medium">{f.v}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <!-- 01 RESEARCH: PROBLEM -->
+  <section id="discover" class="bg-[#7a271a] py-24 text-white sm:py-32">
+    <div class="wrap">
+      <p class="eyebrow !text-[#fda29b]">01 · Discover</p>
+      <h2 class="h2 mt-4 max-w-4xl" data-reveal>Teaching changed faster than teacher training did.</h2>
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-white/85" data-reveal="0.1">
+        Educators now have to go beyond traditional methods: new techniques, new technology and
+        very different student needs. Their success depends on soft skills, yet the training on
+        offer fails them in three ways. Each one became a design requirement.
+      </p>
+
+      <ol class="mt-14 grid gap-4 md:grid-cols-3" data-stagger>
+        {
+          pains.map((c, i) => (
+            <li class="flex flex-col rounded-3xl bg-white p-7 text-ink">
+              <span class="font-display text-sm font-bold text-[#d92d20]">{String(i + 1).padStart(2, "0")}</span>
+              <p class="mt-5 font-display text-2xl font-extrabold uppercase tracking-tight text-[#b42318]">{c.t}</p>
+              <p class="mt-3 text-muted">{c.q}</p>
+              <div class="mt-auto pt-6">
+                <p class="eyebrow">Design response</p>
+                <p class="mt-1.5 text-sm font-medium">{c.so}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- 02 EVIDENCE -->
+  <section class="wrap py-24 sm:py-32">
+    <p class="eyebrow">02 · Evidence</p>
+    <h2 class="h2 mt-4 max-w-3xl" data-reveal>Secondary research backs the gap.</h2>
+    <p class="mt-6 max-w-2xl text-lg text-muted" data-reveal="0.1">
+      Before drawing screens, we leaned on published studies. They point at the same thing:
+      teachers want practical, relevant support and feel current programmes don't give it.
+    </p>
+    <ul class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5" data-stagger>
+      {
+        data.map((s) => (
+          <li class="flex flex-col rounded-3xl bg-card p-6 ring-1 ring-line">
+            <p class="display text-6xl text-[#d92d20]">{s.n}</p>
+            <p class="mt-4 text-sm text-ink">{s.d}</p>
+            <p class="mt-auto pt-6 text-xs font-medium text-muted">{s.src}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="mt-6 max-w-2xl rounded-2xl bg-[#fee4e2] p-5 text-sm text-[#7a271a]" data-reveal>
+      <span class="font-semibold">How might we</span> help a busy teacher build soft skills in
+      minutes, on a phone, with guidance that fits what they are actually facing?
+    </p>
+  </section>
+
+  <!-- 03 DEFINE: PRINCIPLES -->
+  <section id="define" class="border-t border-line bg-card py-24 sm:py-32">
+    <div class="wrap">
+      <p class="eyebrow">03 · Define</p>
+      <h2 class="h2 mt-4 max-w-3xl" data-reveal>Four principles that shaped every screen.</h2>
+      <ol class="mt-14 grid gap-px overflow-hidden rounded-3xl bg-line ring-1 ring-line sm:grid-cols-2" data-stagger>
+        {
+          principles.map((p, i) => (
+            <li class="bg-paper p-8">
+              <span class="font-display text-sm font-bold text-[#d92d20]">{String(i + 1).padStart(2, "0")}</span>
+              <p class="mt-4 font-display text-xl font-extrabold tracking-tight">{p.t}</p>
+              <p class="mt-2 text-muted">{p.d}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- 04 FLOWS -->
+  <section id="flows" class="wrap py-24 sm:py-32">
+    <p class="eyebrow">04 · Structure</p>
+    <h2 class="h2 mt-4 max-w-3xl" data-reveal>Three user flows, mapped before any pixels.</h2>
+    <div class="mt-14 grid gap-4 lg:grid-cols-3" data-stagger>
+      {
+        flows.map((f) => (
+          <div class="flex flex-col rounded-3xl bg-card p-6 ring-1 ring-line">
+            <p class="font-display text-xl font-extrabold tracking-tight">{f.t}</p>
+            <p class="mt-1 text-sm text-muted">{f.goal}</p>
+            <ol class="mt-6 space-y-3">
+              {f.steps.map((s, i) => (
+                <li class="flex items-start gap-3">
+                  <span class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-[#fee4e2] text-xs font-bold text-[#b42318]">{i + 1}</span>
+                  <span class="text-sm">{s}</span>
+                </li>
+              ))}
+            </ol>
+            <p class="mt-auto border-t border-line pt-5 text-sm">
+              <span class="eyebrow block">Design decision</span>
+              <span class="mt-1.5 block text-muted">{f.decision}</span>
+            </p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- 05 DESIGN: SCREENS -->
+  <section id="design" class="border-t border-line bg-card py-24 sm:py-32">
+    <div class="wrap">
+      <p class="eyebrow">05 · Design</p>
+      <h2 class="h2 mt-4 max-w-3xl" data-reveal>Short lessons, then practise with an AI.</h2>
+      <p class="mt-6 max-w-2xl text-lg text-muted" data-reveal="0.1">
+        The product has three parts: authentication, the Discover dashboard as the main menu, and
+        a profile area. Each screen below notes the problem it answers.
+      </p>
+
+      <div class="mt-16 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-4" data-stagger>
+        <figure>
+          <Phone src={home} alt="Discover dashboard" />
+          <figcaption class="mt-5">
+            <p class="font-display text-lg font-extrabold tracking-tight">Discover</p>
+            <p class="mt-1 text-sm text-muted">Greeting, search and topic categories, then popular and newest topics, so the first screen answers "what should I learn?".</p>
+            <p class="mt-3 text-xs font-semibold text-[#b42318]">Solves: generic, one-size-fits-all</p>
+          </figcaption>
+        </figure>
+        <figure>
+          <Phone src={topic} alt="Topic detail page" />
+          <figcaption class="mt-5">
+            <p class="font-display text-lg font-extrabold tracking-tight">Topic</p>
+            <p class="mt-1 text-sm text-muted">A short brief, then "Inspirasi Prompt" cards (discussion questions, case studies) that start the chat for the teacher.</p>
+            <p class="mt-3 text-xs font-semibold text-[#b42318]">Solves: no time, blank-box anxiety</p>
+          </figcaption>
+        </figure>
+        <figure>
+          <Phone src={chat} alt="Chat with the assistant" />
+          <figcaption class="mt-5">
+            <p class="font-display text-lg font-extrabold tracking-tight">Chat</p>
+            <p class="mt-1 text-sm text-muted">The TeachTechAI assistant answers within the topic. Prompt in, response back, in a familiar messaging pattern.</p>
+            <p class="mt-3 text-xs font-semibold text-[#b42318]">Solves: hard to reach expert guidance</p>
+          </figcaption>
+        </figure>
+        <figure>
+          <Phone src={history} alt="Topic history drawer" />
+          <figcaption class="mt-5">
+            <p class="font-display text-lg font-extrabold tracking-tight">History</p>
+            <p class="mt-1 text-sm text-muted">A side drawer groups past conversations by month, so a thread can be picked up again and searched.</p>
+            <p class="mt-3 text-xs font-semibold text-[#b42318]">Solves: no time to start over</p>
+          </figcaption>
+        </figure>
+      </div>
+
+      <!-- auth -->
+      <div class="mt-24 grid gap-12 border-t border-line pt-20 lg:grid-cols-[1fr_2fr] lg:items-center">
+        <div data-reveal>
+          <span class="pill bg-[#fee4e2] text-[#b42318]">Authentication</span>
+          <h3 class="mt-5 font-display text-3xl font-extrabold tracking-tight">Get in, without a support call.</h3>
+          <p class="mt-4 text-muted">
+            Login, registration with email verification, and a password-reset route, matching the
+            authentication flow above. The OTP step shows a countdown with a resend link, and the
+            register button stays disabled until the form is valid.
+          </p>
+        </div>
+        <div class="grid grid-cols-2 gap-5 sm:grid-cols-4" data-stagger>
+          <Phone src={login} alt="Login screen" />
+          <Phone src={register} alt="Register screen" />
+          <Phone src={forgot} alt="Forgot password screen" />
+          <Phone src={otp} alt="OTP verification screen" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 HANDOFF / ARCHITECTURE -->
+  <section id="delivery" class="bg-ink py-24 text-paper sm:py-32">
+    <div class="wrap">
+      <p class="eyebrow !text-lime">06 · Delivery</p>
+      <h2 class="h2 mt-4 max-w-3xl" data-reveal>Designed to be buildable, then built.</h2>
+      <p class="mt-6 max-w-2xl text-lg text-paper/65" data-reveal="0.1">
+        I designed the flows and UI, then built the Android client myself, so nothing was lost in
+        handoff. It talks to a Go API on App Engine, which reaches the model and database inside
+        a VPC through a Serverless VPC Connector. All resource access is private, with no public IP exposed.
+      </p>
+
+      <div class="mt-14 grid gap-4 lg:grid-cols-[1fr_auto_1.2fr_auto_1.3fr] lg:items-stretch" data-stagger>
+        <div class="rounded-3xl bg-white/5 p-6 ring-1 ring-white/10">
+          <span class="pill bg-[#9b8afb] text-ink">Android app</span>
+          <ol class="mt-6 space-y-2 font-medium">
+            <li class="rounded-xl bg-[#bdb4fe]/15 px-4 py-3">View</li>
+            <li class="rounded-xl bg-[#bdb4fe]/15 px-4 py-3">ViewModel</li>
+            <li class="rounded-xl bg-[#bdb4fe]/15 px-4 py-3">Model</li>
+          </ol>
+          <p class="mt-4 text-sm text-paper/65">MVVM. Design and build, mine.</p>
+        </div>
+
+        <div class="grid place-items-center py-2 text-center text-xs text-paper/65">
+          <span class="lg:hidden">↓ REST / JSON ↓</span>
+          <span class="hidden lg:block">REST ⇄<br />JSON</span>
+        </div>
+
+        <div class="rounded-3xl bg-white/5 p-6 ring-1 ring-white/10">
+          <span class="pill bg-[#fb6514] text-ink">Go API · App Engine</span>
+          <ol class="mt-6 space-y-2 font-medium">
+            <li class="rounded-xl bg-[#fb6514]/15 px-4 py-3">Controller</li>
+            <li class="rounded-xl bg-[#fb6514]/15 px-4 py-3">Service</li>
+            <li class="rounded-xl bg-[#fb6514]/15 px-4 py-3">Repository</li>
+          </ol>
+          <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
+            <span class="rounded-xl bg-white/10 px-3 py-2">Cloud SQL<br /><span class="text-paper/65">PostgreSQL · chat history</span></span>
+            <span class="rounded-xl bg-white/10 px-3 py-2">Cloud Storage<br /><span class="text-paper/65">profile photos</span></span>
+          </div>
+        </div>
+
+        <div class="grid place-items-center py-2 text-center text-xs text-paper/65">
+          <span class="lg:hidden">↓ Serverless VPC connector ↓</span>
+          <span class="hidden lg:block">Serverless<br />VPC connector</span>
+        </div>
+
+        <div class="rounded-3xl bg-white/5 p-6 ring-1 ring-white/10">
+          <span class="pill bg-lime text-ink">ML machine · Compute Engine</span>
+          <div class="mt-6 rounded-xl bg-lime/10 px-4 py-3 font-medium">Text Generation Inference web server</div>
+          <div class="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
+            <span class="rounded-xl bg-white/10 px-3 py-2">SEA-LION-7B-Instruct<br /><span class="text-paper/65">base model</span></span>
+            <span class="text-lime">→</span>
+            <span class="rounded-xl bg-white/10 px-3 py-2">TeachTech AI model<br /><span class="text-paper/65">served</span></span>
+          </div>
+          <p class="mt-3 rounded-xl border border-dashed border-white/20 px-3 py-2 text-sm text-paper/65">
+            Transfer learning on Kaizen Room's dataset
+          </p>
+        </div>
+      </div>
+      <p class="mt-6 text-sm text-paper/65">Google Cloud Platform · VPC across asia-southeast1 and asia-southeast2.</p>
+    </div>
+  </section>
+
+  <!-- 07 DEMO -->
+  <section class="wrap py-24 sm:py-32">
+    <p class="eyebrow">07 · Presentation & demo</p>
+    <h2 class="h2 mt-4 max-w-3xl" data-reveal>See it running.</h2>
+    <p class="mt-6 max-w-2xl text-lg text-muted" data-reveal="0.1">
+      My final capstone presentation, in Bahasa Indonesia. Jump to a section, or go straight to the
+      live demo on a device.
+    </p>
+    <div class="mt-10 flex flex-wrap gap-2" data-reveal>
+      {
+        chapters.map((c) => (
+          <button type="button" data-seek={c.t} class="pill bg-card ring-1 ring-line transition-colors hover:bg-[#fee4e2] hover:text-[#b42318]">
+            <span class="font-mono text-xs text-muted">{mmss(c.t)}</span> {c.l}
+          </button>
+        ))
+      }
+    </div>
+    <div class="mt-6 aspect-video overflow-hidden rounded-3xl bg-ink shadow-2xl" data-reveal>
+      <iframe
+        id="tt-video"
+        class="size-full"
+        src={`https://www.youtube-nocookie.com/embed/${VIDEO}?rel=0`}
+        data-base={`https://www.youtube-nocookie.com/embed/${VIDEO}?rel=0`}
+        title="TeachTechAI capstone presentation"
+        loading="lazy"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+    </div>
+  </section>
+
+  <!-- 08 REFLECTION -->
+  <section id="reflection" class="border-t border-line bg-card py-24 sm:py-32">
+    <div class="wrap grid gap-12 lg:grid-cols-[1fr_1.3fr]">
+      <div>
+        <p class="eyebrow">08 · Reflection</p>
+        <h2 class="h2 mt-4" data-reveal>Building it changed how I design.</h2>
+      </div>
+      <ol class="space-y-8" data-stagger>
+        <li>
+          <p class="font-display text-xl font-extrabold tracking-tight">Empty prompts scare people.</p>
+          <p class="mt-2 text-muted">Prompt inspiration cards gave teachers a first message to send. A blank chat box assumes they already know what to ask.</p>
+        </li>
+        <li>
+          <p class="font-display text-xl font-extrabold tracking-tight">Cross-team contracts first.</p>
+          <p class="mt-2 text-muted">Agreeing the REST/JSON shapes with the cloud and ML teammates early let design, mobile, API and model work in parallel.</p>
+        </li>
+        <li>
+          <p class="font-display text-xl font-extrabold tracking-tight">What I'd do next.</p>
+          <p class="mt-2 text-muted">This project leaned on secondary research. Next I would interview teachers directly and usability-test the prompt cards before shipping more topics.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- NEXT -->
+  <section class="wrap py-24">
+    <a href="/work/satya" class="group flex flex-col items-start justify-between gap-8 rounded-[32px] bg-[linear-gradient(135deg,#c2410c,#c91f3d)] p-8 text-white sm:flex-row sm:items-end sm:p-14" data-reveal>
+      <div>
+        <p class="eyebrow !text-white/85">Next case study</p>
+        <p class="display mt-4 text-[clamp(2.5rem,6vw,5rem)]">SATYA<span class="text-[#1e2a66]">.</span></p>
+        <p class="mt-3 max-w-md text-white/85">Monitoring government programmes and reporting corruption. GEMASTIK XVII.</p>
+      </div>
+      <span class="rounded-full bg-white px-6 py-3.5 font-medium text-[#1e2a66] transition-transform group-hover:translate-x-1">Read it →</span>
+    </a>
+  </section>
+  <SectionDock sections={sections} />
+</Base>
+
+<script>
+  document.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>("[data-seek]");
+    const f = document.getElementById("tt-video") as HTMLIFrameElement | null;
+    if (!b || !f) return;
+    f.src = `${f.dataset.base}&start=${b.dataset.seek}&autoplay=1`;
+    f.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+</script>

@@ -1,0 +1,114 @@
+---
+// Floating section bar for case studies (first built for SisterBKD): a segmented pill at the bottom of the
+// screen that highlights the section in view. Hidden over the hero and near the end of the page. Inside the
+// home board embed, global.css restyles it as FigJam's toolbar (.ns-dock / .ns-seg).
+interface Props {
+  sections: { id: string; t: string }[];
+}
+const { sections } = Astro.props;
+---
+
+<nav class="ns-dock fixed inset-x-0 bottom-4 z-40 flex justify-center px-4" aria-label="Case study sections" data-ns-nav data-hidden>
+  <ul class="flex max-w-full gap-1 overflow-x-auto rounded-full bg-white/90 p-1.5 shadow-[0_10px_30px_-10px_rgb(0_0_0/0.3)] ring-1 ring-black/5 backdrop-blur-md">
+    {
+      sections.map((s) => (
+        <li>
+          <a href={`#${s.id}`} data-section={s.id} class="ns-seg block whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium">
+            {s.t}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .ns-dock ul {
+    scrollbar-width: none;
+  }
+  .ns-seg {
+    color: #8e8e93;
+    transition: background 0.2s, color 0.2s;
+  }
+  .ns-seg:hover {
+    color: #161616;
+  }
+  .ns-seg[aria-current="true"] {
+    background: #161616;
+    color: #fff;
+  }
+  .ns-dock {
+    pointer-events: none;
+    transition: opacity 0.3s, translate 0.3s;
+  }
+  .ns-dock ul {
+    pointer-events: auto;
+  }
+  .ns-dock[data-hidden] {
+    opacity: 0;
+    translate: 0 1rem;
+  }
+  .ns-dock[data-hidden] ul {
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ns-dock,
+    .ns-seg {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Highlights the section in view and shows the bar once the first section is reached (not over the hero,
+  // not over the closing part of the page). Re-runs after client-side navigation.
+  let observer: IntersectionObserver | undefined;
+  let onScroll: (() => void) | undefined;
+
+  function init() {
+    observer?.disconnect();
+    if (onScroll) window.removeEventListener("scroll", onScroll);
+
+    const dock = document.querySelector<HTMLElement>("[data-ns-nav]");
+    const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-ns-nav] [data-section]")];
+    if (!dock || !links.length) return;
+    const targets = links.map((l) => document.getElementById(l.dataset.section!)).filter((s): s is HTMLElement => !!s);
+    // Room for the fixed site nav when jumping to a section.
+    targets.forEach((s) => {
+      if (!s.style.scrollMarginTop) s.style.scrollMarginTop = "5rem";
+    });
+
+    observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          links.forEach((l) => l.setAttribute("aria-current", String(l.dataset.section === e.target.id)));
+          // On narrow screens the bar scrolls sideways: keep the current item in view.
+          const cur = dock.querySelector<HTMLElement>('[aria-current="true"]');
+          const bar = dock.querySelector<HTMLElement>("ul");
+          if (cur && bar && bar.scrollWidth > bar.clientWidth) {
+            const x = cur.getBoundingClientRect().left - bar.getBoundingClientRect().left + bar.scrollLeft;
+            bar.scrollLeft = x - (bar.clientWidth - cur.offsetWidth) / 2;
+          }
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px" },
+    );
+    targets.forEach((s) => observer!.observe(s));
+
+    const first = targets[0];
+    onScroll = () => {
+      const nearEnd = window.innerHeight + window.scrollY > document.documentElement.scrollHeight - 160;
+      const show = !!first && first.getBoundingClientRect().top < window.innerHeight * 0.6 && !nearEnd;
+      dock.toggleAttribute("data-hidden", !show);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+  document.addEventListener("astro:before-swap", () => {
+    observer?.disconnect();
+    if (onScroll) window.removeEventListener("scroll", onScroll);
+  });
+</script>

@@ -1,0 +1,14 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="13.6509" height="13.5322" viewBox="0 0 13.6509 13.5322" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Mask group">
+<path id="Mouth" d="M1.12036 4.68847C0.17248 1.93903 3.01408 0.485877 4.55337 0.102977C15.8093 -1.279 14.7108 12.3547 7.83153 13.3927C4.78131 13.853 1.53666 13.1675 2.35086 10.8752C2.99454 9.06311 2.30521 8.12525 1.12036 4.68847Z" fill="black"/>
+<g id="Mask group_2">
+<mask id="mask0_0_228" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="14" height="14">
+<path id="Mouth_2" d="M1.12047 4.68915C0.172592 1.93972 3.01419 0.486559 4.55348 0.103659C15.8094 -1.27831 14.7109 12.3554 7.83164 13.3934C4.78142 13.8536 1.53677 13.1681 2.35097 10.8759C2.99465 9.06379 2.30532 8.12594 1.12047 4.68915Z" fill="black"/>
+</mask>
+<g mask="url(#mask0_0_228)">
+<path id="Vector 95" d="M1.05646 0.809944C2.87738 1.7776 6.71894 2.62691 7.5178 -1.71712L1.05646 0.809944Z" fill="#F4F3FF"/>
+<ellipse id="Ellipse 70" cx="17.8375" cy="16.9065" rx="14.5133" ry="7.78248" transform="rotate(2.36174 17.8375 16.9065)" fill="#FECDCA"/>
+</g>
+</g>
+</g>
+</svg>

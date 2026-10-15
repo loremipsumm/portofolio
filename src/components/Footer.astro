@@ -1,0 +1,235 @@
+---
+import { site } from "../data/site";
+import { buildScene, rowHtml, W, H, STAGES } from "../scripts/footer-art";
+
+const year = new Date().getFullYear();
+const { chars, cls } = buildScene();
+const art = chars.map((row, y) => rowHtml(row, cls[y])).join("\n");
+---
+
+<footer class="site-footer overflow-hidden bg-[#111318] text-[#f3f2ee]">
+  <div class="wrap pt-14 sm:pt-16">
+    <div class="flex flex-wrap items-center gap-x-8 gap-y-4 text-sm">
+      <div class="max-w-sm">
+        <a href="/" class="font-display text-base font-extrabold tracking-tight">{site.name}</a>
+        <span class="text-white/60"> · {site.role}</span>
+        <p class="mt-1 text-white/60">
+          Designing products from requirements to research to shipped UI, so complex workflows feel simple to use.
+        </p>
+      </div>
+      <a href={`mailto:${site.email}`} class="font-medium text-lime underline-offset-4 hover:underline">{site.email}</a>
+      <p class="text-white/45 lg:ml-auto">© {year} {site.name}</p>
+      <ul class="-my-1 flex gap-5">
+        {
+          site.socials.map((s) => (
+            <li>
+              <a href={s.href} target="_blank" rel="noreferrer" class="inline-block py-1 text-white/85 transition-colors hover:text-lime">
+                {s.label}<span aria-hidden="true" class="text-white/40"> ↗</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="fa-wrap mt-16 sm:mt-20" aria-hidden="true">
+      <pre class="fa-art" data-footer-art={JSON.stringify({ rows: chars.map((r) => r.join("")), cls: cls.map((r) => r.join("")), stages: STAGES, w: W, h: H })} style={`--cols:${W};--rows:${H}`} set:html={art} />
+    </div>
+  </div>
+</footer>
+
+<style>
+  .fa-art {
+    font-family: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  .fa-wrap {
+    container-type: inline-size;
+    position: relative;
+  }
+  /* The chase layer is built in script, so its rules are global. It sits exactly over the art. */
+  .fa-wrap :global(.fa-sprites) {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    pointer-events: none;
+    user-select: none;
+    white-space: pre;
+    line-height: 1.15;
+    font-family: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: calc(100cqi / var(--cols) / 0.6);
+  }
+  .fa-wrap :global(.fa-sprites span) {
+    background: #111318;
+    font-weight: 700;
+  }
+  /* Mario palette: red cap, blue overalls, peach skin, gold buttons; Goomba brown; Koopa green and yellow. */
+  .fa-wrap :global(.fa-s-r) { color: #ff3b30; }
+  .fa-wrap :global(.fa-s-b) { color: #3d6bff; }
+  .fa-wrap :global(.fa-s-s) { color: #ffc49b; }
+  .fa-wrap :global(.fa-s-y) { color: #fbd000; }
+  .fa-wrap :global(.fa-s-n) { color: #c9803f; }
+  .fa-wrap :global(.fa-s-d) { color: #8a4f22; }
+  .fa-wrap :global(.fa-s-g) { color: #3fbf4a; }
+  .fa-wrap :global(.fa-s-w) { color: #ffffff; }
+  .fa-wrap :global(.fa-s-p) { color: #ff6b8b; }
+  .fa-wrap :global(.fa-s-x) { color: #9aa0b4; }
+  .fa-wrap :global(.fa-s-k) { color: #111318; }
+  /* Bowser wears the site's palette: violet shell, lime body, pale violet mane, off-white horns and teeth. */
+  .fa-wrap :global(.fa-s-v) { color: #6938ef; }
+  .fa-wrap :global(.fa-s-u) { color: #9b8afb; }
+  .fa-wrap :global(.fa-s-l) { color: #c8f169; }
+  .fa-wrap :global(.fa-s-e) { color: #f3f2ee; }
+  /* Mario's super power: white and orange. */
+  .fa-wrap :global(.fa-s-o) { color: #ff9a1f; }
+  .fa-art {
+    margin: 0;
+    /* Scale the grid so all columns fit the width (monospace glyphs are about 0.6em wide). */
+    font-size: calc(100cqi / var(--cols) / 0.6);
+    line-height: 1.15;
+    white-space: pre;
+    user-select: none;
+    color: rgb(255 255 255 / 0.5);
+  }
+  .fa-art :global(.fa-p) {
+    color: rgb(255 255 255 / 0.42);
+  }
+  .fa-art :global(.fa-d) {
+    color: rgb(255 255 255 / 0.68);
+  }
+  .fa-art :global(.fa-a) {
+    color: var(--color-lime);
+  }
+  .fa-art :global(.fa-g) {
+    color: rgb(255 255 255 / 0.28);
+  }
+  .fa-art :global(.fa-l) {
+    color: rgb(255 255 255 / 0.5);
+  }
+  /* The page background is the same dark in dark mode, so mark where the footer starts. */
+  :global(html.dark) .site-footer {
+    border-top: 1px solid #2a2c34;
+  }
+</style>
+
+<script>
+  import { createRunner } from "../scripts/footer-run";
+
+  // Screen pixels flicker, and the pointer scrambles characters it passes over. Runs after each navigation.
+  const GLYPHS = "#%=+*-:";
+  const html = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  function init() {
+    const pre = document.querySelector<HTMLElement>("[data-footer-art]");
+    if (!pre || pre.dataset.ready || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    pre.dataset.ready = "1";
+    const data = JSON.parse(pre.dataset.footerArt!) as {
+      rows: string[];
+      cls: string[];
+      stages: Parameters<typeof createRunner>[1];
+      w: number;
+      h: number;
+    };
+    const rows = data.rows.map((r) => [...r]);
+    const base = data.rows.map((r) => [...r]);
+    const cls = data.cls;
+    const cols = rows[0].length;
+    const lines = pre.innerHTML.split("\n");
+    const digital: [number, number][] = [];
+    cls.forEach((r, y) => [...r].forEach((c, x) => c === "d" && rows[y][x] !== " " && digital.push([x, y])));
+
+    const draw = (y: number) => {
+      let out = "";
+      let i = 0;
+      while (i < cols) {
+        const c = cls[y][i];
+        let j = i;
+        while (j < cols && cls[y][j] === c) j++;
+        const s = html(rows[y].slice(i, j).join(""));
+        out += c === " " ? s : `<span class="fa-${c}">${s}</span>`;
+        i = j;
+      }
+      lines[y] = out;
+    };
+    const dirty = new Set<number>();
+    let frame = 0;
+    const flush = () => {
+      frame = 0;
+      dirty.forEach(draw);
+      dirty.clear();
+      pre.innerHTML = lines.join("\n");
+    };
+    const queue = (y: number) => {
+      dirty.add(y);
+      frame ||= requestAnimationFrame(flush);
+    };
+
+    let visible = false;
+    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(pre);
+    const timer = setInterval(() => {
+      if (!pre.isConnected) return clearInterval(timer);
+      if (!visible) return;
+      for (let k = 0; k < 8; k++) {
+        const [x, y] = digital[Math.floor(Math.random() * digital.length)];
+        if (base[y][x] === " ") continue; // Bowser has flattened this one
+        rows[y][x] = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        queue(y);
+      }
+    }, 140);
+
+    // Mario, chased along the illustration by enemies. Only runs while the footer is on screen.
+    const layer = document.createElement("pre");
+    layer.className = "fa-art fa-sprites";
+    layer.setAttribute("style", pre.getAttribute("style") ?? "");
+    pre.after(layer);
+    const runner = createRunner(data.rows, data.stages, data.w, data.h, {
+      // Bowser flattens the drawing under him; the scraps return to their place once he falls.
+      smash(gone) {
+        for (const [x, y] of gone) {
+          rows[y][x] = " ";
+          base[y][x] = " ";
+          queue(y);
+        }
+      },
+      restore(back) {
+        for (const [x, y] of back) {
+          rows[y][x] = data.rows[y][x];
+          base[y][x] = data.rows[y][x];
+          queue(y);
+        }
+      },
+    });
+    let last = 0;
+    let acc = 0;
+    const run = (now: number) => {
+      if (!pre.isConnected) return;
+      requestAnimationFrame(run);
+      const dt = Math.min(0.05, (now - (last || now)) / 1000);
+      last = now;
+      if (!visible || document.hidden) return;
+      acc += dt;
+      if (acc < 1 / 30) return; // 30 fps is plenty for ASCII
+      runner.update(acc);
+      acc = 0;
+      layer.innerHTML = runner.render().join("\n");
+    };
+    requestAnimationFrame(run);
+
+    pre.addEventListener("pointermove", (e) => {
+      const box = pre.getBoundingClientRect();
+      const cx = Math.floor(((e.clientX - box.left) / box.width) * cols);
+      const cy = Math.floor(((e.clientY - box.top) / box.height) * rows.length);
+      for (let y = cy - 1; y <= cy + 1; y++)
+        for (let x = cx - 2; x <= cx + 2; x++) {
+          if (!rows[y] || base[y][x] === undefined || base[y][x] === " " || cls[y][x] === "l") continue;
+          rows[y][x] = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+          queue(y);
+          setTimeout(() => {
+            rows[y][x] = base[y][x];
+            queue(y);
+          }, 600);
+        }
+    });
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

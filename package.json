@@ -1,0 +1,25 @@
+{
+  "name": "porto-figma",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "cv": "node scripts/build-cv.mjs"
+  },
+  "dependencies": {
+    "astro": "^7.3.8",
+    "motion": "^14.1.0",
+    "ogl": "^1.0.11",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  }
+}

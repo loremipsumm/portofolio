@@ -1,0 +1,119 @@
+---
+// The big blue EquiTeam mascot from the Figma hero (frame "1"), rebuilt from its exported vector
+// pieces. All positions are Figma px on a 378.596 box, expressed in cqw so it scales with width.
+import { Image } from "astro:assets";
+import kakiKiri from "../assets/equiteam/figma/m-kaki-kiri.svg";
+import tangan from "../assets/equiteam/figma/m-tangan.svg";
+import body from "../assets/equiteam/figma/m-body.svg";
+import kakiKanan from "../assets/equiteam/figma/m-kaki-kanan.svg";
+import eyeL from "../assets/equiteam/figma/m-eye-l.svg";
+import eyeR from "../assets/equiteam/figma/m-eye-r.svg";
+import glasses from "../assets/equiteam/figma/m-glasses.svg";
+import mouth from "../assets/equiteam/figma/m-mouth.svg";
+import finger from "../assets/equiteam/figma/m-finger.svg";
+import paper from "../assets/equiteam/figma/m-paper.svg";
+import squiggle from "../assets/equiteam/figma/m-squiggle.svg";
+import pointer from "../assets/equiteam/figma/m-spark1.svg"; // the black pointing finger (Figma "Frame 427320057")
+
+interface Props {
+  class?: string;
+}
+const { class: cls = "" } = Astro.props;
+
+const BOX = 378.596;
+const u = (px: number) => `${((px / BOX) * 100).toFixed(4)}cqw`;
+const box = (x: number, y: number, w: number, h: number) =>
+  `left:${u(x)};top:${u(y)};width:${u(w)};height:${u(h)}`;
+---
+
+<div class={`mb ${cls}`} aria-hidden="true">
+  <div class="mb-box">
+    <div class="mb-abs" style="inset:86.42% 60.23% -0.07% 27.75%"><img class="mb-img" src={kakiKiri.src} alt="" /></div>
+    <div class="mb-abs" style="inset:69.88% 84.77% 16.21% 4.61%"><img class="mb-img" src={tangan.src} alt="" /></div>
+    <div class="mb-abs" style="inset:0 5.54% 5.36% 0"><img class="mb-img" src={body.src} alt="" /></div>
+    <div class="mb-abs" style="inset:82.48% 27.47% -0.06% 59.98%"><img class="mb-img" src={kakiKanan.src} alt="" /></div>
+
+    <!-- eyes + glasses -->
+    <img class="mb-fill" src={eyeL.src} alt="" style={`${box(52.39, 142.35, 104.337, 110.299)}`} />
+    <img class="mb-fill" src={eyeR.src} alt="" style={`${box(198.46, 142.35, 104.337, 110.299)}`} />
+    <img class="mb-fill" src={glasses.src} alt="" style={`left:${u(4.69)};top:${u(155.76 - 39.5)};width:${u(339.842)};height:${u(160.536)}`} />
+
+    <img class="mb-fill" src={mouth.src} alt="" style={`${box(156.51, 254.88, 61.208, 40.068)}`} />
+    <img class="mb-fill" src={finger.src} alt="" style={`left:${u(325.68 - 11.18)};top:${u(193.02 - 11.18)};width:${u(86.452)};height:${u(91.669)}`} />
+
+    <!-- notepad -->
+    <div class="mb-abs mb-center" style={`${box(-8.94, 214.64, 134.651, 144.659)};transform:rotate(-21.33deg)`}>
+      <div class="mb-rel" style={`width:${u(99.003)};height:${u(116.634)}`}>
+        <img class="mb-fill" src={paper.src} alt="" style={`left:0;top:${u(5.42)};width:${u(99.003)};height:${u(111.209)}`} />
+        <span class="mb-abs" style={`${box(30.29, 0, 37.07, 14.466)};background:#7cd4fd;border-radius:${u(1.82)}`}></span>
+        {
+          [0, 1, 2, 3].map((i) => (
+            <span class="mb-abs" style={`left:${u(22.15)};top:${u(31.65 + i * 14.467)};width:${u(55.153)};height:${u(3.617)};background:#7cd4fd;border-radius:${u(2.426)}`} />
+          ))
+        }
+        <img class="mb-abs" src={squiggle.src} alt="" style={`left:${u(-11.26)};top:${u(35.86)};width:${u(70.057)};height:${u(63.35)};transform:rotate(10.28deg)`} />
+      </div>
+    </div>
+
+    <!-- pointing finger -->
+    <div class="mb-abs mb-center" style={`${box(366.67, 129.68, 62.309, 84.553)};transform:rotate(9.11deg)`}>
+      <img src={pointer.src} alt="" style={`width:${u(50.678)};height:${u(77.744)}`} />
+    </div>
+  </div>
+</div>
+
+<style>
+  .mb {
+    container-type: inline-size;
+    aspect-ratio: 1;
+    pointer-events: none;
+  }
+  .mb-box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform: rotate(9.38deg);
+    animation: mb-float 5s ease-in-out infinite;
+  }
+  /* A slow bob and sway, like it is hovering beside the iPad. */
+  @keyframes mb-float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(9.38deg);
+    }
+    50% {
+      transform: translateY(-4.5cqw) rotate(6.5deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mb-box {
+      animation: none;
+    }
+  }
+  .mb img,
+  .mb-abs {
+    position: absolute;
+    max-width: none;
+  }
+  .mb-fill {
+    display: block;
+  }
+  .mb .mb-img {
+    position: static;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .mb-rel {
+    position: relative;
+  }
+  .mb-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mb-center > img,
+  .mb-center > .mb-rel {
+    position: relative;
+  }
+</style>

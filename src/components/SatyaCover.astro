@@ -1,0 +1,62 @@
+---
+import { Image } from "astro:assets";
+import beranda from "../assets/satya/08-beranda.png";
+import progja from "../assets/satya/18-progja-detail.png";
+import pejabat from "../assets/satya/10-pejabat-detail.png";
+import kasus from "../assets/satya/13-kasus-detail.png";
+import anggaran from "../assets/satya/20-anggaran.png";
+import laporan from "../assets/satya/24-laporan-konfirm.png";
+
+interface Props {
+  class?: string;
+}
+const { class: cls = "" } = Astro.props;
+
+// Isometric flat-lay: two staggered rows of screens lying on the "table".
+const rows = [
+  [pejabat, beranda, anggaran],
+  [kasus, progja, laporan],
+];
+---
+
+<div
+  class={`relative isolate aspect-[4/3] overflow-hidden rounded-[28px] bg-[#1e2a66] ${cls}`}
+  style="container-type: inline-size"
+>
+  <div class="absolute inset-0 -z-10 bg-[radial-gradient(70%_60%_at_75%_40%,rgb(243_113_37/0.45),transparent_70%)]" aria-hidden="true"></div>
+
+  <!-- flat-lay -->
+  <div class="absolute left-[38%] top-[-18%] w-[95%] [perspective:2000px]" aria-hidden="true">
+    <div class="flex flex-col gap-[3cqw] [transform:rotateX(52deg)_rotateZ(-38deg)] [transform-style:preserve-3d]">
+      {
+        rows.map((row, r) => (
+          <div class="flex gap-[3cqw]" style={`margin-left:${r * 9}cqw`}>
+            {row.map((src) => (
+              <div class="w-[17cqw] shrink-0 overflow-hidden rounded-[2cqw] bg-white shadow-[-1.5cqw_2cqw_3cqw_rgb(8_12_40/0.55)]">
+                <Image src={src} alt="" widths={[240, 400]} sizes="20vw" class="block w-full" />
+              </div>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <!-- stamp -->
+  <div class="absolute left-[33%] top-[50%] grid size-[17cqw] -rotate-12 place-items-center rounded-full bg-[#f37125] text-center text-white shadow-[0_1cqw_3cqw_rgb(0_0_0/0.35)] ring-[0.6cqw] ring-[#1e2a66] ring-offset-0 outline-dashed outline-[0.35cqw] -outline-offset-[1.6cqw] outline-white/70">
+    <div>
+      <p class="text-[1.6cqw] font-bold uppercase tracking-widest">SUS</p>
+      <p class="display text-[5.2cqw] leading-none">80.5</p>
+    </div>
+  </div>
+
+  <!-- meta -->
+  <div class="absolute left-[5%] top-[6%] flex gap-[1cqw] text-[1.8cqw]">
+    <span class="rounded-full px-[1.6cqw] py-[0.6cqw] text-white ring-1 ring-white/40">UX Design</span>
+    <span class="rounded-full px-[1.6cqw] py-[0.6cqw] text-white ring-1 ring-white/40">Usability testing</span>
+  </div>
+  <div class="absolute bottom-[6%] left-[5%]">
+    <p class="text-[1.9cqw] font-semibold uppercase tracking-[0.2em] text-[#ffb37a]">GEMASTIK XVII · 2024</p>
+    <p class="display mt-[0.8cqw] text-[11cqw] text-white">SATYA<span class="text-[#f37125]">.</span></p>
+  </div>
+</div>

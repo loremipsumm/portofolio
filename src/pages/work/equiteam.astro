@@ -1,0 +1,781 @@
+---
+import { Image } from "astro:assets";
+import Base from "../../layouts/Base.astro";
+import SectionDock from "../../components/SectionDock.astro";
+import { site } from "../../data/site";
+import EquiFeatures from "../../components/EquiFeatures.astro";
+import Edu2ComSpotlight from "../../components/Edu2ComSpotlight.astro";
+import EquiImpact from "../../components/EquiImpact.astro";
+import EquiDevice from "../../components/EquiDevice.astro";
+import EquiMascotBlue from "../../components/EquiMascotBlue.astro";
+import EquiMascotStar from "../../components/EquiMascotStar.astro";
+
+// Hero assets exported from the Figma board (src/assets/equiteam/figma) and the live site.
+import figmaLogo from "../../assets/equiteam/figma/logo.svg";
+import figmaAvatar from "../../assets/equiteam/figma/avatar.png";
+import icEdit from "../../assets/equiteam/figma/ic-edit.svg";
+import icLoading from "../../assets/equiteam/figma/ic-loading.svg";
+import icGroup from "../../assets/equiteam/figma/ic-group.svg";
+import wMore from "../../assets/equiteam/figma/w-more.svg";
+import wCheck from "../../assets/equiteam/figma/w-check.svg";
+import wCancel from "../../assets/equiteam/figma/w-cancel.svg";
+import sub1 from "../../assets/equiteam/figma/sub1.svg";
+import sub2 from "../../assets/equiteam/figma/sub2.svg";
+import sub3 from "../../assets/equiteam/figma/sub3.svg";
+import sub4 from "../../assets/equiteam/figma/sub4.svg";
+// Illustrations and icons rendered from the Figma board (src/assets/equiteam/fig).
+import fGlanceMascot from "../../assets/equiteam/fig/glance-mascot.svg";
+import fIcRole from "../../assets/equiteam/fig/ic-role.svg";
+import fIcScope from "../../assets/equiteam/fig/ic-scope.svg";
+import fIcUsers from "../../assets/equiteam/fig/ic-users.svg";
+import fIcTools from "../../assets/equiteam/fig/ic-tools.svg";
+import fToolsLogos from "../../assets/equiteam/fig/tools-logos.svg";
+import fTechLogos from "../../assets/equiteam/fig/tech-logos.png";
+import fAvatarGalin from "../../assets/equiteam/fig/avatar-galin.png";
+import fMascotBrush from "../../assets/equiteam/fig/mascot-brush.svg";
+import fOwlGreen from "../../assets/equiteam/fig/owl-green.svg";
+import fScribbleCollab from "../../assets/equiteam/fig/scribble-collab.svg";
+import fScribble1 from "../../assets/equiteam/fig/scribble-1.svg";
+import fScribble2 from "../../assets/equiteam/fig/scribble-2.svg";
+import fScribble3 from "../../assets/equiteam/fig/scribble-3.svg";
+import fUcd1 from "../../assets/equiteam/fig/ucd-1.png";
+import fUcd2 from "../../assets/equiteam/fig/ucd-2.png";
+import fUcd3 from "../../assets/equiteam/fig/ucd-3.png";
+import fUcd4 from "../../assets/equiteam/fig/ucd-4.png";
+import fPillProblem from "../../assets/equiteam/fig/pill-problem.svg";
+import fPillSolution from "../../assets/equiteam/fig/pill-solution.svg";
+import fPillGoals from "../../assets/equiteam/fig/pill-goals.svg";
+import fPillChallenge from "../../assets/equiteam/fig/pill-challenge.svg";
+import fCursorRed from "../../assets/equiteam/fig/cursor-red.svg";
+import fCursorOrange from "../../assets/equiteam/fig/cursor-orange.svg";
+import fUiFloat from "../../assets/equiteam/fig/ui-float.svg";
+import fBullet from "../../assets/equiteam/fig/bullet-challenge.svg";
+import fAspPersonality from "../../assets/equiteam/fig/asp-personality.svg";
+import fAspSkill from "../../assets/equiteam/fig/asp-skill.svg";
+import fAspGender from "../../assets/equiteam/fig/asp-gender.svg";
+import fAspPreference from "../../assets/equiteam/fig/asp-preference.svg";
+import fIcTarget from "../../assets/equiteam/fig/ic-target.svg";
+import fIcKey from "../../assets/equiteam/fig/ic-key.svg";
+import fIcUsers2 from "../../assets/equiteam/fig/ic-users2.svg";
+import fIcUser from "../../assets/equiteam/fig/ic-user.svg";
+import fPersonaAndi from "../../assets/equiteam/fig/persona-andi.svg";
+import fPersonaApril from "../../assets/equiteam/fig/persona-april.svg";
+import aspPersonality from "../../assets/equiteam/site/personality.svg";
+import aspSkill from "../../assets/equiteam/site/skill.svg";
+import aspGender from "../../assets/equiteam/site/gender.svg";
+import aspPreference from "../../assets/equiteam/site/preference-task.svg";
+
+import showcase from "../../assets/equiteam/fig/hifi-showcase.png";
+import usecase from "../../assets/equiteam/fig/usecase-hd.png";
+import activity1 from "../../assets/equiteam/fig/activity-1.png";
+import activity2 from "../../assets/equiteam/fig/activity-2.png";
+import paletteGray from "../../assets/equiteam/fig/palette-gray.png";
+import paletteIndigo from "../../assets/equiteam/fig/palette-indigo.png";
+import paletteLime from "../../assets/equiteam/fig/palette-lime.png";
+import typeface from "../../assets/equiteam/fig/typeface.png";
+import illustration from "../../assets/equiteam/fig/illustration.svg";
+import ia from "../../assets/equiteam/ia.png";
+import lofi from "../../assets/equiteam/lofi.png";
+import hifi from "../../assets/equiteam/hifi.png";
+
+import mBlueBig from "../../assets/equiteam/m-blue-big.png";
+import mThinking from "../../assets/equiteam/m-thinking.png";
+import mBlue from "../../assets/equiteam/m-blue.png";
+import mBlueWave from "../../assets/equiteam/m-blue-wave.png";
+import mGreen from "../../assets/equiteam/m-green.png";
+import mOrange from "../../assets/equiteam/m-orange.png";
+import mOrangeShout from "../../assets/equiteam/m-orange-shout.png";
+import mPurple from "../../assets/equiteam/m-purple.png";
+
+const brand = { accent: "#025098", accentSoft: "#fff4cc", pop: "#fec84b" };
+
+const glance = [
+  { k: "Role", v: "Product Designer", icon: fIcRole },
+  { k: "Scope", v: "Research, design and testing", icon: fIcScope },
+  { k: "Users", v: "Lecturers and students", icon: fIcUsers },
+  { k: "Tools", v: "Figma, FigJam, Illustrator", icon: fIcTools, logos: fToolsLogos },
+];
+
+const methodIcons = [fUcd1, fUcd2, fUcd3, fUcd4];
+const scribbles = [fScribble1, fScribble2, fScribble3];
+
+const method = ["Understanding context of use", "Specifying user requirements", "Ideating and designing solution", "Evaluation against requirements"];
+
+const problems = [
+  { t: "Uneven skill distribution", d: "Some groups become overloaded, while others lack balance." },
+  { t: "Friendship-driven grouping", d: "Social circles shape teams more than actual class needs." },
+  { t: "Low visibility for lecturers", d: "Quick grouping does not always mean equitable grouping." },
+];
+
+const flowSteps = [
+  { t: "Input Data", icon: icEdit, bg: "rgba(235,233,254,.7)", ink: "#27115f", size: "68%" },
+  { t: "AI Processing", icon: icLoading, bg: "rgba(254,240,199,.7)", ink: "#4e1d09", size: "57%" },
+  { t: "Team Formation", icon: icGroup, bg: "rgba(209,250,223,.6)", ink: "#053321", size: "70%" },
+];
+
+const aspectTiles = [
+  { t: "Personality Matching", icon: aspPersonality, bg: "rgba(209,250,223,.7)", ink: "#027a48", size: "54%" },
+  { t: "Skill Balancing", icon: aspSkill, bg: "rgba(254,240,199,.65)", ink: "#b54708", size: "54%" },
+  { t: "Gender Balance", icon: aspGender, bg: "rgba(185,230,254,.65)", ink: "#026aa2", size: "60%" },
+  { t: "Preference Task", icon: aspPreference, bg: "rgba(217,214,254,.55)", ink: "#5925dc", size: "56%" },
+];
+
+const params = [
+  { t: "Personality", d: "MBTI as a 4-axis vector", c: "text-[#067647]", m: fAspPersonality },
+  { t: "Skill", d: "Weighted competencies per task", c: "text-[#b54708]", m: fAspSkill },
+  { t: "Gender", d: "Diversity balance per team", c: "text-[#175cd3]", m: fAspGender },
+  { t: "Preference", d: "Ranked task interest", c: "text-[#5925dc]", m: fAspPreference },
+];
+
+const challenges = [
+  { t: "Complex logic, simple interaction", d: "Edu2Com works with multiple allocation parameters and class requirements, but the product still had to feel clear, lightweight and usable in everyday academic settings." },
+  { t: "From algorithmic output to usable workflow", d: "A valid grouping result was not enough. The system had to fit real classroom processes, from collecting structured student input to helping lecturers act on the final result." },
+  { t: "Equity had to be visible", d: "Fairer grouping could not stay hidden inside the model. The product had to make the result easy to understand, evaluate and trust." },
+];
+
+const goals = ["Support more equitable team formation", "Translate allocation logic into a usable classroom workflow", "Make grouping results easier to understand and evaluate"];
+
+const findings = [
+  "Lecturers need an easy way to form balanced groups",
+  "Students are grouped in unusual and ad-hoc ways",
+  "The product has to serve two very different roles",
+  "Input needs to be simple, without lowering grouping quality",
+  "Trust and reliability matter more than raw accuracy",
+];
+
+const personas = [
+  {
+    name: "Andi, 38",
+    role: "Informatics lecturer",
+    quote: "I need a faster way to form groups without guessing whether the result is balanced.",
+    goals: ["Form balanced teams efficiently", "Review class composition easily", "Focus on teaching, not admin"],
+    pains: ["Manual grouping takes too long", "Hard to visualise team balance", "Repeated work every semester"],
+    m: fPersonaAndi,
+    tile: "bg-[#fff4dc] p-1.5",
+    c: "text-[#b54708]",
+  },
+  {
+    name: "Aprilianda, 21",
+    role: "Informatics student",
+    quote: "If a system groups me, I want to know why I ended up there.",
+    goals: ["Give input with minimal effort", "Understand how groups are formed", "Be in a fair, balanced team"],
+    pains: ["Input forms are too long", "Decisions feel unclear", "Groups are often based on friendship"],
+    m: fPersonaApril,
+    tile: "",
+    c: "text-[#15803d]",
+  },
+];
+
+const sus1 = [80, 80, 80, 77.5, 72.5, 77.5, 78, 77.5, 77.1, 76.6];
+const sus2 = [92.5, 90, 87.5, 87.5, 80, 95, 87.5, 88, 87.5, 87.6];
+const susY = (v: number) => `${((v - 60) / 40) * 100}%`; // chart from 60 to 100
+
+const ueq = [
+  { s: "Attractiveness", a: 1.53, b: 1.55 },
+  { s: "Perspicuity", a: 2.13, b: 2.45 },
+  { s: "Efficiency", a: 2.3, b: 2.48 },
+  { s: "Dependability", a: 1.63, b: 1.93 },
+  { s: "Stimulation", a: 1.48, b: 1.8 },
+  { s: "Novelty", a: 1.15, b: 1.93 },
+];
+
+// Floating section bar (SectionDock), shared with every case study.
+const sections = [
+  { id: "overview", t: "Overview" },
+  { id: "research", t: "Research" },
+  { id: "design", t: "Design" },
+  { id: "features", t: "Features" },
+  { id: "evaluation", t: "Evaluation" },
+  { id: "impact", t: "Impact" },
+];
+---
+
+<Base title={`EquiTeam case study | ${site.name}`} description="Case study: EquiTeam, an AI-powered team formation platform for equitable classroom collaboration." brand={brand}>
+  <div class="eq overflow-x-clip">
+    <!-- HERO -->
+    <section class="eq-dots relative isolate z-10 pt-24 sm:pt-28">
+      <div class="wrap">
+        <div class="flex flex-wrap items-center justify-between gap-4 text-sm font-semibold sm:text-base">
+          <span class="flex items-center gap-2 text-[#0b2a55]">
+            <img src={figmaLogo.src} alt="" class="h-9 w-auto" /> EquiTeam
+          </span>
+          <span class="flex items-center gap-2 text-[#0b2a55]"><span class="size-2 rounded-full bg-[#fec84b]"></span>Case 04 · Product design<span class="size-2 rounded-full bg-[#fec84b]"></span></span>
+          <span class="flex items-center gap-2.5 text-left text-xs font-medium text-muted sm:text-sm">
+            <img src={figmaAvatar.src} alt="" class="size-9 rounded-full object-cover sm:size-10" />
+            <span>Design by<br /><a href="https://www.linkedin.com/in/rafif-aditya" target="_blank" rel="noreferrer" class="text-base text-ink underline decoration-[#025098]/30 underline-offset-4">{site.name}</a></span>
+          </span>
+        </div>
+
+        <div class="relative mt-12 text-center">
+          <div class="pointer-events-none absolute left-[4%] top-[-14%] -z-10 hidden w-44 -rotate-[24deg] sm:block lg:left-[8%] lg:w-72" aria-hidden="true">
+            <div class="grid grid-cols-2">
+              <img src={sub1.src} alt="" class="w-full" />
+              <img src={sub2.src} alt="" class="w-full -scale-x-100" />
+              <img src={sub3.src} alt="" class="w-full -scale-y-100" />
+              <img src={sub4.src} alt="" class="w-full rotate-180" />
+            </div>
+          </div>
+          <h1 class="eq-title text-[clamp(2.1rem,5.6vw,4.6rem)]" data-reveal>
+            <span class="w">Designing an AI-powered team formation platform</span><br />
+            <span class="y">for equitable classroom collaboration</span>
+          </h1>
+        </div>
+
+        <div class="relative mx-auto mt-14 max-w-4xl pb-28 sm:pb-36" data-reveal="0.2">
+          <div class="rounded-[2rem] bg-[#121212] p-2.5 shadow-[0_40px_80px_-30px_rgb(2_80_152/0.55)] sm:p-3.5">
+            <EquiDevice />
+          </div>
+
+          <div class="eq-window absolute -left-4 top-[14%] hidden w-72 sm:block xl:-left-28" data-float="8">
+            <div class="flex items-center justify-between border-b border-line px-3 py-2 text-sm font-semibold text-[#3c3c3c]">
+              How it works
+              <span class="flex items-center gap-2"><img src={wMore.src} alt="" class="size-4" /><img src={wCheck.src} alt="" class="size-4" /><img src={wCancel.src} alt="" class="size-4" /></span>
+            </div>
+            <div class="flex items-start justify-between gap-1 p-3">
+              {
+                flowSteps.map((f, i) => (
+                  <>
+                    {i > 0 && <span class="mt-7 text-[11px] font-semibold text-[#065986]">→</span>}
+                    <div class="flex w-[27%] flex-col items-center gap-1.5">
+                      <span class="grid aspect-square w-full place-items-center rounded-xl" style={`background:${f.bg}`}>
+                        <img src={f.icon.src} alt="" style={`width:${f.size}`} />
+                      </span>
+                      <span class="whitespace-nowrap text-[10px] font-semibold" style={`color:${f.ink}`}>{f.t}</span>
+                    </div>
+                  </>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="eq-window absolute -right-4 top-[34%] hidden w-64 md:block xl:-right-28" data-float="10">
+            <div class="pointer-events-none absolute -top-[26%] left-[62%] w-[27%]"><EquiMascotStar /></div>
+            <div class="flex items-center justify-between border-b border-line px-3 py-2 text-sm font-semibold text-[#3c3c3c]">
+              AI Form Parameter
+              <span class="flex items-center gap-2"><img src={wMore.src} alt="" class="size-4" /><img src={wCheck.src} alt="" class="size-4" /><img src={wCancel.src} alt="" class="size-4" /></span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 p-3">
+              {
+                aspectTiles.map((a) => (
+                  <div class="flex flex-col items-center gap-1.5">
+                    <span class="grid aspect-[1.02] w-full place-items-center rounded-lg" style={`background:${a.bg}`}>
+                      <img src={a.icon.src} alt="" style={`width:${a.size}`} />
+                    </span>
+                    <span class="text-center text-[11px] font-bold leading-tight" style={`color:${a.ink}`}>{a.t}</span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+
+          <EquiMascotBlue class="pointer-events-none absolute -bottom-10 left-0 w-44 sm:-left-6 sm:w-56 lg:w-60 xl:-left-36 xl:w-72" />
+        </div>
+      </div>
+    </section>
+
+    <!-- AT A GLANCE -->
+    <section id="overview" class="eq-dots py-20 sm:py-28">
+      <div class="wrap">
+        <div class="flex items-center gap-4" data-reveal>
+          <img src={fGlanceMascot.src} alt="" class="w-20 sm:w-28" />
+          <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]">EquiTeam at a Glance</h2>
+        </div>
+        <p class="mt-8 max-w-5xl text-lg leading-relaxed text-ink sm:text-xl" data-reveal="0.1">
+          <b>EquiTeam is an AI-powered team formation platform</b> that helps lecturers build
+          <mark>more equitable, measurable student groups</mark>. It's the interface layer for
+          <mark>Edu2Com</mark>, a research-based allocation model, turning it into a practical academic
+          workflow for both lecturers and students. Teams are formed from four student
+          <mark>parameters: skill, personality, gender and preference</mark>, against class needs set by
+          the lecturer.
+        </p>
+
+        <div class="mt-14 grid items-stretch gap-8 lg:grid-cols-[1fr_1.7fr_1.3fr]">
+          <ul class="flex flex-col gap-4" data-stagger>
+            {glance.map((g) => (
+              <li class="flex flex-1 items-center gap-4 rounded-2xl border-2 border-[#d6e9f8] bg-white p-4">
+                <img src={g.icon.src} alt="" class="size-14 shrink-0" />
+                <div>
+                  <p class="font-bold text-[#175cd3]">{g.k}</p>
+                  {g.logos ? <img src={g.logos.src} alt={g.v} class="mt-1 h-8 w-auto" /> : <p class="text-ink">{g.v}</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div class="flex flex-col gap-6">
+            <div class="eq-dash flex-1 bg-white/70 p-6 text-[#2b8ff0]" data-reveal>
+              <p class="font-bold text-ink">Design method <span class="font-medium text-muted">· User-Centered Design (ISO 9241-210)</span></p>
+              <ol class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {method.map((m, i) => (
+                  <li class="relative flex flex-col items-center text-center">
+                    <span class="absolute -left-1 -top-2 grid size-7 place-items-center rounded-full bg-[#0b2a55] text-xs font-bold text-white">{i + 1}</span>
+                    <img src={methodIcons[i].src} alt="" class="aspect-square w-full max-w-24 rounded-2xl object-cover" />
+                    <span class="mt-3 w-full rounded-lg bg-[#180092] px-2 py-1.5 text-xs font-semibold leading-tight text-white">{m}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div class="eq-dash relative flex-1 bg-white/70 p-6 text-[#2b8ff0]" data-reveal="0.1">
+              <img src={fOwlGreen.src} alt="" class="pointer-events-none absolute -top-8 right-8 w-16 sm:w-20" />
+              <p class="font-bold text-ink">Evaluation method</p>
+              <div class="mt-5 flex flex-wrap items-center gap-3 text-ink">
+                {["Heuristic Evaluation", "System Usability Scale", "User Experience Questionnaire"].map((e, i) => (
+                  <>
+                    {i > 0 && <span class="text-muted">→</span>}
+                    <span class="relative inline-block px-5 py-3 text-sm font-medium">
+                      <img src={scribbles[i].src} alt="" class="pointer-events-none absolute inset-0 size-full" />
+                      <span class="relative">{e}</span>
+                    </span>
+                  </>
+                ))}
+              </div>
+              <span class="eq-ribbon eq-bob absolute -bottom-5 right-6 rotate-[-3deg] bg-[#0277c7] text-sm">Total evaluation process<br /><span class="text-lg">2× iteration</span></span>
+            </div>
+          </div>
+
+          <div class="relative rounded-2xl bg-[#0b4e9a] p-7 text-white shadow-[12px_12px_0_#c7defa]" data-reveal="0.15">
+            <span class="relative inline-block px-4 py-2 text-xs font-semibold">
+              <img src={fScribbleCollab.src} alt="" class="pointer-events-none absolute inset-0 size-full" />
+              <span class="relative">My project collaborator</span>
+            </span>
+            <div class="mt-5 flex items-center gap-4">
+              <img src={fAvatarGalin.src} alt="Galin Nichola Gibran" class="size-14 shrink-0 rounded-full object-cover" />
+              <div>
+                <p class="text-xl font-bold underline decoration-white/40 underline-offset-4">Galin Nichola Gibran</p>
+                <p class="text-sm text-white/85">As a sole developer</p>
+              </div>
+            </div>
+            <a
+              href="https://www.linkedin.com/in/galinnichola/"
+              target="_blank"
+              rel="noreferrer"
+              class="btn btn-sm mt-4 bg-white font-semibold text-[#0b4e9a]"
+              aria-label="Galin Nichola Gibran on LinkedIn (opens in a new tab)"
+            >
+              LinkedIn <span aria-hidden="true">↗</span>
+            </a>
+            <p class="mt-5 text-sm leading-relaxed text-white/85">
+              Galin built the application, the Edu2Com integration and the infrastructure, turning
+              the design into a working product: onboarding, forms, dashboards, exports, and the
+              integration with the external grouping service, including payload preparation,
+              filtering, group-sizing logic and background processing for larger classes.
+            </p>
+            <p class="mt-6 text-sm font-semibold">Built with</p>
+            <img src={fTechLogos.src} alt="Next.js, Nuxt, React, Tailwind, Prisma and more" class="mt-3 h-9 w-auto" />
+            <img src={fMascotBrush.src} alt="" class="pointer-events-none absolute -bottom-14 -right-10 w-36 rotate-[7deg] sm:-right-12" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROBLEM + SOLUTION -->
+    <section class="eq-dots py-20 sm:py-28">
+      <div class="wrap">
+        <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" data-reveal>
+          From Convenience-Based Grouping<br /><span class="y">to More Equitable Collaboration</span>
+        </h2>
+
+        <span class="eq-tag eq-bob mt-12 bg-[#fde2e4] text-[#b42318]"><img src={fPillProblem.src} alt="" />Current problem</span>
+        <div class="eq-select mt-6 p-4 text-[#b42318]" data-reveal>
+          <span class="h"></span><span class="h"></span><span class="h"></span><span class="h"></span>
+          <ul class="grid gap-4 md:grid-cols-3">
+            {problems.map((p) => (
+              <li class="rounded-2xl border border-[#fecdca] bg-[#fff6f6] p-5">
+                <p class="text-lg font-bold text-[#b42318]">{p.t}</p>
+                <p class="mt-2 text-[#b42318]">{p.d}</p>
+              </li>
+            ))}
+          </ul>
+          <img src={fCursorRed.src} alt="" class="eq-bob pointer-events-none absolute -bottom-12 -right-4 w-20 sm:-right-10" style="animation-delay:-1.2s" />
+        </div>
+
+        <div class="mt-20 grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:items-start">
+          <div>
+            <span class="eq-tag eq-bob bg-[#fff4dc] text-[#b54708]" style="animation-delay:-2.4s"><img src={fPillSolution.src} alt="" />Edu2Com algorithm as a solution</span>
+            <p class="mt-6 text-lg leading-relaxed" data-reveal>
+              <a href="https://www.iiia.csic.es/media/publications/Trustworth_Task_Allocation_for_Human_Teams.pdf" target="_blank" rel="noreferrer" class="font-bold underline decoration-2 underline-offset-4 transition-colors hover:text-[#180092]" aria-label="Edu2Com is a research-based team allocation algorithm (research paper, opens in a new tab)">Edu2Com is a research-based team allocation algorithm</a>
+              used as the engine behind EquiTeam. Prior studies <mark>showed stronger performance than random and
+              teacher-led grouping</mark>. EquiTeam's job is to turn that model into a workflow lecturers and
+              students can actually use.
+            </p>
+            <a href="#edu2com" data-scroll-to class="btn btn-primary mt-6 bg-[#180092]">See how the algorithm works ↓</a>
+          </div>
+          <ul class="grid grid-cols-2 gap-3" data-stagger>
+            {params.map((p) => (
+              <li class={`text-center ${p.c}`}>
+                <img src={p.m.src} alt="" class="mx-auto w-full max-w-32 rounded-xl" />
+                <p class="mt-2 font-bold">{p.t}</p>
+                <p class="text-xs">{p.d}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDU2COM SPOTLIGHT -->
+    <Edu2ComSpotlight />
+
+    <!-- CHALLENGE -->
+    <section class="eq-dots relative overflow-x-clip py-20 sm:py-28">
+      <img src={fUiFloat.src} alt="" class="pointer-events-none absolute -right-24 -top-2 hidden w-[34rem] rotate-[6deg] opacity-90 lg:block" />
+      <img src={fCursorOrange.src} alt="" class="pointer-events-none absolute right-[30rem] top-6 hidden w-16 lg:block" />
+      <div class="wrap">
+        <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" data-reveal>What We Had to <span class="y">Solve</span></h2>
+        <p class="mt-6 max-w-3xl text-lg text-muted" data-reveal="0.1">
+          The challenge wasn't just building an AI-powered grouping tool. It was turning a
+          research-based allocation model into a product experience that supports more equitable
+          team formation in real classroom workflows.
+        </p>
+        <div class="mt-12 grid gap-12 lg:grid-cols-[1.2fr_1fr]">
+          <div>
+            <span class="eq-tag bg-[#fde2e4] text-[#b42318]"><img src={fPillChallenge.src} alt="" />Core challenge</span>
+            <ul class="mt-6 space-y-6" data-stagger>
+              {challenges.map((c) => (
+                <li>
+                  <p class="flex items-center gap-2 text-lg font-bold text-[#b42318]"><img src={fBullet.src} alt="" class="size-5" />{c.t}</p>
+                  <p class="eq-dash mt-3 bg-[#fffafa] p-5 text-[#b42318]"><span class="text-ink">{c.d}</span></p>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <span class="eq-tag bg-[#e3f1ff] text-[#175cd3]"><img src={fPillGoals.src} alt="" />Main goals</span>
+            <div class="mt-10 grid grid-cols-2 gap-6">
+              {goals.map((g, i) => (
+                <div class={`eq-sticky grid min-h-40 place-items-center p-6 text-center text-lg ${["-rotate-3", "rotate-2", "col-span-2 mx-auto w-4/5 -rotate-1"][i]}`} data-reveal={i * 0.1}>
+                  {g}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESEARCH -->
+    <section id="research" class="eq-dots py-20 sm:py-28">
+      <div class="wrap">
+        <div class="grid gap-10 lg:grid-cols-[1fr_1fr]">
+          <div>
+            <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" data-reveal>Understanding <span class="y">Context of Use</span></h2>
+            <p class="mt-6 text-lg text-muted" data-reveal="0.1">
+              Before designing, I validated the product direction: how lecturers and students
+              currently handle team formation, why existing methods fall short, and what would make
+              AI-assisted grouping useful in practice. I interviewed lecturers and students in the
+              Informatics programme at ITERA.
+            </p>
+          </div>
+          <div class="eq-dash bg-white/70 p-6 text-[#2b8ff0]" data-reveal="0.1">
+            <p class="flex items-center gap-2 font-bold text-[#175cd3]"><img src={fIcTarget.src} alt="" class="size-6" />Research goals</p>
+            <ol class="mt-4 space-y-4 text-ink">
+              {[["Validate the need", "Make sure the product solves a real problem for lecturers and students."], ["Understand current experiences", "Explore how grouping is done today and where it breaks."], ["Identify real needs", "Find the features that should drive the product direction."]].map(([t, d], i) => (
+                <li class="flex gap-3"><span class="grid size-7 shrink-0 place-items-center rounded-full bg-[#1570ef] text-xs font-bold text-white">{i + 1}</span><span><b class="text-[#0b4e9a]">{t}</b><br /><span class="text-sm">{d}</span></span></li>
+              ))}
+            </ol>
+          </div>
+        </div>
+
+        <p class="mt-16 flex items-center gap-2 text-xl font-bold text-[#b54708]"><img src={fIcKey.src} alt="" class="size-6" />Key findings</p>
+        <p class="text-muted">From interviews with lecturers and students</p>
+        <div class="eq-select mt-6 p-6 text-[#b54708]" data-reveal>
+          <span class="h"></span><span class="h"></span><span class="h"></span><span class="h"></span>
+          <ol class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {findings.map((f, i) => (
+              <li class="relative grid aspect-square place-items-center rounded-full border border-[#fde3b0] bg-[#fff8e8] p-6 text-center text-sm font-medium text-[#b54708]">
+                <span class="absolute left-[8%] top-[6%] grid size-8 place-items-center rounded-full bg-[#e8770c] text-sm font-bold text-white">{i + 1}</span>
+                {f}
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div class="mt-16 grid gap-10 lg:grid-cols-2">
+          <div class="flex flex-col">
+            <p class="flex items-center gap-2 text-xl font-bold text-[#5925dc]"><img src={fIcUsers2.src} alt="" class="size-6" />Users at a glance</p>
+            <div class="mt-5 grid flex-1 gap-4 sm:grid-cols-2" data-stagger>
+              <div class="rounded-2xl bg-[#fffbeb] p-5">
+                <span class="rounded-lg bg-[#fef3c7] px-3 py-1 font-bold text-[#b54708]">Lecturers</span>
+                <p class="mt-4">Need a faster, clearer way to form and evaluate student groups.</p>
+                <p class="mt-4 font-bold text-[#b54708]">Pain points</p>
+                <ul class="mt-1 list-disc pl-5 text-sm"><li>Manual distribution is time-consuming</li><li>Hard to assess fairness</li><li>Needs to fit existing workflows</li><li>Weak groups hurt results</li></ul>
+              </div>
+              <div class="rounded-2xl bg-[#f0fdf4] p-5">
+                <span class="rounded-lg bg-[#dcfce7] px-3 py-1 font-bold text-[#15803d]">Students</span>
+                <p class="mt-4">Need an easy input flow and a team result they can understand.</p>
+                <p class="mt-4 font-bold text-[#15803d]">Pain points</p>
+                <ul class="mt-1 list-disc pl-5 text-sm"><li>Unfair metrics</li><li>Long input forms</li><li>Want more say in grouping</li><li>Low trust in the system</li></ul>
+              </div>
+            </div>
+          </div>
+          <div>
+            <p class="flex items-center gap-2 text-xl font-bold text-[#5925dc]"><img src={fIcUser.src} alt="" class="size-6" />User personas</p>
+            <div class="mt-5 space-y-5" data-stagger>
+              {personas.map((p) => (
+                <div class={`eq-dash bg-white p-5 ${p.c}`}>
+                  <div class="flex gap-4 text-ink">
+                    <span class={`grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl ${p.tile}`}><img src={p.m.src} alt="" class="size-full object-contain" /></span>
+                    <div>
+                      <p class="font-bold">{p.name}</p>
+                      <p class={`text-xs font-medium ${p.c}`}>{p.role}</p>
+                      <p class="mt-2 text-sm italic text-muted">"{p.quote}"</p>
+                    </div>
+                  </div>
+                  <div class="mt-4 grid grid-cols-2 gap-4 text-xs text-ink">
+                    <div><p class="font-semibold">🎯 Goals</p><ul class="mt-1 list-disc pl-4">{p.goals.map((g) => <li>{g}</li>)}</ul></div>
+                    <div><p class="font-semibold">⛔ Frustrations</p><ul class="mt-1 list-disc pl-4">{p.pains.map((g) => <li>{g}</li>)}</ul></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REQUIREMENTS -->
+    <section class="eq-dots py-20 sm:py-28">
+      <div class="wrap">
+        <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" data-reveal>Defining <span class="y">User Requirements</span></h2>
+        <p class="mt-6 max-w-3xl text-lg text-muted" data-reveal="0.1">
+          I turned the findings into product requirements and structure: <b class="text-ink">19 functional
+          requirements</b> across both roles, plus usability, bilingual support (ID / EN) and
+          authenticated access as non-functional ones. The design was grounded in validated needs,
+          not feature assumptions.
+        </p>
+        <div class="mt-12 grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-start">
+          <figure class="relative" data-reveal>
+            <div class="eq-dash bg-white p-3 text-[#2b8ff0]">
+              <Image src={usecase} alt="Use case diagram for lecturers (Dosen) and students (Mahasiswa)" widths={[800, 990]} sizes="(min-width:1024px) 55vw, 100vw" class="w-full" />
+            </div>
+            <span class="eq-ribbon absolute -bottom-6 -left-3 -rotate-3 bg-[#0277c7] text-sm"><span class="font-medium">User requirements</span><br />Use case diagram</span>
+          </figure>
+          <div data-reveal="0.1">
+            <figure class="relative">
+              <div class="eq-dash bg-white p-3 text-[#b42318]">
+                <Image src={activity1} alt="Activity diagrams: task management and questionnaire management" widths={[700, 1100]} sizes="(min-width:1024px) 40vw, 100vw" class="w-full" />
+                <Image src={activity2} alt="More activity diagrams for the lecturer and the system" widths={[700, 1100]} sizes="(min-width:1024px) 40vw, 100vw" class="mt-3 w-full" />
+              </div>
+              <span class="eq-ribbon absolute -bottom-6 right-4 rotate-3 bg-[#e5484d] text-sm"><span class="font-medium">User requirements</span><br />Activity diagram</span>
+            </figure>
+            <p class="mt-12 text-lg">
+              The use case diagram mapped what lecturers and students each do in the platform:
+              lecturers create classes, tasks and questionnaires, then form, review, edit and export
+              groups; students answer the questionnaire and see their results. Activity diagrams then
+              traced each flow from input to team formation output.
+            </p>
+          </div>
+        </div>
+        <figure class="relative mt-16" data-reveal>
+          <div class="eq-dash overflow-x-auto bg-white p-4 text-[#b54708]">
+            <Image src={ia} alt="Information architecture: Sign in, Dashboard, Class, Task, Student Answer, Manage Class, Manage Task, Profile" widths={[1200, 1790]} sizes="1280px" class="w-full min-w-[900px]" />
+          </div>
+          <span class="eq-ribbon absolute -bottom-6 right-8 rotate-[-3deg] bg-[#fec84b] text-sm !text-[#7a4b00]"><span class="font-medium">User requirements</span><br />Information architecture</span>
+        </figure>
+      </div>
+    </section>
+
+    <!-- LO-FI -->
+    <section id="design" class="eq-dots py-20 sm:py-28">
+      <div class="wrap">
+        <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" data-reveal>Low-Fidelity</h2>
+        <p class="mt-6 max-w-3xl text-lg text-muted" data-reveal="0.1">
+          With the requirements in place, I explored structure before visual detail: information
+          hierarchy, what each screen is for, and workflow clarity across the platform.
+        </p>
+        <div class="mt-10 overflow-hidden rounded-2xl" data-reveal>
+          <Image src={lofi} alt="Low-fidelity wireframes on a dark canvas" widths={[1000, 1920]} sizes="1280px" class="w-full" />
+        </div>
+      </div>
+    </section>
+
+    <!-- DESIGN SYSTEM -->
+    <section id="design-system" class="eq-dots scroll-mt-4 py-20 sm:py-28">
+      <div class="wrap">
+        <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" data-reveal>Design <span class="y">System</span></h2>
+        <p class="mt-6 max-w-3xl text-lg text-muted" data-reveal="0.1">
+          Once the structure was stable, I built a system so complex workflows feel lighter,
+          easier to scan and more approachable for both lecturers and students, and a mascot cast
+          that makes personality data feel human.
+        </p>
+
+        <div class="mt-12 grid gap-8 lg:grid-cols-[1fr_1.6fr]">
+          <div class="rounded-2xl bg-white p-6 ring-1 ring-[#d6e9f8]" data-reveal>
+            <span class="rounded-lg bg-[#0277c7] px-3 py-1 text-sm font-semibold text-white">Typeface</span>
+            <Image src={typeface} alt="Plus Jakarta Sans specimen: Ag, with the full alphabet and numerals" widths={[700, 1100]} sizes="(min-width:1024px) 30vw, 100vw" class="mt-4 w-full" />
+          </div>
+          <div class="rounded-2xl bg-white p-6 ring-1 ring-[#d6e9f8]" data-reveal="0.1">
+            <span class="rounded-lg bg-[#0277c7] px-3 py-1 text-sm font-semibold text-white">Color</span>
+            <div class="mt-6 space-y-3 overflow-x-auto">
+              {[
+                [paletteGray, "Gray scale with WCAG contrast labels"],
+                [paletteIndigo, "Indigo brand scale with WCAG contrast labels"],
+                [paletteLime, "Lime success scale with WCAG contrast labels"],
+              ].map(([img, alt]) => (
+                <Image src={img} alt={alt} widths={[900, 1400]} sizes="(min-width:1024px) 55vw, 100vw" class="w-full min-w-[560px]" />
+              ))}
+            </div>
+            <p class="mt-4 text-sm text-muted">Gray for structure, indigo as the brand, lime for success. Every swatch is labelled with its WCAG contrast.</p>
+          </div>
+        </div>
+
+        <div class="mt-8 rounded-2xl bg-white p-6 ring-1 ring-[#d6e9f8]" data-reveal>
+          <span class="rounded-lg bg-[#0277c7] px-3 py-1 text-sm font-semibold text-white">Illustration</span>
+          <div class="mt-6 overflow-x-auto">
+            <img
+              src={illustration.src}
+              alt="EquiTeam visual identity: the logo with the four mascots, 16 MBTI mascot tiles, student, female, lecturer and male avatars, agreement and skill-level mascots, and the 4 by 4 character illustration sheet"
+              width="1825"
+              height="746"
+              loading="lazy"
+              class="block h-auto w-full min-w-[820px]"
+            />
+          </div>
+          <p class="mt-4 text-sm text-muted">
+            Sixteen mascots, one for each MBTI type, grouped into four temperament colours, plus avatars for roles
+            and gender and a five-step face scale for agreement and skill level.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HI-FI -->
+    <section class="eq-dots py-20 sm:py-28">
+      <div class="wrap">
+        <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" data-reveal>High-<span class="y">Fidelity</span></h2>
+        <p class="mt-6 max-w-3xl text-lg text-muted" data-reveal="0.1">
+          The product structure and visual system came together in a high-fidelity prototype for
+          both roles, turning workflows, system logic and interface patterns into a complete
+          product experience before validation.
+        </p>
+        <div class="mt-10 overflow-hidden rounded-3xl ring-1 ring-[#d6e9f8]" data-reveal>
+          <Image src={showcase} alt="EquiTeam screens: dashboard, role picker, MBTI distribution, analysis, task list, topic preference" widths={[1000, 1920]} sizes="1280px" class="w-full" />
+        </div>
+        <div class="mt-10 overflow-hidden rounded-2xl" data-reveal>
+          <Image src={hifi} alt="High-fidelity screens organised by flow on a dark canvas" widths={[1000, 1920]} sizes="1280px" class="w-full" />
+        </div>
+      </div>
+    </section>
+
+    <!-- KEY FEATURES -->
+    <EquiFeatures />
+
+    <!-- EVALUATION -->
+    <section id="evaluation" class="mx-2 rounded-[2rem] bg-[#180092] py-20 text-white sm:mx-5 sm:rounded-[3rem] sm:py-28">
+      <div class="wrap">
+        <h2 class="eq-title text-[clamp(2rem,5vw,3.6rem)]" style="-webkit-text-stroke-color:#0b0048;text-shadow:0 0.07em 0 #0b0048" data-reveal>
+          <span class="y">Evaluating</span> <span class="w">Against Requirements</span>
+        </h2>
+        <p class="mt-6 max-w-3xl text-lg text-white/85" data-reveal="0.1">
+          Two rounds, each with three methods: a heuristic review by three product designers (2–7
+          years' experience), and SUS plus UEQ with ten real users running task scenarios.
+        </p>
+
+        <div class="mt-12 grid gap-6 lg:grid-cols-3">
+          <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10" data-reveal>
+            <p class="text-sm font-semibold uppercase tracking-widest text-[#fec84b]">Heuristic severity</p>
+            <div class="mt-4 flex items-end gap-4">
+              <p class="text-5xl font-extrabold text-white/65">1.29</p><span class="pb-2 text-2xl text-[#fec84b]">→</span><p class="text-5xl font-extrabold">0.95</p>
+            </div>
+            <p class="mt-3 text-sm text-white/85">Average across Nielsen's 10 heuristics, on a 0–4 scale. Round 2 sits at "cosmetic only".</p>
+          </div>
+          <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10" data-reveal="0.05">
+            <p class="text-sm font-semibold uppercase tracking-widest text-[#fec84b]">System Usability Scale</p>
+            <div class="mt-4 flex items-end gap-4">
+              <p class="text-5xl font-extrabold text-white/65">78</p><span class="pb-2 text-2xl text-[#fec84b]">→</span><p class="text-5xl font-extrabold">87.5</p>
+            </div>
+            <p class="mt-3 text-sm text-white/85">From "good" to "excellent". Every one of the ten users scored higher the second time.</p>
+          </div>
+          <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10" data-reveal="0.1">
+            <p class="text-sm font-semibold uppercase tracking-widest text-[#fec84b]">User Experience Questionnaire</p>
+            <div class="mt-4 flex items-end gap-4">
+              <p class="text-5xl font-extrabold text-white/65">2</p><span class="pb-2 text-2xl text-[#fec84b]">→</span><p class="text-5xl font-extrabold">5<span class="text-2xl">/6</span></p>
+            </div>
+            <p class="mt-3 text-sm text-white/85">Scales rated "Excellent" against the UEQ benchmark.</p>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-2">
+          <figure class="rounded-2xl bg-white p-6 text-ink" data-reveal>
+            <figcaption class="flex items-center justify-between text-sm font-semibold">
+              SUS per user
+              <span class="flex gap-3 text-xs font-medium text-muted"><span class="flex items-center gap-1"><i class="size-2.5 rounded-sm bg-[#c9c3f5]"></i>Round 1</span><span class="flex items-center gap-1"><i class="size-2.5 rounded-sm bg-[#180092]"></i>Round 2</span></span>
+            </figcaption>
+            <div class="relative ml-5 mt-6 h-48">
+              <div class="absolute inset-x-0 border-t border-dashed border-[#fec84b]" style={`bottom:${susY(68)}`}><span class="absolute -left-1 -translate-x-full -translate-y-1/2 pr-1 text-xs text-[#b54708]">68</span></div>
+              <div class="flex h-full items-end gap-1.5">
+                {sus1.map((v, i) => (
+                  <div class="flex h-full flex-1 items-end gap-0.5">
+                    <span class="flex-1 rounded-t bg-[#c9c3f5]" style={`height:${susY(v)}`} title={`R${i + 1} round 1: ${v}`}></span>
+                    <span class="flex-1 rounded-t bg-[#180092]" style={`height:${susY(sus2[i])}`} title={`R${i + 1} round 2: ${sus2[i]}`}></span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div class="ml-5 mt-1 flex gap-1.5 text-center text-xs text-muted">{sus1.map((_, i) => <span class="flex-1">R{i + 1}</span>)}</div>
+            <p class="mt-2 text-xs text-muted">Axis from 60 to 100. Dashed line: 68, the SUS "acceptable" threshold.</p>
+          </figure>
+
+          <figure class="rounded-2xl bg-white p-6 text-ink" data-reveal="0.1">
+            <figcaption class="flex items-center justify-between text-sm font-semibold">
+              UEQ mean by scale
+              <span class="flex gap-3 text-xs font-medium text-muted"><span class="flex items-center gap-1"><i class="size-2.5 rounded-sm bg-[#c9c3f5]"></i>Round 1</span><span class="flex items-center gap-1"><i class="size-2.5 rounded-sm bg-[#180092]"></i>Round 2</span></span>
+            </figcaption>
+            <ul class="mt-6 space-y-3">
+              {ueq.map((u) => (
+                <li class="grid grid-cols-[6.5rem_1fr_2.5rem] items-center gap-3 text-xs">
+                  <span class="text-right text-muted">{u.s}</span>
+                  <span class="space-y-1">
+                    <span class="block h-2 rounded-r bg-[#c9c3f5]" style={`width:${(u.a / 3) * 100}%`}></span>
+                    <span class="block h-2 rounded-r bg-[#180092]" style={`width:${(u.b / 3) * 100}%`}></span>
+                  </span>
+                  <span class="font-semibold">{u.b.toFixed(2)}</span>
+                </li>
+              ))}
+            </ul>
+            <p class="mt-4 text-xs text-muted">Scale −3 to +3; bars show 0 to 3. Novelty saw the biggest jump (1.15 → 1.93).</p>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONCLUSION + IMPACT -->
+    <EquiImpact />
+
+    <!-- NEXT -->
+    <section class="eq-dots pb-24">
+      <div class="wrap">
+        <a href="/work/sia" class="group flex flex-col items-start justify-between gap-8 rounded-[32px] bg-[#180092] p-8 text-white sm:flex-row sm:items-end sm:p-14" data-reveal>
+          <div>
+            <p class="eyebrow !text-white/65">Next case study</p>
+            <p class="display mt-4 text-[clamp(2.5rem,6vw,5rem)]">SIA<span class="text-[#fec84b]">.</span></p>
+            <p class="mt-3 max-w-md text-white/85">A web accounting and audit system for Tata Data Global.</p>
+          </div>
+          <span class="rounded-full bg-[#fec84b] px-6 py-3.5 font-medium text-[#180092] transition-transform group-hover:translate-x-1">Read it →</span>
+        </a>
+      </div>
+    </section>
+  </div>
+
+<script>
+  // "scroll to" buttons: glide to the target instead of jumping (instant when motion is reduced).
+  function init() {
+    document.querySelectorAll<HTMLAnchorElement>("a[data-scroll-to]").forEach((a) => {
+      if (a.dataset.ready) return;
+      a.dataset.ready = "1";
+      a.addEventListener("click", (e) => {
+        const target = document.querySelector<HTMLElement>(a.getAttribute("href")!);
+        if (!target) return;
+        e.preventDefault();
+        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+        history.replaceState(null, "", a.getAttribute("href"));
+      });
+    });
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>
+  <SectionDock sections={sections} />
+</Base>
