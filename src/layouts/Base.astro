@@ -95,8 +95,14 @@ const brandStyle = brand
           document.documentElement.classList.add("lite");
         }
       })();
-      // ?embed: shown inside the home app as a FigJam board (see global.css). Links that leave the page
-      // navigate the whole window rather than the board; in-page anchors keep working.
+      // A case study page is only ever shown inside a board. Opened on its own (a pasted link, an old URL),
+      // it goes to the app, which opens that board.
+      if (!/[?&]embed\b/.test(location.search) && window.top === window) {
+        var m = location.pathname.match(/^\/work\/([^/]+)\/?$/);
+        if (m) location.replace("/?open=" + m[1]);
+      }
+      // ?embed: shown inside the home app as a FigJam board (see global.css). A link to another case study
+      // opens that board in the app; in-page anchors keep working; mailto and the like leave as before.
       if (/[?&]embed\b/.test(location.search) && window.top !== window) {
         document.documentElement.classList.add("embed");
         window.addEventListener(
@@ -108,6 +114,11 @@ const brandStyle = brand
             if (url.origin === location.origin && url.pathname === location.pathname && url.hash) return;
             e.preventDefault();
             e.stopPropagation();
+            if (url.origin === location.origin) {
+              var w = url.pathname.match(/^\/work\/([^/]+)\/?$/);
+              if (w) window.top.postMessage({ type: "board-open", slug: w[1] }, location.origin);
+              return; // any other page on this site: stay here
+            }
             window.top.location.href = url.href;
           },
           true,

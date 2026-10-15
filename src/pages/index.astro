@@ -187,7 +187,7 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
                   {files
                     .filter((f) => f.area === a)
                     .map((f) => (
-                      <a class="fb-item" href={f.href} data-fb-open={f.id}>
+                      <a class="fb-item" href={`/?open=${f.id}`} data-fb-open={f.id}>
                         <span set:html={icon("file")} />
                         <span>{f.title}</span>
                       </a>
@@ -257,7 +257,7 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
                 const Cover = covers[f.id];
                 return (
                   <article class="fb-card" style={`--i:${i}`} data-id={f.id} data-area={f.area} data-type={f.type} data-year={f.year} data-name={f.title} data-sub={f.sub}>
-                    <a class="fb-thumb" href={f.href} data-fb-open={f.id}>
+                    <a class="fb-thumb" href={`/?open=${f.id}`} data-fb-open={f.id}>
                       {Cover ? (
                         <div class="fb-thumb-inner"><Cover class="!rounded-none !ring-0" /></div>
                       ) : (

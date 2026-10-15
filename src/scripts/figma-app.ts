@@ -1,7 +1,6 @@
 // The home page behaves like the Figma desktop home: tabs you can open and close, a file viewer,
 // filters and sort, grid/list, search (Cmd/Ctrl+K), context menus, favourites and a few fake collaborators.
 // Everything is progressive: without this script the cards are plain links to the case studies.
-import { navigate } from "astro:transitions/client";
 import { icon } from "./figma-icons";
 import { editedLabel } from "./edited";
 import type { InspectInfo, Tokens } from "./board-inspect";
@@ -58,6 +57,8 @@ const store = {
 
 // Every case study opens in place as a FigJam board ("Open case study"); their pages style ?embed for it.
 const isBoard = (href: string) => href.startsWith("/work/");
+// A file's link inside the app (share, copy, anchors). /work/<id> is only the page a board loads in its frame.
+const linkOf = (id: string) => `/?open=${id}`;
 // Boards on FigJam's dark canvas (pages that are dark throughout; global.css darkens their embed too).
 const DARK_BOARDS = new Set(["sia"]);
 
@@ -322,13 +323,13 @@ function init() {
   // so the main action becomes "Open as full page").
   function detailsHTML(f: FileItem, inBoard = false) {
     const cta = inBoard
-      ? `<a class="is-primary" href="${esc(f.href)}">Open as full page ${icon("external")}</a>`
-      : `<a class="is-primary" href="${esc(f.href)}"${isBoard(f.href) ? ` data-fb-board="${esc(f.id)}"` : ""}>${f.id === "about" ? "Read more" : "Open case study"} ${icon("external")}</a>`;
+      ? ""
+      : `<a class="is-primary" href="${esc(linkOf(f.id))}"${isBoard(f.href) ? ` data-fb-board="${esc(f.id)}"` : ""}>${f.id === "about" ? "Read more" : "Open case study"} ${icon("external")}</a>`;
     return `<h2>${esc(f.title)}</h2><p class="fb-lead">${esc(f.full)}</p><p class="fb-blurb">${esc(f.blurb)}</p>
       <div class="fb-chips">${f.tags.map((t) => `<span>${esc(t)}</span>`).join("")}</div>
       ${f.stats.length ? `<div class="fb-stats">${f.stats.map((s) => `<div><b>${esc(s.n)}</b><span>${esc(s.l)}</span></div>`).join("")}</div>` : ""}
       <dl class="fb-meta">${f.meta.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
-      <div class="fb-cta">${cta}<button data-fb-copylink="${esc(f.href)}">${icon("copy")}Copy link</button></div>`;
+      <div class="fb-cta">${cta}<button data-fb-copylink="${esc(linkOf(f.id))}">${icon("copy")}Copy link</button></div>`;
   }
   // The case study page in an iframe (?embed strips the site chrome, see Base.astro), framed by FigJam's
   // floating bars: file menu and name top-left, people, Share and zoom top-right.
@@ -485,6 +486,7 @@ function init() {
   on(window, "message", (e: MessageEvent) => {
     if (e.origin !== location.origin) return;
     if (e.data?.type === "board-notes") renderComments();
+    if (e.data?.type === "board-open" && typeof e.data.slug === "string" && byId.has(e.data.slug)) openBoard(e.data.slug);
     if (e.data?.type === "board-dev-exit") dev.exit();
     if (e.data?.type === "board-comment-mode") {
       fileView.querySelector("[data-fj-comment-mode]")?.setAttribute("aria-pressed", String(!!e.data.on));
@@ -1010,7 +1012,7 @@ function init() {
     box.hidden = recent.length === 0;
     q("[data-fb-recents-list]").innerHTML = recent
       .slice(0, 3)
-      .map((id) => `<a class="fb-item" href="${esc(byId.get(id)!.href)}" data-fb-open="${esc(id)}">${icon("file")}<span>${esc(byId.get(id)!.title)}</span></a>`)
+      .map((id) => `<a class="fb-item" href="${esc(linkOf(id))}" data-fb-open="${esc(id)}">${icon("file")}<span>${esc(byId.get(id)!.title)}</span></a>`)
       .join("");
   };
   const openFile = (id: string) => {
@@ -1078,7 +1080,6 @@ function init() {
         [
           { label: "Back to files", icon: "home", run: goHome },
           { label: panel()?.hidden === false ? "Hide file details" : "File details", icon: "file", run: () => togglePanel() },
-          { label: "Open as full page", icon: "external", href: f.href },
           { sep: true },
           ...(data.tours[f.id] ? [{ label: "Follow Rafif (guided tour)", run: () => tour.start() }] : []),
           { label: "Dev Mode", run: () => dev.enter() },
@@ -1086,7 +1087,7 @@ function init() {
           { label: "Comments", run: () => toggleComments(true) },
           ...(data.versions[f.id]?.length ? [{ label: "Version history", run: () => toggleHistory(true) }] : []),
           { sep: true },
-          { label: "Copy link", icon: "copy", run: () => copy(abs(f.href), "Link copied") },
+          { label: "Copy link", icon: "copy", run: () => copy(abs(linkOf(f.id)), "Link copied") },
         ],
         t.closest<HTMLElement>("[data-fj-menu]")!,
       );
@@ -1129,7 +1130,7 @@ function init() {
     }
     if (t.closest("[data-fj-share]")) {
       const f = byId.get(state.active)!;
-      share.open(abs(f.href), f.title, t.closest<HTMLElement>("[data-fj-share]")!);
+      share.open(abs(linkOf(f.id)), f.title, t.closest<HTMLElement>("[data-fj-share]")!);
     }
     if (t.closest("[data-fj-zoom]")) {
       openMenu(
@@ -1182,7 +1183,7 @@ function init() {
   });
   on(grid, "dblclick", (e: MouseEvent) => {
     const card = (e.target as HTMLElement).closest<HTMLElement>(".fb-card");
-    if (card) navigate(byId.get(card.dataset.id!)!.href);
+    if (card) openBoard(card.dataset.id!);
   });
 
   // ---- sidebar drawer (narrow screens) -----------------------------------------------------------
@@ -1440,9 +1441,9 @@ function init() {
       openMenu(
         [
           { label: "Open", icon: "file", run: () => openFile(id) },
-          { label: "Open page", icon: "external", kbd: "↵", href: f.href },
+          { label: "Open board", icon: "file", kbd: "↵", run: () => openBoard(id) },
           { sep: true },
-          { label: "Copy link", icon: "copy", run: () => copy(abs(f.href), "Link copied") },
+          { label: "Copy link", icon: "copy", run: () => copy(abs(linkOf(f.id)), "Link copied") },
           { label: state.fav.has(id) ? "Remove from favorites" : "Add to favorites", icon: "star", run: () => toggleFav(id) },
         ],
         at,
@@ -1675,7 +1676,6 @@ function init() {
           { group: "This file", icon: "chat", label: "Comments", run: () => toggleComments(true) },
           { group: "This file", icon: "file", label: "File details", run: () => togglePanel(true) },
           { group: "This file", icon: "star", label: state.notes ? "Hide annotations" : "Show annotations", run: () => setNotes(!state.notes) },
-          { group: "This file", icon: "external", label: "Open as full page", run: () => (location.href = f.href) },
           { group: "This file", icon: "home", label: "Back to files", run: goHome },
         );
       }
@@ -1806,6 +1806,11 @@ function init() {
 
   // ---- go ---------------------------------------------------------------------------------------
   qa("[data-fb-edited]").forEach((el) => (el.textContent = editedLabel(el.dataset.fbEdited!)));
+  const want = new URLSearchParams(location.search).get("open");
+  if (want && byId.has(want)) {
+    history.replaceState(null, "", location.pathname);
+    openBoard(want);
+  }
   renderRecents();
   renderBell();
   syncFavs();
