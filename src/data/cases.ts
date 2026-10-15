@@ -100,7 +100,7 @@ export const cases: CaseStudy[] = [
     title: "SISTER-BKD",
     full: "National lecturer-workload dashboard",
     client: "Kemdiktisaintek",
-    period: "Sep – Dec 2024",
+    period: "Aug – Dec 2024",
     role: "UI/UX Designer",
     place: "Jakarta Pusat",
     sector: "Government",

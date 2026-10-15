@@ -60,14 +60,14 @@ export const tours: Record<string, TourStep[]> = {
     hello("BEWIZE"),
     { at: "context", say: "One platform, three products for corporate banking: Cash Management, Value Chain and Trade Finance." },
     { at: "work", say: "My scope: research, requirements, flows, wireframes, prototypes and UI." },
-    { at: "details", say: "This one is ongoing, so the details are best over a call." },
+    { at: "details", say: "Flows, wireframes and documents are shared on request. This section is where to ask." },
     bye,
   ],
   "great-giant-foods": [
     hello("Great Giant Foods"),
     { at: "context", say: "Drone AI covers 33,000 hectares; SPKMobile serves about 25,000 field workers." },
     { at: "work", say: "Field research first, then maps, analytics and mobile workflows." },
-    { at: "details", say: "This one is ongoing, so the details are best over a call." },
+    { at: "details", say: "Flows, wireframes and documents are shared on request. This section is where to ask." },
     bye,
   ],
 };
