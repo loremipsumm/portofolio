@@ -162,7 +162,7 @@ function init() {
         if (o.mine !== undefined && o.mine !== epoch) return rej(CANCEL);
         if (a.mv !== id) return res();
         const t = Math.min(1, (now - t0) / ms);
-        const k = o.line ? (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2) : t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const k = o.line ? t * t * (3 - 2 * t) : t * t * t * (10 - 15 * t + 6 * t * t);
         const u = 1 - k;
         const px = u * u * x0 + 2 * u * k * cx + k * k * x;
         const py = u * u * y0 + 2 * u * k * cy + k * k * y;
@@ -174,7 +174,7 @@ function init() {
       requestAnimationFrame(step);
     });
   }
-  const travel = (a: Actor, x: number, y: number) => Math.round(Math.min(900, Math.max(320, Math.hypot(x - a.x, y - a.y) * 0.7)));
+  const travel = (a: Actor, x: number, y: number) => Math.round(Math.min(1500, Math.max(650, Math.hypot(x - a.x, y - a.y) * 1.15)));
 
   const corner = (b: Box, c: Corner) => ({ x: b.x + (c === "ne" || c === "se" ? b.w : 0), y: b.y + (c === "sw" || c === "se" ? b.h : 0) });
   // Where a cursor waits when it has nothing to do: just outside its block, in the gap below it.
@@ -268,7 +268,7 @@ function init() {
     face(a, { h: "r", v: "d" });
     if (a.box) {
       const k = parkOf(a, a.box);
-      void move(a, k.x, k.y, 600);
+      void move(a, k.x, k.y, 1000);
     }
   }
 
@@ -304,12 +304,16 @@ function init() {
     const line = tr(a.scene.say ?? "");
     const tag = tr("Example comment");
     a.el.classList.add("is-chatting");
+    await sleep(450); // the bubble opens before the first letter
+    guard(mine);
     for (let i = 1; i <= line.length; i++) {
       a.chat.innerHTML = `${line.slice(0, i).replace(/&/g, "&amp;").replace(/</g, "&lt;")}<small>${tag}</small>`;
-      await sleep(22);
+      const c = line[i - 1];
+      const beat = /[.,:;!?]/.test(c) ? 260 : c === " " ? 30 : 0;
+      await sleep(52 + Math.random() * 38 + beat);
       guard(mine);
     }
-    await sleep(2200 + line.length * 26);
+    await sleep(3000 + line.length * 40);
     guard(mine);
   }
 
@@ -329,48 +333,48 @@ function init() {
         const s = corner(b, from);
         const e = corner(b, to);
         // 1. up to the corner the drag starts from, press the mouse
-        await move(a, s.x, s.y, a.primed ? 280 : travel(a, s.x, s.y), { mine });
+        await move(a, s.x, s.y, a.primed ? 550 : travel(a, s.x, s.y), { mine });
         a.el.classList.add("is-down");
-        await sleep(110);
+        await sleep(220);
         guard(mine);
         // 2. drag to the opposite corner: the rectangle is drawn between the start and the cursor, as in Figma
         face(a, { h: viewW() - e.x < ROOM ? "l" : "r", v: e.y > b.y + b.h / 2 ? "d" : "u" });
         setRect(a.marq, s, s);
         a.marq.classList.add("is-on");
         a.end = to;
-        await move(a, e.x, e.y, 560, { mine, line: true, frame: (x, y) => setRect(a.marq, s, { x, y }) });
+        await move(a, e.x, e.y, 950, { mine, line: true, frame: (x, y) => setRect(a.marq, s, { x, y }) });
         // 3. release: the marquee gives way to a selection frame with handles and its size
         a.el.classList.remove("is-down");
         setRect(a.sel, { x: b.x, y: b.y }, { x: b.x + b.w, y: b.y + b.h });
         a.marq.classList.remove("is-on");
         a.sel.classList.add("is-on");
-        await sleep(240);
+        await sleep(450);
         guard(mine);
         // 4. say it, then react
         if (a.scene.say) await say(a, mine);
         if (a.scene.react) {
           emote(a, a.scene.react);
-          await sleep(1300);
+          await sleep(1600);
           guard(mine);
         }
       } else {
         // comment / react: walk to a spot outside the block
         const p = anchorOf(a, b);
         face(a, p);
-        await move(a, p.x, p.y, a.primed ? 420 : travel(a, p.x, p.y), { mine });
+        await move(a, p.x, p.y, a.primed ? 750 : travel(a, p.x, p.y), { mine });
         if (mode === "comment") {
           if (a.scene.say) await say(a, mine);
           if (a.scene.react) emote(a, a.scene.react);
         } else {
           ping(a);
           emote(a, a.scene.react ?? "👍", 5);
-          await sleep(1800);
+          await sleep(2200);
           guard(mine);
         }
       }
       // let go and go back to waiting beside the block
       reset(a);
-      await sleep(500);
+      await sleep(700);
     } catch (e) {
       if (e !== CANCEL) throw e;
     } finally {
@@ -422,7 +426,7 @@ function init() {
       if (!a.primed && near(b)) {
         a.primed = true;
         const k = primeOf(a, b);
-        void move(a, k.x, k.y, travel(a, k.x, k.y) + 300);
+        void move(a, k.x, k.y, travel(a, k.x, k.y) + 500);
       }
       if (v >= START_AT && v > bestV) {
         best = a;
