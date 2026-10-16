@@ -40,6 +40,9 @@ const area: Record<string, string> = {
 };
 const areas = ["Government", "Education", "Business"];
 const areaIcon: Record<string, string> = { Government: "star", Education: "user", Business: "grid" };
+// Still unfinished: kept out of "My Work" and the team folders, only reachable from the Draft
+// section in the sidebar. Full access once opened, same as any other case study.
+const draftIds = new Set(["bsi-bewize", "great-giant-foods"]);
 const tabNames: Record<string, string> = { "sister-bkd": "SisterBKD", teachtechai: "Teachtech", "bsi-bewize": "BEWIZE" };
 const yearOf = (s: string) => Number(s.match(/\d{4}/g)?.pop() ?? 0);
 const linkedin = site.socials.find((s) => s.label === "LinkedIn")?.href ?? "#";
@@ -59,6 +62,7 @@ interface FileItem {
   href: string;
   meta: [string, string][];
   stats: { n: string; l: string }[];
+  draft: boolean;
 }
 
 const files: FileItem[] = [
@@ -76,6 +80,7 @@ const files: FileItem[] = [
     href: `/work/${p.slug}`,
     meta: [["Client", p.client], ["Year", p.year], ["Area", area[p.slug]]] as [string, string][],
     stats: [],
+    draft: draftIds.has(p.slug),
   })),
   ...cases.map((c) => ({
     id: c.slug,
@@ -91,6 +96,7 @@ const files: FileItem[] = [
     href: `/work/${c.slug}`,
     meta: [["Client", c.client], ["Period", c.period], ["Role", c.role], ["Sector", c.sector]] as [string, string][],
     stats: c.stats,
+    draft: draftIds.has(c.slug),
   })),
 ];
 const openTabs: string[] = []; // tabs appear once a file is opened
@@ -155,11 +161,14 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
       <!-- SIDEBAR -->
       <aside class="fb-sidebar" data-fb-sidebar aria-label="Workspace">
         <div class="fb-side-top">
-          <button class="fb-user" data-fb-user aria-haspopup="menu">
-            <span class="fb-avatar">RA</span>
-            <span class="fb-user-name">{site.name}</span>
-            <span set:html={icon("chevron", 12)} />
-          </button>
+          <div class="fb-user-row">
+            <button class="fb-user" data-fb-user aria-haspopup="menu">
+              <span class="fb-avatar">RA</span>
+              <span class="fb-user-name">{site.name}</span>
+              <span set:html={icon("chevron", 12)} />
+            </button>
+            <button class="fb-bell" data-fb-bell aria-label="Notifications" title="Notifications" aria-haspopup="menu"><span set:html={icon("bell")} /><b class="fb-bell-n" data-fb-bell-n hidden></b></button>
+          </div>
           <div class="fb-divider"></div>
           <div class="fb-search">
             <span set:html={icon("search")} />
@@ -175,7 +184,7 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
           <button class="fb-team-head fb-all" data-fb-area="">
             <span class="fb-team-ico" set:html={icon("folder", 16)} />
             <span class="fb-team-name">All projects</span>
-            <span class="fb-all-count">{files.length}</span>
+            <span class="fb-all-count">{files.filter((f) => !f.draft).length}</span>
           </button>
           {
             areas.map((a) => (
@@ -187,7 +196,7 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
                 </button>
                 <div class="fb-team-items">
                   {files
-                    .filter((f) => f.area === a)
+                    .filter((f) => f.area === a && !f.draft)
                     .map((f) => (
                       <a class="fb-item" href={`/?open=${f.id}`} data-fb-open={f.id}>
                         <span set:html={icon("file")} />
@@ -197,6 +206,14 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
                 </div>
               </div>
             ))
+          }
+          {
+            files.some((f) => f.draft) && (
+              <button class="fb-team-head" data-fb-area="Draft">
+                <span class="fb-team-ico" set:html={icon("file", 16)} />
+                <span class="fb-team-name">Draft</span>
+              </button>
+            )
           }
           </div>
         </div>
@@ -232,7 +249,6 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
               <button class="fb-create-drop" data-fb-talk aria-label="More ways to get in touch" aria-haspopup="menu" set:html={icon("chevron")} />
             </div>
             <button class="fb-btn fb-share" data-fb-share>Share</button>
-            <button class="fb-sq fb-bell" data-fb-bell aria-label="Notifications" title="Notifications" aria-haspopup="menu"><span set:html={icon("bell")} /><b class="fb-bell-n" data-fb-bell-n hidden></b></button>
             <button class="fb-sq" data-fb-settings aria-label="Settings" title="Settings" aria-haspopup="menu" set:html={icon("settings")} />
             <button class="fb-sq fb-fav" data-fb-favfilter aria-label="Show favorites only" aria-pressed="false" title="Favorites" set:html={icon("star")} />
           </div>
@@ -258,7 +274,7 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
               files.map((f, i) => {
                 const Cover = covers[f.id];
                 return (
-                  <article class="fb-card" style={`--i:${i}`} data-id={f.id} data-area={f.area} data-type={f.type} data-year={f.year} data-name={f.title} data-sub={f.sub}>
+                  <article class="fb-card" style={`--i:${i}`} data-id={f.id} data-area={f.area} data-type={f.type} data-year={f.year} data-name={f.title} data-sub={f.sub} hidden={f.draft}>
                     <a class="fb-thumb" href={`/?open=${f.id}`} data-fb-open={f.id}>
                       {Cover ? (
                         <div class="fb-thumb-inner"><Cover class="!rounded-none !ring-0" /></div>
@@ -2238,13 +2254,36 @@ const fact = (k: string) => facts.find((f) => f.k === k)?.v ?? "";
   }
 
   /* Notifications: the bell and its list of comments, Figma-style */
+  /* The bell sits beside the account name at the top of the sidebar, as in Figma. */
+  .fb-user-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .fb-user-row .fb-user {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
   .fb-bell {
     position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 30px;
+    height: 30px;
+    margin-top: 7px;
+    border-radius: 6px;
+    color: var(--fb-text2);
+  }
+  .fb-bell:hover,
+  .fb-bell[aria-expanded="true"] {
+    background: var(--fb-hover);
+    color: #fff;
   }
   .fb-bell-n {
     position: absolute;
-    top: -6px;
-    right: -6px;
+    top: 1px;
+    right: 1px;
     display: grid;
     place-items: center;
     min-width: 16px;

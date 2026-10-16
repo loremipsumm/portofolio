@@ -19,6 +19,7 @@ interface FileItem {
   href: string;
   meta: [string, string][];
   stats: { n: string; l: string }[];
+  draft: boolean;
 }
 interface MenuItem {
   label?: string;
@@ -256,8 +257,9 @@ function init() {
     for (const card of cards) {
       const f = byId.get(card.dataset.id!)!;
       const hay = [f.title, f.full, f.sub, f.tags.join(" "), f.area, f.type].join(" ").toLowerCase();
+      // Drafts only ever show up under the Draft bucket, never in "All projects" or a real team folder.
       const ok =
-        (!state.area || f.area === state.area) &&
+        (state.area === "Draft" ? f.draft : !f.draft && (!state.area || f.area === state.area)) &&
         (state.type === "All types" || f.type === state.type) &&
         (!term || hay.includes(term)) &&
         (!state.favOnly || state.fav.has(f.id));
@@ -1326,7 +1328,7 @@ function init() {
         run: () => openBoard(n.file, n.thread),
       });
     }
-    openMenu(items, btn, { right: true, variant: "inbox" });
+    openMenu(items, btn, { variant: "inbox" });
     data.inbox.forEach((n) => seen.add(n.thread)); // shown now, so they count as seen
     store.set("fb-seen", JSON.stringify([...seen]));
     renderBell();
